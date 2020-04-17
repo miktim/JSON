@@ -9,10 +9,10 @@ Release notes:
   
 Overview:
 
-  public static Object parse(String json) throws IOException;
-  public static Object parse(Reader reader) throws IOException;
-  public static String stringify(Object object) throws IllegalArgumentException;
-  
+    public static Object parse(String json) throws IOException;
+    public static Object parse(Reader reader) throws IOException;
+    public static String stringify(Object object) throws IllegalArgumentException;
+
   Constructor:
     public JSON();
 
@@ -20,7 +20,7 @@ Overview:
     public String stringify();
     public String toString();
     public JSON clone() throws CloneNotSupportedException;
-    public LinkedHashMap<String, Object> listProperties();
+    public List<String> list();
     public boolean exists(String propName);
     public Object get(String propName) throws IllegalArgumentException;
     public JSON set(String propName, Object value) throws IllegalArgumentExceptio;

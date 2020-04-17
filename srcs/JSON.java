@@ -18,8 +18,10 @@ import java.util.Map;
 import java.util.LinkedHashMap;
 import java.io.StringReader;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
 import static java.util.Arrays.binarySearch;
+import java.util.List;
 import java.util.Vector; //obsolete?
 
 public class JSON implements Cloneable {
@@ -60,10 +62,10 @@ public class JSON implements Cloneable {
         }
     }
 
-    public LinkedHashMap<String, Object> listProperties() {
-        return this.properties;
+    public List<String> list() {
+        return new ArrayList<> (this.properties.keySet());
     }
-
+    
     public boolean exists(String propName) {
         return listProperties().containsKey(propName);
     }
@@ -85,6 +87,10 @@ public class JSON implements Cloneable {
 
     public Object remove(String propName) {
         return this.listProperties().remove(propName);
+    }
+
+    private LinkedHashMap<String, Object> listProperties() {
+        return this.properties;
     }
 
     static class Parser {

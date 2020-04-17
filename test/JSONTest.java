@@ -24,6 +24,7 @@ public class JSONTest {
                 .set("BigDecimal", new BigDecimal("3.141592653589793238462643383279"))
                 .set("MaxLong", Long.MAX_VALUE);
         System.out.println(json);
+        System.out.println(json.list());
 //        System.out.println(JSON.parse("\uD834\uDD1E"));
         System.out.println((JSON) JSON.parse(json.stringify()));
         System.out.println(JSON.escapeString((String) json.get("Escaped")));
