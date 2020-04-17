@@ -1,6 +1,5 @@
 /**
- * my JSON, java 1.7+
- * MIT (c) 2020 miktim@mail.ru (invented the wheel?)
+ * my JSON MIT (c) 2020 miktim@mail.ru (invented the wheel?)
  *
  * RFC 8259 https://datatracker.ietf.org/doc/rfc8259/?include_text=1
  * Release notes:
