@@ -3,8 +3,8 @@
 Release notes:
   - java 1.7+
   - in accordance with RFC 8259: https://datatracker.ietf.org/doc/rfc8259/?include_text=1
-  - supported java types:
-     JSON object, Object[] array, String, Number, Boolean, null;
+  - supported java objects:
+     JSON object, String, Number, Boolean, null, Object[] array of listed types;
   - parser implements BigDecimal for numbers
   
 Overview:
@@ -23,5 +23,5 @@ Overview:
     public List<String> list();
     public boolean exists(String propName);
     public Object get(String propName) throws IllegalArgumentException;
-    public JSON set(String propName, Object value) throws IllegalArgumentExceptio;
+    public JSON set(String propName, Object value) throws IllegalArgumentException;
     public Object remove(String propName)
