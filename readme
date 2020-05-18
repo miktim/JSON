@@ -1,4 +1,4 @@
-# my JSON package, MIT (c) 2020 miktim@mail.ru (invented the wheel?)
+# Java JSON parser/serializer, MIT (c) 2020 miktim@mail.ru (invented the wheel?)
 
 Release notes:
   - java 1.7+, Android compatible;
@@ -6,7 +6,7 @@ Release notes:
   - supported java objects:
       JSON object, String, Number, Boolean, null, Object[] array of listed types;
   - parser implements BigDecimal for numbers.
-  
+
 Overview:
     static Object parse(String json) throws IOException;
     static Object parse(Reader reader) throws IOException;
@@ -24,5 +24,5 @@ Overview:
     Object get(String propName) throws IllegalArgumentException;
     JSON set(String propName, Object value) throws IllegalArgumentException;
     Object remove(String propName)
-    
+
 Usage example see in https://github.com/miktim/JSON/blob/master/test/JSONTest.java
