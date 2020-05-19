@@ -15,9 +15,13 @@ public class JSONTest {
                 .set("False", (Boolean) false)
                 .set("Double", 3.141592653589793238462643383279)
                 .set("BigDecimal", new BigDecimal("3.141592653589793238462643383279"))
-                .set("MaxLong", Long.MAX_VALUE);
+                .set("MaxLong", Long.MAX_VALUE)
+                .set("MinInt", Integer.MIN_VALUE);
         System.out.println(json);
         System.out.println(json.list());
+        System.out.println(json.get("MinInt").getClass().getSimpleName()
+                + " is Number? "
+                + (json.get("MinInt") instanceof Number));
 //        System.out.println(JSON.parse("\uD834\uDD1E"));
         System.out.println((JSON) JSON.parse(json.stringify()));
         System.out.println(JSON.escapeString((String) json.get("Escaped")));

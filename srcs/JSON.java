@@ -1,11 +1,12 @@
 /**
- * my JSON MIT (c) 2020 miktim@mail.ru (invented the wheel?)
+ * Java JSON parser/serializer, MIT (c) 2020 miktim@mail.ru
  *
- * RFC 8259 https://datatracker.ietf.org/doc/rfc8259/?include_text=1
  * Release notes:
- * - supported java types:
- *     JSON object, Object[] array, String, Number, Boolean, null;
- * - parser implements BigDecimal for numbers;
+ * - java 1.7+, Android compatible;
+ * - in accordance with RFC 8259: https://datatracker.ietf.org/doc/rfc8259/?include_text=1
+ * - supported java objects:
+ *   JSON object, String, Number, Boolean, null, Object[] array of listed types;
+ * - parser implements BigDecimal for numbers.
  *
  * Created: 2020-03-07
  */
@@ -17,6 +18,7 @@ import java.util.Map;
 import java.util.LinkedHashMap;
 import java.io.StringReader;
 import java.math.BigDecimal;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import static java.util.Arrays.binarySearch;
@@ -25,11 +27,11 @@ import java.util.Vector; //obsolete?
 
 public class JSON implements Cloneable {
 
-    public static Object parse(String json) throws IOException {
+    public static Object parse(String json) throws IOException, ParseException {
         return parse(new StringReader(json));
     }
 
-    public static Object parse(Reader reader) throws IOException {
+    public static Object parse(Reader reader) throws IOException, ParseException {
         return (new Parser()).parse(reader);
     }
 
@@ -56,15 +58,15 @@ public class JSON implements Cloneable {
         super.clone();
         try {
             return (JSON) JSON.parse(this.stringify());
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new CloneNotSupportedException();
         }
     }
 
     public List<String> list() {
-        return new ArrayList<> (this.properties.keySet());
+        return new ArrayList<>(this.properties.keySet());
     }
-    
+
     public boolean exists(String propName) {
         return listProperties().containsKey(propName);
     }
@@ -106,12 +108,14 @@ public class JSON implements Cloneable {
 
         private Reader reader;
         private int lastChar = 0x20;
+        private int offset = 0;
 
-        char getChar() throws IOException {
+        char getChar() throws IOException, ParseException {
             if (eot()) { // end of text
-                throw new IOException("unexpected EOT");
+                throw new ParseException("Unexpected EOT", offset);
             }
             this.lastChar = this.reader.read();
+            this.offset++;
             return this.lastChar();
         }
 
@@ -127,7 +131,7 @@ public class JSON implements Cloneable {
             return this.lastChar == -1;
         }
 
-        String nextChars(char[] chars) throws IOException {
+        String nextChars(char[] chars) throws IOException, ParseException {
             StringBuilder sb = new StringBuilder(64); // ???CharBuffer
             while (charIn(chars, lastChar())) {
                 sb.append(Character.toString(lastChar()));
@@ -136,12 +140,12 @@ public class JSON implements Cloneable {
             return sb.toString();
         }
 
-        char skipWhitespaces() throws IOException {
+        char skipWhitespaces() throws IOException, ParseException {
             nextChars(WHITESPACES);
             return lastChar();
         }
 
-        boolean expectedChar(char echar) throws IOException {
+        boolean expectedChar(char echar) throws IOException, ParseException {
             if (skipWhitespaces() == echar) {
                 getChar(); // skip expected char
                 return true;
@@ -149,7 +153,7 @@ public class JSON implements Cloneable {
             return false;
         }
 
-        private Object parseObject() throws IOException {
+        private Object parseObject() throws IOException, ParseException {
 //            skipWhitespaces(); // leading
             Object object = null;
             if (expectedChar('{')) { // JSON object
@@ -160,11 +164,12 @@ public class JSON implements Cloneable {
                         if ((propName instanceof String) && expectedChar(':')) {
                             ((JSON) object).set((String) propName, parseObject());
                         } else {
-                            throw new IOException("property name expected");
+                            throw new ParseException("Property name expected",
+                                    offset);
                         }
                     } while (expectedChar(','));
                     if (!expectedChar('}')) {
-                        throw new IOException("'}' expected");
+                        throw new ParseException("'}' expected", offset);
                     }
                 }
             } else if (expectedChar('[')) { // JSON array
@@ -174,7 +179,7 @@ public class JSON implements Cloneable {
                         list.add(parseObject());
                     } while (expectedChar(','));
                     if (!expectedChar(']')) {
-                        throw new IOException("']' expected");
+                        throw new ParseException("']' expected", offset);
                     }
                 }
                 object = list.toArray();
@@ -201,23 +206,32 @@ public class JSON implements Cloneable {
                         object = null;
                         break;
                     default:
-                        throw new IOException("unknown literal");
+                        throw new ParseException("Unknown literal: " + literal,
+                                offset - literal.length());
                 }
             } else if (charIn(NUMBERS, lastChar())) {
-                object = (Number) new BigDecimal(nextChars(NUMBERS)); // NumberFormatException
+                String number = nextChars(NUMBERS);
+                try {
+                    object = (Number) new BigDecimal(number);
+                } catch (NumberFormatException e) {
+                    throw new ParseException("Unparseable number: " + number,
+                            offset - number.length());
+                }
             } else {
-                throw new IOException("unexpected char");
+                throw new ParseException("Unexpected char: " + lastChar(),
+                        offset - 1);
             }
             skipWhitespaces(); // trailing
             return object;
         }
 
-        Object parse(Reader reader) throws IOException {
+        Object parse(Reader reader) throws IOException, ParseException {
             this.reader = reader;
             this.lastChar = 0x20; //!!!
+            this.offset = 0;
             Object object = parseObject();
             if (!eot()) { // not end of text
-                throw new IOException("EOT expected");
+                throw new ParseException("EOT expected", offset);
             }
             return object;
         }

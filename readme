@@ -8,8 +8,8 @@ Release notes:
   - parser implements BigDecimal for numbers.
 
 Overview:
-    static Object parse(String json) throws IOException;
-    static Object parse(Reader reader) throws IOException;
+    static Object parse(String json) throws IOException, ParseException;
+    static Object parse(Reader reader) throws IOException, ParseException;
     static String stringify(Object object) throws IllegalArgumentException;
 
   Constructor:
