@@ -72,14 +72,14 @@ public class JSON implements Cloneable {
     }
 
     public Object get(String propName) throws IllegalArgumentException {
-        if (propName == null || propName.isEmpty() || !exists(propName)) {
+        if (propName == null) { // || propName.isEmpty() || !exists(propName)) {
             throw new IllegalArgumentException();
         }
         return listProperties().get(propName);
     }
 
     public JSON set(String propName, Object value) throws IllegalArgumentException {
-        if (propName == null || propName.isEmpty()) {
+        if (propName == null) {// || propName.isEmpty()) {
             throw new IllegalArgumentException();
         }
         listProperties().put(propName, checkObjectType(value));
@@ -110,9 +110,17 @@ public class JSON implements Cloneable {
         private int lastChar = 0x20;
         private int offset = 0;
 
+        ParseException newParseException(String message, String lexeme, int offset) {
+            int off = offset - (lexeme == null ? 0 : lexeme.length());
+            String msg = message
+                    + (lexeme == null ? "" : " \"" + lexeme + "\"")
+                    + " at " + off;
+            return new ParseException(msg, off);
+        }
+
         char getChar() throws IOException, ParseException {
             if (eot()) { // end of text
-                throw new ParseException("Unexpected EOT", offset);
+                throw newParseException("Unexpected EOT", null, offset);
             }
             this.lastChar = this.reader.read();
             this.offset++;
@@ -164,12 +172,12 @@ public class JSON implements Cloneable {
                         if ((propName instanceof String) && expectedChar(':')) {
                             ((JSON) object).set((String) propName, parseObject());
                         } else {
-                            throw new ParseException("Property name expected",
-                                    offset);
+                            throw newParseException("Property name expected",
+                                    null, offset);
                         }
                     } while (expectedChar(','));
                     if (!expectedChar('}')) {
-                        throw new ParseException("'}' expected", offset);
+                        throw newParseException("\"}\" expected", null, offset);
                     }
                 }
             } else if (expectedChar('[')) { // JSON array
@@ -179,7 +187,8 @@ public class JSON implements Cloneable {
                         list.add(parseObject());
                     } while (expectedChar(','));
                     if (!expectedChar(']')) {
-                        throw new ParseException("']' expected", offset);
+                        throw newParseException("\"]\" expected",
+                                null, offset);
                     }
                 }
                 object = list.toArray();
@@ -191,8 +200,13 @@ public class JSON implements Cloneable {
                         sb.append(getChar());
                     }
                 }
+                try {
+                    object = unescapeString(sb.toString());
+                } catch (NumberFormatException | IndexOutOfBoundsException e) {
+                    throw newParseException("Unparseable surrogate in",
+                            sb.toString(), offset - 1); // leading quote
+                }
                 getChar(); // skip trailing double quote
-                object = unescapeString(sb.toString());
             } else if (charIn(LITERALS, lastChar())) {
                 String literal = nextChars(LITERALS);
                 switch (literal) {
@@ -206,20 +220,20 @@ public class JSON implements Cloneable {
                         object = null;
                         break;
                     default:
-                        throw new ParseException("Unknown literal: " + literal,
-                                offset - literal.length());
+                        throw newParseException("Unknown literal:",
+                                literal, offset);
                 }
             } else if (charIn(NUMBERS, lastChar())) {
                 String number = nextChars(NUMBERS);
                 try {
                     object = (Number) new BigDecimal(number);
                 } catch (NumberFormatException e) {
-                    throw new ParseException("Unparseable number: " + number,
-                            offset - number.length());
+                    throw newParseException("Unparseable number:",
+                            number, offset);
                 }
             } else {
-                throw new ParseException("Unexpected char: " + lastChar(),
-                        offset - 1);
+                throw newParseException("Unexpected char:",
+                        Character.toString(lastChar()), offset + 1); // !
             }
             skipWhitespaces(); // trailing
             return object;
@@ -228,10 +242,10 @@ public class JSON implements Cloneable {
         Object parse(Reader reader) throws IOException, ParseException {
             this.reader = reader;
             this.lastChar = 0x20; //!!!
-            this.offset = 0;
+            this.offset = -1;
             Object object = parseObject();
             if (!eot()) { // not end of text
-                throw new ParseException("EOT expected", offset);
+                throw newParseException("EOT expected", null, offset);
             }
             return object;
         }
@@ -298,8 +312,14 @@ public class JSON implements Cloneable {
                     sb.append(CHARS_UNESCAPED[ei]);
                     continue;
                 } else if (c == 'u') {
-                    sb.append((char) Integer.parseInt(new String(chars, ++i, 4), 16));
-                    i += 3;
+//                    try {
+                    sb.append((char) Integer.parseInt(
+                            new String(chars, i + 1, 4), 16));
+//                    } catch (NumberFormatException | IndexOutOfBoundException e) {
+//                        sb.append("\\u"); // ignore unparseable surrogate
+//                        continue;
+//                    }
+                    i += 4;
                     continue;
                 }
             }
