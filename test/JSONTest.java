@@ -32,7 +32,8 @@ public class JSONTest {
         System.out.println(JSON.escapeString((String) json.get("Escaped")));
         System.out.println(json.clone());
         System.out.println(((Number) json.get("Double")).longValue());
-// examples from RFC 8259        
+
+// examples from RFC 8259 https://datatracker.ietf.org/doc/rfc8259/?include_text=1
         System.out.println(JSON.parse("\"\uD834\uDD1E\"")); // G-clef
         System.out.println(JSON.parse("3.141592653589793238462643383279"));
         System.out.println(JSON.parse("null"));
@@ -82,19 +83,26 @@ public class JSONTest {
                 + "      ]";
         object = JSON.parse(example2);
         System.out.println(JSON.stringify(((Object[]) object)[1]));
+        
 // Example from https://docs.oracle.com/en/database/oracle/oracle-database/12.2/adjsn/json-data.html#GUID-FBC22D72-AA64-4B0A-92A2-837B32902E2C        
-        object = JSON.parse(new FileReader(new File(path,"json.json")));
-        System.out.println(((JSON)object).get("AllowPartialShipment"));
-// Exceptions        
+        json = (JSON) JSON.parse(new FileReader(new File(path,"json.json")));
+        System.out.println(json.get("AllowPartialShipment"));
+        Object[] array = (Object[]) json.get("LineItems");
+        json = (JSON) array[1];
+        System.out.println(json.get("Quantity"));
+        json = (JSON) json.get("Part");
+        System.out.println(json.get("Description"));
+        json.set("Description","Naked Gun");
+        System.out.println(JSON.stringify(array));
+// ParseExceptions        
 //        System.out.println(JSON.parse("\"asfas\\uD83\uDD1E\"")); // unparseable surrogate
-//        System.out.println(JSON.parse("  \"asfas\uD834\\uDD1\"")); // unparseable surrogate
+//        System.out.println(JSON.parse("\"\uD834\\uDD1\"")); // unparseable surrogate
 //        System.out.println(JSON.parse("123e")); // unparseable number
 //        System.out.println(JSON.parse("123 e")); // EOT Expected
 //        System.out.println(JSON.parse("{\"Latitude\":  37.371991\n\"")); // "}" expected
 //        System.out.println(JSON.parse("b123")); // unexpected char
 //        System.out.println(JSON.parse("falsen")); // unknown literal
 //        System.out.println(JSON.parse("{\"\":123}")); // empty propNames allowed
-        
-    }
 
+    }
 }

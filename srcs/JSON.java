@@ -108,7 +108,7 @@ public class JSON implements Cloneable {
 
         private Reader reader;
         private int lastChar = 0x20;
-        private int offset = 0;
+        private int offset = -1;
 
         ParseException newParseException(String message, String lexeme, int offset) {
             int off = offset - (lexeme == null ? 0 : lexeme.length());
@@ -200,12 +200,7 @@ public class JSON implements Cloneable {
                         sb.append(getChar());
                     }
                 }
-                try {
-                    object = unescapeString(sb.toString());
-                } catch (NumberFormatException | IndexOutOfBoundsException e) {
-                    throw newParseException("Unparseable surrogate in",
-                            sb.toString(), offset - 1); // leading quote
-                }
+                object = unescapeString(sb.toString()); // may throw ParseException
                 getChar(); // skip trailing double quote
             } else if (charIn(LITERALS, lastChar())) {
                 String literal = nextChars(LITERALS);
@@ -300,7 +295,7 @@ public class JSON implements Cloneable {
     private static final char[] ESCAPED_CHARS = {'"', '/', '\\', 'b', 'f', 'n', 'r', 't'};
     private static final char[] CHARS_UNESCAPED = {0x22, 0x2F, 0x5C, 0x8, 0xC, 0xA, 0xD, 0x9};
 
-    public static String unescapeString(String s) {
+    public static String unescapeString(String s) throws ParseException {
         StringBuilder sb = new StringBuilder(64);
         char[] chars = s.toCharArray();
         for (int i = 0; i < chars.length; i++) {
@@ -312,13 +307,15 @@ public class JSON implements Cloneable {
                     sb.append(CHARS_UNESCAPED[ei]);
                     continue;
                 } else if (c == 'u') {
-//                    try {
-                    sb.append((char) Integer.parseInt(
-                            new String(chars, i + 1, 4), 16));
-//                    } catch (NumberFormatException | IndexOutOfBoundException e) {
+                    try {
+                        sb.append((char) Integer.parseInt(
+                                new String(chars, i + 1, 4), 16));
+                    } catch (NumberFormatException | IndexOutOfBoundsException e) {
 //                        sb.append("\\u"); // ignore unparseable surrogate
 //                        continue;
-//                    }
+                        throw new ParseException("Unparseable surrogate in: \""
+                                + s + "\" at " + --i, i);
+                    }
                     i += 4;
                     continue;
                 }
