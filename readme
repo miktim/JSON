@@ -5,7 +5,8 @@ Release notes:
   - in accordance with RFC 8259: https://datatracker.ietf.org/doc/rfc8259/?include_text=1
   - supported java objects:
       JSON object, String, Number, Boolean, null, Object[] array of listed types;
-  - parser implements BigDecimal for numbers.
+  - parser implements BigDecimal for numbers;
+  - JSON properties are stored in order of appearance/creation.
 
 Overview:
     static Object parse(String json) throws IOException, ParseException;

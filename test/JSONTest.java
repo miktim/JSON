@@ -28,13 +28,16 @@ public class JSONTest {
         System.out.println(json.get("MinInt").getClass().getSimpleName()
                 + " is Number? "
                 + (json.get("MinInt") instanceof Number));
+        System.out.println(json.remove(null));
+        System.out.println(json.exists("nonexistent property"));
+        System.out.println(json.get("nonexistent property"));
         System.out.println((JSON) JSON.parse(json.stringify()));
         System.out.println(JSON.escapeString((String) json.get("Escaped")));
         System.out.println(json.clone());
         System.out.println(((Number) json.get("Double")).longValue());
 
 // examples from RFC 8259 https://datatracker.ietf.org/doc/rfc8259/?include_text=1
-        System.out.println(JSON.parse("\"\uD834\uDD1E\"")); // G-clef
+        System.out.println(JSON.parse("\"\\uD834\\uDD1E\"")); // G-clef
         System.out.println(JSON.parse("3.141592653589793238462643383279"));
         System.out.println(JSON.parse("null"));
 
@@ -94,15 +97,26 @@ public class JSONTest {
         System.out.println(json.get("Description"));
         json.set("Description","Naked Gun");
         System.out.println(JSON.stringify(array));
+        array[0] = 123;
+        array[1] = null;
+        System.out.println(JSON.stringify(array));
 // ParseExceptions        
-//        System.out.println(JSON.parse("\"asfas\\uD83\uDD1E\"")); // unparseable surrogate
-//        System.out.println(JSON.parse("\"\uD834\\uDD1\"")); // unparseable surrogate
+//        System.out.println(JSON.parse("\"asfas\\uD83\uDD1E\"")); // unparseable u-escaped char
+//        System.out.println(JSON.parse("\"\uD834\\uDD1\"")); // unparseable u-escaped char
 //        System.out.println(JSON.parse("123e")); // unparseable number
 //        System.out.println(JSON.parse("123 e")); // EOT Expected
 //        System.out.println(JSON.parse("{\"Latitude\":  37.371991\n\"")); // "}" expected
 //        System.out.println(JSON.parse("b123")); // unexpected char
 //        System.out.println(JSON.parse("falsen")); // unknown literal
-//        System.out.println(JSON.parse("{\"\":123}")); // empty propNames allowed
-
+// IllegalArgumentExceptions
+//        json.set(null,123); // IllegalArgumentException
+//        json.set("File", new File(path,"json.json")); // IllegalArgumentException
+//        json.get(null); // IllegalArgumentException
+//        array[1] = new File(path,"json.json");
+//        JSON.stringify(array); // IllegalArgumentException
+// Empty property name allowed
+        System.out.println(JSON.parse("{\"\":123}"));
+        json.set("", "empty property name");
+        System.out.println(json.get(""));
     }
 }

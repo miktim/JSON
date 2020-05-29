@@ -6,7 +6,8 @@
  * - in accordance with RFC 8259: https://datatracker.ietf.org/doc/rfc8259/?include_text=1
  * - supported java objects:
  *   JSON object, String, Number, Boolean, null, Object[] array of listed types;
- * - parser implements BigDecimal for numbers.
+ * - parser implements BigDecimal for numbers;
+ * - JSON properties are stored in creation/appearance order.
  *
  * Created: 2020-03-07
  */
@@ -311,9 +312,9 @@ public class JSON implements Cloneable {
                         sb.append((char) Integer.parseInt(
                                 new String(chars, i + 1, 4), 16));
                     } catch (NumberFormatException | IndexOutOfBoundsException e) {
-//                        sb.append("\\u"); // ignore unparseable surrogate
+//                        sb.append("\\u"); // ignore unparseable u-escaped char
 //                        continue;
-                        throw new ParseException("Unparseable surrogate in: \""
+                        throw new ParseException("Unparseable u-escaped char in: \""
                                 + s + "\" at " + --i, i);
                     }
                     i += 4;
