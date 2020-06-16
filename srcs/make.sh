@@ -1,6 +1,6 @@
 #!/bin/bash
 
-echo $(javac --version)
+echo $(javac -version)
 jname=JSON
 cpath=./org/samples/java
 if [ ! -d ${cpath} ]
@@ -15,4 +15,8 @@ if [ $? -eq 0 ] ; then
 #  JSON.java
 fi
 rm -f -r ./org
-more < ./compile.log
+#more < ./compile.log
+cat compile.log
+echo
+echo Completed. Press any key...
+read

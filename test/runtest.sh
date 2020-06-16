@@ -10,3 +10,6 @@ if [ -f ../srcs/JSON.jar ]; then
 else
   echo First make the ../srcs/JSON.jar file.
 fi
+echo
+echo Completed. Press any key...
+read
