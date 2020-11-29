@@ -2,13 +2,12 @@
 
 echo $(javac -version)
 echo $(java -version)
-if [ -f ../srcs/JSON.jar ]; then
-#  java -cp ../srcs/JSON.jar JSONTest.java
-  javac -cp ../srcs/JSON.jar JSONTest.java
-  java -cp ../srcs/JSON.jar:. JSONTest
+if [ -f ./JSON.jar ]; then
+  javac -cp ./JSON.jar JSONTest.java
+  java -cp ./JSON.jar:. JSONTest
   rm -f *.class 
 else
-  echo First make the ../srcs/JSON.jar file.
+  echo First make the ./JSON.jar file.
 fi
 echo
 echo Completed. Press any key...

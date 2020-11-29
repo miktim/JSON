@@ -11,7 +11,7 @@
  *
  * Created: 2020-03-07
  */
-package org.samples.java;
+package org.miktim.json;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -40,9 +40,10 @@ public class JSON implements Cloneable {
         return stringifyObject(checkObjectType(object));
     }
 
-    private final LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
+    private LinkedHashMap<String, Object> properties;
 
     public JSON() {
+        this.properties = new LinkedHashMap<String, Object>();
     }
 
     public String stringify() {
@@ -54,14 +55,20 @@ public class JSON implements Cloneable {
         return this.stringify();
     }
 
+    @SuppressWarnings("unchecked")
     @Override
     public JSON clone() throws CloneNotSupportedException {
         super.clone();
+        JSON cloned = new JSON();
+        cloned.properties = (LinkedHashMap<String, Object>) this.properties.clone();
+        return cloned;
+        /*
         try {
             return (JSON) JSON.parse(this.stringify());
         } catch (Exception e) {
             throw new CloneNotSupportedException();
         }
+         */
     }
 
     public List<String> list() {
@@ -73,17 +80,13 @@ public class JSON implements Cloneable {
     }
 
     public Object get(String propName) throws IllegalArgumentException {
-        if (propName == null) { // || propName.isEmpty() || !exists(propName)) {
-            throw new IllegalArgumentException();
-        }
         return listProperties().get(propName);
     }
 
     public JSON set(String propName, Object value) throws IllegalArgumentException {
-        if (propName == null) {// || propName.isEmpty()) {
-            throw new IllegalArgumentException();
+        if (propName != null) { // ignore
+            listProperties().put(propName, checkObjectType(value));
         }
-        listProperties().put(propName, checkObjectType(value));
         return this;
     }
 

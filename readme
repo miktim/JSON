@@ -1,9 +1,9 @@
-# Java JSON parser/serializer, MIT (c) 2020 miktim@mail.ru (invented the wheel?)
+# Java JSON parser/serializer, MIT (c) 2020 miktim@mail.ru
 
 Release notes:
-  - java 1.7+, Android compatible;
+  - Java 1.7+, Android compatible;
   - in accordance with RFC 8259: https://datatracker.ietf.org/doc/rfc8259/?include_text=1
-  - supported java objects:
+  - supported Java objects:
       JSON object, String, Number, Boolean, null, Object[] array of listed types;
   - parser implements BigDecimal for numbers;
   - JSON properties are stored in order of appearance/creation.
@@ -21,9 +21,9 @@ Overview:
     String toString();
     JSON clone() throws CloneNotSupportedException;
     List<String> list();
-    boolean exists(String propName);
-    Object get(String propName) throws IllegalArgumentException;
-    JSON set(String propName, Object value) throws IllegalArgumentException;
-    Object remove(String propName)
+    boolean exists(String propertyName);
+    Object get(String propertyName) throws IllegalArgumentException;
+    JSON set(String propertyName, Object value) throws IllegalArgumentException;
+    Object remove(String propertyName)
 
 Usage example see in https://github.com/miktim/JSON/blob/master/test/JSONTest.java
