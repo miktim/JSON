@@ -43,7 +43,7 @@ public class JSON implements Cloneable {
     private LinkedHashMap<String, Object> properties;
 
     public JSON() {
-        this.properties = new LinkedHashMap<String, Object>();
+        this.properties = new LinkedHashMap<>();
     }
 
     public String stringify() {
@@ -62,35 +62,32 @@ public class JSON implements Cloneable {
         JSON cloned = new JSON();
         cloned.properties = (LinkedHashMap<String, Object>) this.properties.clone();
         return cloned;
-        /*
-        try {
-            return (JSON) JSON.parse(this.stringify());
-        } catch (Exception e) {
-            throw new CloneNotSupportedException();
-        }
-         */
     }
 
     public List<String> list() {
         return new ArrayList<>(this.properties.keySet());
     }
 
-    public boolean exists(String propName) {
+    private String checkNullName(String propName) {
+        if(propName == null) throw new NullPointerException();
+        return propName;
+    }
+    
+    public boolean exists(String propName) throws NullPointerException  {
         return listProperties().containsKey(propName);
     }
 
-    public Object get(String propName) throws IllegalArgumentException {
+    public Object get(String propName) throws NullPointerException {
         return listProperties().get(propName);
     }
 
-    public JSON set(String propName, Object value) throws IllegalArgumentException {
-        if (propName != null) { // ignore
-            listProperties().put(propName, checkObjectType(value));
-        }
+    public JSON set(String propName, Object value)
+            throws NullPointerException, IllegalArgumentException {
+            listProperties().put(checkNullName(propName), checkObjectType(value));
         return this;
     }
 
-    public Object remove(String propName) {
+    public Object remove(String propName) throws NullPointerException  {
         return this.listProperties().remove(propName);
     }
 

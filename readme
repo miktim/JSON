@@ -22,8 +22,8 @@ Overview:
     JSON clone() throws CloneNotSupportedException;
     List<String> list();
     boolean exists(String propertyName);
-    Object get(String propertyName) throws IllegalArgumentException;
-    JSON set(String propertyName, Object value) throws IllegalArgumentException;
-    Object remove(String propertyName)
+    Object get(String propertyName);
+    JSON set(String propertyName, Object value) throws NullPointerException,  IllegalArgumentException;
+    Object remove(String propertyName);
 
 Usage example see in https://github.com/miktim/JSON/blob/master/test/JSONTest.java

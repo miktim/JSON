@@ -51,6 +51,9 @@ public class JSONTest {
             }
         }
         out("\"MinInt\" is Number? " + (json.get("MinInt") instanceof Number));
+        out("\"NumberArray\" is Object[]? " + (json.get("NumberArray") instanceof Object[]));
+
+        out("\n\rTest nullnamed/nonexistent property:");
         out("Remove null/nonexistent property returns: "
                 + json.remove(null) + "/" + json.remove("nonexistent"));
         out("Get null/nonexistent property returns: "
@@ -64,7 +67,7 @@ public class JSONTest {
         out(json);
         out("\"MinInt\" is instance of: " + json.get("MinInt").getClass().getSimpleName());
 
-        out("\n\rTest JSON clone and remove \"Escaped\":");
+        out("\n\rTest JSON clone then remove \"Escaped\":");
         JSON cloned = json.clone();
         cloned.remove("Escaped");
         out(json);
@@ -138,6 +141,16 @@ public class JSONTest {
         array[0] = 123;
         array[1] = null;
         out(JSON.stringify(array));
+
+// Empty property name allowed
+        out("\n\rTest parse/set/get/remove empty property name:");
+        json = (JSON)JSON.parse("{\"\":123}"); 
+        out(json);
+        json.set("", "empty property name");
+        out(json);
+        out(json.get(""));
+        json.remove("");
+        out(json);
 // ParseExceptions        
 //        System.out.println(JSON.parse("\"asfas\\uD83\uDD1E\"")); // unparseable u-escaped char
 //        System.out.println(JSON.parse("\"\uD834\\uDD1\"")); // unparseable u-escaped char
@@ -146,18 +159,12 @@ public class JSONTest {
 //        System.out.println(JSON.parse("{\"Latitude\":  37.371991\n\"")); // "}" expected
 //        System.out.println(JSON.parse("b123")); // unexpected char
 //        System.out.println(JSON.parse("falsen")); // unknown literal
-// IllegalArgumentExceptions
+// NullPointerException
 //        json.set(null,123); // null property name
+// IllegalArgumentExceptions
 //        json.set("File", new File(path,"json.json")); // unsupported object
 //        array[1] = new File(path,"json.json");
 //        JSON.stringify(array); // unsupported object in array
 //        json.set("unsupported", array) // unsupported object in array
-
-// Empty property name allowed
-        out("\n\rTest parse/set/get/remove empty property name:");
-        out(JSON.parse("{\"\":123}"));
-        json.set("", "empty property name");
-        out(json.get(""));
-        out(json.remove(""));
     }
 }
