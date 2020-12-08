@@ -13,7 +13,7 @@ public class JSONTest {
     }
 
     static void outIsOK(boolean res) {
-        out((res ? "OK" : "FAILED") + "\n\r");
+        out((res ? "OK" : "FAILED"));
     }
 
     public static void main(String[] args) throws Exception {
@@ -21,14 +21,15 @@ public class JSONTest {
         if (args.length > 0) {
             path = args[0];
         }
-        out("JSON package test\n\r");
-        out("Test escape/unescape string:");
+
+        out("JSON package test");
+        out("\n\rTest escape/unescape string:");
         String unescaped = new String(new char[]{0x8, 0x9, 0xA, 0xC, 0xD, 0x22, 0x2F, 0x5C, 0, '-', 0x1F, 0xd834, 0xdd1e});
         String escaped = JSON.escapeString(unescaped);
         out(escaped);
         outIsOK(unescaped.equals(JSON.unescapeString(escaped)));
 
-        out("Test create/stringify JSON object:");
+        out("\n\rTest create/stringify JSON object:");
         JSON json = new JSON();
         json.set("Escaped", unescaped)
                 .set("EmptyJSON", new JSON())
@@ -42,10 +43,10 @@ public class JSONTest {
                 .set("MinInt", Integer.MIN_VALUE);
         out(json);
         out("List properties: " + json.list());
-        for(String propName : json.list()) {
-            if(json.get(propName)!=null){
-               out("\"" + propName + "\" is instance of: " 
-                       + json.get(propName).getClass().getSimpleName());
+        for (String propName : json.list()) {
+            if (json.get(propName) != null) {
+                out("\"" + propName + "\" is instance of: "
+                        + json.get(propName).getClass().getSimpleName());
             } else {
                 out("\"" + propName + "\" is " + json.get(propName));
             }
@@ -72,6 +73,13 @@ public class JSONTest {
         cloned.remove("Escaped");
         out(json);
         out(cloned);
+
+        out("\n\rTest for converting arrays of primitive types (JSON.array):");
+        out(JSON.stringify(JSON.array(new boolean[]{true, false, true})));
+        out(JSON.stringify(JSON.array(new byte[]{0x8, 0x9, 0xA})));
+        out(JSON.stringify(JSON.array(new char[]{'a', 'b', 'c'})));
+        out(JSON.stringify(JSON.array(new Number[]{0, 3.2, null})));// Object[] returns as is
+        out(JSON.stringify(JSON.array(null)));
 
 // examples from RFC 8259 https://datatracker.ietf.org/doc/rfc8259/?include_text=1
         out("\n\rTest examples from RFC 8259:");
@@ -144,7 +152,7 @@ public class JSONTest {
 
 // Empty property name allowed
         out("\n\rTest parse/set/get/remove empty property name:");
-        json = (JSON)JSON.parse("{\"\":123}"); 
+        json = (JSON) JSON.parse("{\"\":123}");
         out(json);
         json.set("", "empty property name");
         out(json);
@@ -152,13 +160,13 @@ public class JSONTest {
         json.remove("");
         out(json);
 // ParseExceptions        
-//        System.out.println(JSON.parse("\"asfas\\uD83\uDD1E\"")); // unparseable u-escaped char
-//        System.out.println(JSON.parse("\"\uD834\\uDD1\"")); // unparseable u-escaped char
-//        System.out.println(JSON.parse("123e")); // unparseable number
-//        System.out.println(JSON.parse("123 e")); // EOT Expected
-//        System.out.println(JSON.parse("{\"Latitude\":  37.371991\n\"")); // "}" expected
-//        System.out.println(JSON.parse("b123")); // unexpected char
-//        System.out.println(JSON.parse("falsen")); // unknown literal
+//        out(JSON.parse("\"asfas\\uD83\uDD1E\"")); // unparseable u-escaped char
+//        out(JSON.parse("\"\uD834\\uDD1\"")); // unparseable u-escaped char
+//        out(JSON.parse("123e")); // unparseable number
+//        out(JSON.parse("123 e")); // EOT Expected
+//        out(JSON.parse("{\"Latitude\":  37.371991\n\"")); // "}" expected
+//        out(JSON.parse("b123")); // unexpected char
+//        out(JSON.parse("falsen")); // unknown literal
 // NullPointerException
 //        json.set(null,123); // null property name
 // IllegalArgumentExceptions
@@ -166,5 +174,6 @@ public class JSONTest {
 //        array[1] = new File(path,"json.json");
 //        JSON.stringify(array); // unsupported object in array
 //        json.set("unsupported", array) // unsupported object in array
+//        JSON.array(new JSON()); // argument is not an array
     }
 }

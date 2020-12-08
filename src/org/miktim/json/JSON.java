@@ -18,6 +18,7 @@ import java.io.Reader;
 import java.util.Map;
 import java.util.LinkedHashMap;
 import java.io.StringReader;
+import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -38,6 +39,28 @@ public class JSON implements Cloneable {
 
     public static String stringify(Object object) throws IllegalArgumentException {
         return stringifyObject(checkObjectType(object));
+    }
+
+    public static Object[] array(Object src) {
+        if (src == null) {
+            return null;
+        }
+        if (src instanceof Object[]) {
+            return (Object[]) checkObjectType(src);
+        }
+        Object[] dst;
+        if (src instanceof boolean[]) {
+            dst = new Boolean[Array.getLength(src)];
+        } else if (src instanceof char[]) {
+            dst = new String[Array.getLength(src)];
+        } else {
+            dst = new Number[Array.getLength(src)];
+        }
+        for (int i = 0; i < dst.length; i++) {
+            Array.set(dst, i, (src instanceof char[])
+                    ? Array.get(src, i).toString() : Array.get(src, i));
+        }
+        return dst;
     }
 
     private LinkedHashMap<String, Object> properties;
@@ -69,11 +92,13 @@ public class JSON implements Cloneable {
     }
 
     private String checkNullName(String propName) {
-        if(propName == null) throw new NullPointerException();
+        if (propName == null) {
+            throw new NullPointerException();
+        }
         return propName;
     }
-    
-    public boolean exists(String propName) throws NullPointerException  {
+
+    public boolean exists(String propName) throws NullPointerException {
         return listProperties().containsKey(propName);
     }
 
@@ -83,11 +108,11 @@ public class JSON implements Cloneable {
 
     public JSON set(String propName, Object value)
             throws NullPointerException, IllegalArgumentException {
-            listProperties().put(checkNullName(propName), checkObjectType(value));
+        listProperties().put(checkNullName(propName), checkObjectType(value));
         return this;
     }
 
-    public Object remove(String propName) throws NullPointerException  {
+    public Object remove(String propName) throws NullPointerException {
         return this.listProperties().remove(propName);
     }
 
