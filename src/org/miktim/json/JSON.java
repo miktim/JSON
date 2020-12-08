@@ -41,7 +41,7 @@ public class JSON implements Cloneable {
         return stringifyObject(checkObjectType(object));
     }
 
-    public static Object[] array(Object src) {
+    public static Object[] array(Object src) throws IllegalArgumentException {
         if (src == null) {
             return null;
         }

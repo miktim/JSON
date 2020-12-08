@@ -174,6 +174,7 @@ public class JSONTest {
 //        array[1] = new File(path,"json.json");
 //        JSON.stringify(array); // unsupported object in array
 //        json.set("unsupported", array) // unsupported object in array
+//        JSON.array(array); // unsupported object in array
 //        JSON.array(new JSON()); // argument is not an array
     }
 }
