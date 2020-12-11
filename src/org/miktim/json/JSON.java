@@ -42,31 +42,30 @@ public class JSON implements Cloneable {
     }
 
     public static Object[] array(Object src) throws IllegalArgumentException {
-        if (src == null) {
-            return null;
-        }
-        if (src instanceof Object[]) {
+        if (src == null || src instanceof Object[]) {
             return (Object[]) checkObjectType(src);
         }
-        Object[] dst;
-        if (src instanceof boolean[]) {
-            dst = new Boolean[Array.getLength(src)];
-        } else if (src instanceof char[]) {
-            dst = new String[Array.getLength(src)];
+// may throw an IllegalArgumentException: Argument is not an array
+        Object[] dst = new Object[Array.getLength(src)];
+        if (src instanceof char[]) {
+// char elements are converted to String            
+            for (int i = 0; i < dst.length; i++) {
+                dst[i] = Array.get(src, i).toString();
+            }
+
         } else {
-            dst = new Number[Array.getLength(src)];
-        }
-        for (int i = 0; i < dst.length; i++) {
-            Array.set(dst, i, (src instanceof char[])
-                    ? Array.get(src, i).toString() : Array.get(src, i));
+// array elements will be Boolean, Byte, ... Double
+            for (int i = 0; i < dst.length; i++) {
+                dst[i] = Array.get(src, i);
+            }
         }
         return dst;
     }
 
-    private LinkedHashMap<String, Object> properties;
+    private LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
 
     public JSON() {
-        this.properties = new LinkedHashMap<>();
+
     }
 
     public String stringify() {
@@ -81,38 +80,37 @@ public class JSON implements Cloneable {
     @SuppressWarnings("unchecked")
     @Override
     public JSON clone() throws CloneNotSupportedException {
-        super.clone();
-        JSON cloned = new JSON();
-        cloned.properties = (LinkedHashMap<String, Object>) this.properties.clone();
-        return cloned;
+        JSON clone = (JSON) super.clone();
+        clone.properties = (LinkedHashMap<String, Object>) this.properties.clone();
+        return clone;
     }
 
     public List<String> list() {
         return new ArrayList<>(this.properties.keySet());
     }
 
-    private String checkNullName(String propName) {
+    private String checkPropName(String propName) {
         if (propName == null) {
-            throw new NullPointerException();
+            throw new NullPointerException("Illegal property name");
         }
         return propName;
     }
 
-    public boolean exists(String propName) throws NullPointerException {
+    public boolean exists(String propName) {
         return listProperties().containsKey(propName);
     }
 
-    public Object get(String propName) throws NullPointerException {
+    public Object get(String propName) {
         return listProperties().get(propName);
     }
-
+    
     public JSON set(String propName, Object value)
             throws NullPointerException, IllegalArgumentException {
-        listProperties().put(checkNullName(propName), checkObjectType(value));
+        listProperties().put(checkPropName(propName), checkObjectType(value));
         return this;
     }
 
-    public Object remove(String propName) throws NullPointerException {
+    public Object remove(String propName) {
         return this.listProperties().remove(propName);
     }
 
@@ -302,20 +300,22 @@ public class JSON implements Cloneable {
         return value.toString(); // Number, Boolean
     }
 
-    static Object checkObjectType(Object object) throws IllegalArgumentException {
-        if (object == null
-                || (object instanceof String)
-                || (object instanceof Number)
-                || (object instanceof Boolean)
-                || (object instanceof JSON)) {
-            return object;
-        } else if (object instanceof Object[]) {
-            for (Object entry : (Object[]) object) {
+    static Object checkObjectType(Object obj) throws IllegalArgumentException {
+        if (obj == null
+                || (obj instanceof String)
+                || (obj instanceof Number)
+                || (obj instanceof Boolean)
+                || (obj instanceof JSON)
+                || (obj instanceof Character)) {
+            return obj;
+        } else if (obj instanceof Object[]) {
+            for (Object entry : (Object[]) obj) {
                 checkObjectType(entry);
             }
-            return object;
+            return obj;
         }
-        throw new IllegalArgumentException();
+        throw new IllegalArgumentException("Unsupported object: "
+                + obj.getClass().getSimpleName());
     }
 
     private static final char[] ESCAPED_CHARS = {'"', '/', '\\', 'b', 'f', 'n', 'r', 't'};

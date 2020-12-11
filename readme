@@ -12,7 +12,8 @@ Overview:
     static Object parse(String json) throws IOException, ParseException;
     static Object parse(Reader reader) throws IOException, ParseException;
     static String stringify(Object object) throws IllegalArgumentException;
-    static Object[] array(Object obj) throws IllegalArgumentException; // convert arrays of primitive types to Number[], Boolean[], String[]
+    static Object[] array(Object obj) throws IllegalArgumentException;
+        // convert array of Java primitives to Object[] (char is converted to String)
 
   Constructor:
     JSON();

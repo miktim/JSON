@@ -31,16 +31,18 @@ public class JSONTest {
 
         out("\n\rTest create/stringify JSON object:");
         JSON json = new JSON();
-        json.set("Escaped", unescaped)
+        json.set("Unescaped", unescaped)
                 .set("EmptyJSON", new JSON())
                 .set("NumberArray", new Number[]{0, 3.2, null})
                 .set("Null", null)
                 .set("True", true)
-                .set("False", (Boolean) false)
+                .set("False", false)
                 .set("Double", 3.141592653589793238462643383279)
                 .set("BigDecimal", new BigDecimal("3.141592653589793238462643383279"))
-                .set("MaxLong", Long.MAX_VALUE)
-                .set("MinInt", Integer.MIN_VALUE);
+                .set("Long", 1415926535897932384L)
+                .set("Int", 14159265)
+                .set("Byte",(byte) 0xFF);
+//        out(json.getString("EmptyJSON"));
         out(json);
         out("List properties: " + json.list());
         for (String propName : json.list()) {
@@ -51,8 +53,12 @@ public class JSONTest {
                 out("\"" + propName + "\" is " + json.get(propName));
             }
         }
-        out("\"MinInt\" is Number? " + (json.get("MinInt") instanceof Number));
-        out("\"NumberArray\" is Object[]? " + (json.get("NumberArray") instanceof Object[]));
+
+        out("\n\rTest stringify/parse JSON:");
+        out(json);
+        json = (JSON) JSON.parse(json.stringify());
+        out(json);
+        out("\"Byte\" is instance of: " + json.get("Byte").getClass().getSimpleName());
 
         out("\n\rTest nullnamed/nonexistent property:");
         out("Remove null/nonexistent property returns: "
@@ -62,24 +68,26 @@ public class JSONTest {
         out("Exists null/nonexistent property returns: "
                 + json.exists(null) + "/" + json.exists("nonexistent"));
 
-        out("\n\rTest stringify/parse JSON:");
-        out(json);
-        json = (JSON) JSON.parse(json.stringify());
-        out(json);
-        out("\"MinInt\" is instance of: " + json.get("MinInt").getClass().getSimpleName());
-
-        out("\n\rTest JSON clone then remove \"Escaped\":");
+        out("\n\rTest JSON clone then remove \"BigDecimal\":");
         JSON cloned = json.clone();
-        cloned.remove("Escaped");
-        out(json);
-        out(cloned);
+        cloned.remove("BigDecimal");
+        out(json.list());
+        out(cloned.list());
 
-        out("\n\rTest for converting arrays of primitive types (JSON.array):");
+        out("\n\rTest JSON.array():");
+
+        Object[] array = JSON.array(new byte[]{0x8, 0x9, 0xA});
+        out(JSON.stringify(array)
+                + " Elements of converted byte[] is instance of: " + array[0].getClass().getSimpleName());
+        array = JSON.array(new double[]{0d, 3.62d, 4.12d});
+        out(JSON.stringify(array)
+                + " Elements of converted double[] is instance of: " + array[0].getClass().getSimpleName());
+        array = JSON.array(new char[]{'a', 'b', 'c'});
+        out(JSON.stringify(array)
+                + " Elements of converted char[] is instance of: " + array[0].getClass().getSimpleName());
         out(JSON.stringify(JSON.array(new boolean[]{true, false, true})));
-        out(JSON.stringify(JSON.array(new byte[]{0x8, 0x9, 0xA})));
-        out(JSON.stringify(JSON.array(new char[]{'a', 'b', 'c'})));
-        out(JSON.stringify(JSON.array(new Number[]{0, 3.2, null})));// Object[] returns as is
-        out(JSON.stringify(JSON.array(null)));
+        out(JSON.stringify(JSON.array(new Number[]{0, 3.2, null})));// Number[] returns as is
+        out(JSON.stringify(JSON.array(null)));// null returns as is
 
 // examples from RFC 8259 https://datatracker.ietf.org/doc/rfc8259/?include_text=1
         out("\n\rTest examples from RFC 8259:");
@@ -139,7 +147,7 @@ public class JSONTest {
         out("\n\rTest one more example:");
         json = (JSON) JSON.parse(new FileReader(new File(path, "json.json")));
         out(json.get("AllowPartialShipment"));
-        Object[] array = (Object[]) json.get("LineItems");
+        array = (Object[]) json.get("LineItems");
         json = (JSON) array[1];
         out(json.get("Quantity"));
         json = (JSON) json.get("Part");
@@ -150,15 +158,6 @@ public class JSONTest {
         array[1] = null;
         out(JSON.stringify(array));
 
-// Empty property name allowed
-        out("\n\rTest parse/set/get/remove empty property name:");
-        json = (JSON) JSON.parse("{\"\":123}");
-        out(json);
-        json.set("", "empty property name");
-        out(json);
-        out(json.get(""));
-        json.remove("");
-        out(json);
 // ParseExceptions        
 //        out(JSON.parse("\"asfas\\uD83\uDD1E\"")); // unparseable u-escaped char
 //        out(JSON.parse("\"\uD834\\uDD1\"")); // unparseable u-escaped char
@@ -170,6 +169,7 @@ public class JSONTest {
 // NullPointerException
 //        json.set(null,123); // null property name
 // IllegalArgumentExceptions
+//        json.set("Char", 'c'); // unsupported object
 //        json.set("File", new File(path,"json.json")); // unsupported object
 //        array[1] = new File(path,"json.json");
 //        JSON.stringify(array); // unsupported object in array
