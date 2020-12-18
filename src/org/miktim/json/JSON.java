@@ -1,11 +1,12 @@
 /**
- * Java JSON parser/serializer, MIT (c) 2020 miktim@mail.ru
+ * Java JSON parser/generator, MIT (c) 2020 miktim@mail.ru
  *
  * Release notes:
  * - java 1.7+, Android compatible;
  * - in accordance with RFC 8259: https://datatracker.ietf.org/doc/rfc8259/?include_text=1
  * - supported java objects:
- *   JSON object, String, Number, Boolean, null, Object[] array of listed types;
+ *   JSON object, String, Number, Boolean, Character null, Object[] array of listed types;
+ * - generator converts Character to String;
  * - parser implements BigDecimal for numbers;
  * - JSON properties are stored in creation/appearance order.
  *
@@ -38,43 +39,31 @@ public class JSON implements Cloneable {
     }
 
     public static String stringify(Object object) throws IllegalArgumentException {
-        return stringifyObject(checkObjectType(object));
+        return stringifyObject(object);
     }
-
-    public static Object[] array(Object src) throws IllegalArgumentException {
+    /*
+    public static Object[] array(Object src)
+            throws NullPointerException, IllegalArgumentException {
         if (src == null || src instanceof Object[]) {
             return (Object[]) checkObjectType(src);
         }
-// may throw an IllegalArgumentException: Argument is not an array
         Object[] dst = new Object[Array.getLength(src)];
-        if (src instanceof char[]) {
-// char elements are converted to String            
-            for (int i = 0; i < dst.length; i++) {
-                dst[i] = Array.get(src, i).toString();
-            }
-
-        } else {
-// array elements will be Boolean, Byte, ... Double
-            for (int i = 0; i < dst.length; i++) {
-                dst[i] = Array.get(src, i);
-            }
+// array elements will be Character, Boolean, Byte, ... Double
+        for (int i = 0; i < dst.length; i++) {
+            dst[i] = Array.get(src, i);
         }
         return dst;
     }
-
+     */
     private LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
 
     public JSON() {
 
     }
 
-    public String stringify() {
-        return stringifyObject(this);
-    }
-
     @Override
     public String toString() {
-        return this.stringify();
+        return stringify(this);
     }
 
     @SuppressWarnings("unchecked")
@@ -103,7 +92,7 @@ public class JSON implements Cloneable {
     public Object get(String propName) {
         return listProperties().get(propName);
     }
-    
+
     public JSON set(String propName, Object value)
             throws NullPointerException, IllegalArgumentException {
         listProperties().put(checkPropName(propName), checkObjectType(value));
@@ -273,31 +262,42 @@ public class JSON implements Cloneable {
     static String stringifyObject(Object value) {
         if (value == null) {
             return "null";
+        } else if (value instanceof String) {
+            return "\"" + escapeString((String) value) + "\"";
+        } else if (value instanceof Number || value instanceof Boolean) {
+            return value.toString(); // Number, Boolean
+        } else if (value instanceof Character) {
+            return stringifyObject(value.toString());
+
         } else if (value instanceof JSON) {
-            LinkedHashMap<String, Object> hmap
-                    = ((JSON) value).listProperties();
             StringBuilder sb = new StringBuilder("{");
-            String delimiter = "";
-            for (Map.Entry<String, Object> entry : hmap.entrySet()) {
-                sb.append(delimiter)
+            String separator = "";
+            for (Map.Entry<String, Object> entry : ((JSON) value).properties.entrySet()) {
+                sb.append(separator)
                         .append(stringifyObject(entry.getKey()))
-                        .append(":")
+                        .append(": ")
                         .append(stringifyObject(entry.getValue()));
-                delimiter = ",";
+                separator = ", ";
             }
             return sb.append("}").toString();
         } else if (value instanceof Object[]) {
             StringBuilder sb = new StringBuilder("[");
-            String delimiter = "";
+            String separator = "";
             for (Object object : (Object[]) value) {
-                sb.append(delimiter).append(stringifyObject(object));
-                delimiter = ",";
+                sb.append(separator).append(stringifyObject(object));
+                separator = ", ";
             }
             return sb.append("]").toString();
-        } else if (value instanceof String) {
-            return "\"" + escapeString((String) value) + "\"";
+        } else if (value.getClass().isArray()) {
+            Object[] object = new Object[Array.getLength(value)];
+// array elements will be Character, Boolean, Byte, ... Double
+            for (int i = 0; i < object.length; i++) {
+                object[i] = Array.get(value, i);
+            }
+            return stringifyObject(object);
         }
-        return value.toString(); // Number, Boolean
+        throw new IllegalArgumentException("Unsupported object: "
+                + value.getClass().getSimpleName());
     }
 
     static Object checkObjectType(Object obj) throws IllegalArgumentException {
@@ -307,15 +307,19 @@ public class JSON implements Cloneable {
                 || (obj instanceof Boolean)
                 || (obj instanceof JSON)
                 || (obj instanceof Character)) {
-            return obj;
-        } else if (obj instanceof Object[]) {
-            for (Object entry : (Object[]) obj) {
-                checkObjectType(entry);
+        } else if (obj.getClass().isArray()) {
+            for (int i = 0; i < Array.getLength(obj); i++) {
+                checkObjectType(Array.get(obj, i));
             }
-            return obj;
+//        } else if (obj instanceof Object[]) {
+//            for (Object entry : (Object[]) obj) {
+//                checkObjectType(entry);
+//            }
+        } else {
+            throw new IllegalArgumentException("Unsupported object: "
+                    + obj.getClass().getSimpleName());
         }
-        throw new IllegalArgumentException("Unsupported object: "
-                + obj.getClass().getSimpleName());
+        return obj;
     }
 
     private static final char[] ESCAPED_CHARS = {'"', '/', '\\', 'b', 'f', 'n', 'r', 't'};

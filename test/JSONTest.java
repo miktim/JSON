@@ -33,16 +33,18 @@ public class JSONTest {
         JSON json = new JSON();
         json.set("Unescaped", unescaped)
                 .set("EmptyJSON", new JSON())
-                .set("NumberArray", new Number[]{0, 3.2, null})
+                .set("Array", new int[]{0, 1, 2})
                 .set("Null", null)
                 .set("True", true)
                 .set("False", false)
+                .set("Char", 'c')
                 .set("Double", 3.141592653589793238462643383279)
                 .set("BigDecimal", new BigDecimal("3.141592653589793238462643383279"))
                 .set("Long", 1415926535897932384L)
                 .set("Int", 14159265)
-                .set("Byte",(byte) 0xFF);
-//        out(json.getString("EmptyJSON"));
+                .set("Byte", (byte) 0xFF);
+        json.exists("Unescaped");
+        json.set("Unescaped", unescaped);
         out(json);
         out("List properties: " + json.list());
         for (String propName : json.list()) {
@@ -56,8 +58,9 @@ public class JSONTest {
 
         out("\n\rTest stringify/parse JSON:");
         out(json);
-        json = (JSON) JSON.parse(json.stringify());
+        json = (JSON) JSON.parse(json.toString());
         out(json);
+        out("\"Char\" is instance of: " + json.get("Char").getClass().getSimpleName());
         out("\"Byte\" is instance of: " + json.get("Byte").getClass().getSimpleName());
 
         out("\n\rTest nullnamed/nonexistent property:");
@@ -75,19 +78,15 @@ public class JSONTest {
         out(cloned.list());
 
         out("\n\rTest JSON.array():");
-
-        Object[] array = JSON.array(new byte[]{0x8, 0x9, 0xA});
-        out(JSON.stringify(array)
-                + " Elements of converted byte[] is instance of: " + array[0].getClass().getSimpleName());
-        array = JSON.array(new double[]{0d, 3.62d, 4.12d});
-        out(JSON.stringify(array)
-                + " Elements of converted double[] is instance of: " + array[0].getClass().getSimpleName());
-        array = JSON.array(new char[]{'a', 'b', 'c'});
-        out(JSON.stringify(array)
-                + " Elements of converted char[] is instance of: " + array[0].getClass().getSimpleName());
-        out(JSON.stringify(JSON.array(new boolean[]{true, false, true})));
-        out(JSON.stringify(JSON.array(new Number[]{0, 3.2, null})));// Number[] returns as is
-        out(JSON.stringify(JSON.array(null)));// null returns as is
+        int[][] intArray = new int[][]{{0, 1, 2}, {3, 4, 5}};
+        cloned.set("Array", intArray);
+        out(JSON.stringify(cloned.get("Array")));
+        intArray[0][1] = 6;
+        out(JSON.stringify(cloned.get("Array")));
+        Object[] array = intArray;
+        array[1] = new int[]{7,8,9};
+        out(JSON.stringify(array));
+        out(JSON.stringify(cloned.get("Array")));
 
 // examples from RFC 8259 https://datatracker.ietf.org/doc/rfc8259/?include_text=1
         out("\n\rTest examples from RFC 8259:");
@@ -112,11 +111,11 @@ public class JSONTest {
                 + "          }\n"
                 + "      } ";
         Object object = JSON.parse(example1);
-        out(((JSON) object).stringify());
+        out(((JSON) object).toString());
         out(((JSON) object).get("Image"));
         out(((JSON) (((JSON) object).get("Image"))).set("Thumbnail", (Number) 256));
         out(((JSON) (((JSON) object).get("Image"))).remove("Thumbnail"));
-        out(((JSON) object).clone().stringify());
+        out(((JSON) object).clone().toString());
         String example2 = "[\n"
                 + "        {\n"
                 + "           \"precision\": \"zip\",\n"
@@ -169,7 +168,6 @@ public class JSONTest {
 // NullPointerException
 //        json.set(null,123); // null property name
 // IllegalArgumentExceptions
-//        json.set("Char", 'c'); // unsupported object
 //        json.set("File", new File(path,"json.json")); // unsupported object
 //        array[1] = new File(path,"json.json");
 //        JSON.stringify(array); // unsupported object in array

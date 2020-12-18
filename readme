@@ -1,28 +1,26 @@
-# Java JSON parser/serializer, MIT (c) 2020 miktim@mail.ru
+# Java JSON parser/generator, MIT (c) 2020 miktim@mail.ru
 
 Release notes:
   - Java 1.7+, Android compatible;
   - in accordance with RFC 8259: https://datatracker.ietf.org/doc/rfc8259/?include_text=1
   - supported Java objects:
-      JSON object, String, Number, Boolean, null, Object[] array of listed types;
+      JSON object, String, Number, Boolean, Character, null, Object[] array of listed types;
+  - generator converts Character to String;
   - parser implements BigDecimal for numbers;
   - JSON properties are stored in order of appearance/creation.
 
 Overview:
     static Object parse(String json) throws IOException, ParseException;
     static Object parse(Reader reader) throws IOException, ParseException;
-    static String stringify(Object object) throws IllegalArgumentException;
-    static Object[] array(Object obj) throws IllegalArgumentException;
-        // convert array of Java primitives to Object[] (char is converted to String)
+    static String generate(Object object) throws IllegalArgumentException;
 
   Constructor:
     JSON();
 
   Methods:
-    String stringify();
     String toString();
-    JSON clone() throws CloneNotSupportedException;
-    List<String> list();
+    JSON clone() throws CloneNotSupportedException; // clones only the property list
+    List<String> list(); // list properties
     boolean exists(String propertyName);
     Object get(String propertyName);
     JSON set(String propertyName, Object value) throws NullPointerException,  IllegalArgumentException;
