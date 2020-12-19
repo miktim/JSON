@@ -4,6 +4,7 @@
 import java.io.File;
 import java.io.FileReader;
 import java.math.BigDecimal;
+import java.util.Date;
 import org.miktim.json.JSON;
 
 public class JSONTest {
@@ -77,7 +78,7 @@ public class JSONTest {
         out(json.list());
         out(cloned.list());
 
-        out("\n\rTest JSON.array():");
+        out("\n\rTest JSON with Java arrays:");
         int[][] intArray = new int[][]{{0, 1, 2}, {3, 4, 5}};
         cloned.set("Array", intArray);
         out(JSON.stringify(cloned.get("Array")));
@@ -169,7 +170,7 @@ public class JSONTest {
 //        json.set(null,123); // null property name
 // IllegalArgumentExceptions
 //        json.set("File", new File(path,"json.json")); // unsupported object
-//        array[1] = new File(path,"json.json");
+//        array[1] = new Date();
 //        JSON.stringify(array); // unsupported object in array
 //        json.set("unsupported", array) // unsupported object in array
 //        JSON.array(array); // unsupported object in array
