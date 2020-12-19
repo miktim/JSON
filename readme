@@ -12,7 +12,7 @@ Release notes:
 Overview:
     static Object parse(String json) throws IOException, ParseException;
     static Object parse(Reader reader) throws IOException, ParseException;
-    static String generate(Object object) throws IllegalArgumentException;
+    static String stringify(Object object) throws IllegalArgumentException;
 
   Constructor:
     JSON();
