@@ -85,7 +85,7 @@ public class JSONTest {
         intArray[0][1] = 6;
         out(JSON.stringify(cloned.get("Array")));
         Object[] array = intArray;
-        array[1] = new int[]{7,8,9};
+        array[1] = new int[]{7, 8, 9};
         out(JSON.stringify(array));
         out(JSON.stringify(cloned.get("Array")));
 
@@ -173,7 +173,5 @@ public class JSONTest {
 //        array[1] = new Date();
 //        JSON.stringify(array); // unsupported object in array
 //        json.set("unsupported", array) // unsupported object in array
-//        JSON.array(array); // unsupported object in array
-//        JSON.array(new JSON()); // argument is not an array
     }
 }

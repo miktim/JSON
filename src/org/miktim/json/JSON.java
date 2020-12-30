@@ -19,7 +19,9 @@ import java.io.Reader;
 import java.util.Map;
 import java.util.LinkedHashMap;
 import java.io.StringReader;
+import java.io.Writer;
 import java.lang.reflect.Array;
+import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -41,24 +43,15 @@ public class JSON implements Cloneable {
     public static String stringify(Object object) throws IllegalArgumentException {
         return stringifyObject(object);
     }
-    /*
-    public static Object[] array(Object src)
-            throws NullPointerException, IllegalArgumentException {
-        if (src == null || src instanceof Object[]) {
-            return (Object[]) checkObjectType(src);
-        }
-        Object[] dst = new Object[Array.getLength(src)];
-// array elements will be Character, Boolean, Byte, ... Double
-        for (int i = 0; i < dst.length; i++) {
-            dst[i] = Array.get(src, i);
-        }
-        return dst;
-    }
-     */
+    
     private LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
 
     public JSON() {
 
+    }
+
+    public String stringify()  {
+        return stringify(this);
     }
 
     @Override
@@ -84,7 +77,7 @@ public class JSON implements Cloneable {
         }
         return propName;
     }
-
+    
     public boolean exists(String propName) {
         return listProperties().containsKey(propName);
     }
@@ -259,6 +252,8 @@ public class JSON implements Cloneable {
         }
     }
 
+// Java Lists converts to JSON arrays [V[0],...,V[n]], Maps - to object {"K":V,...}
+    @SuppressWarnings("unchecked")
     static String stringifyObject(Object value) {
         if (value == null) {
             return "null";
@@ -270,31 +265,30 @@ public class JSON implements Cloneable {
             return stringifyObject(value.toString());
 
         } else if (value instanceof JSON) {
+            return stringifyObject(((JSON) value).properties);
+        } else if (value.getClass().isArray()) {
+// array elements will be Character, Boolean, Byte, ... Double
+            StringBuilder sb = new StringBuilder("[");
+            String separator = "";
+            for (int i = 0; i < Array.getLength(value); i++) {
+                sb.append(separator).append(stringifyObject(Array.get(value, i)));
+                separator = ", ";
+            }
+            return sb.append("]").toString();
+        } else if (value instanceof List) {
+            return stringifyObject(((List) value).toArray());
+        } else if (value instanceof Map) {
             StringBuilder sb = new StringBuilder("{");
             String separator = "";
-            for (Map.Entry<String, Object> entry : ((JSON) value).properties.entrySet()) {
+            for (Map.Entry<Object, Object> entry : ((Map<Object, Object>) value).entrySet()) {
                 sb.append(separator)
-                        .append(stringifyObject(entry.getKey()))
+// null key (property name) is converted to "null" 
+                        .append(stringifyObject(String.valueOf(entry.getKey())))
                         .append(": ")
                         .append(stringifyObject(entry.getValue()));
                 separator = ", ";
             }
             return sb.append("}").toString();
-        } else if (value instanceof Object[]) {
-            StringBuilder sb = new StringBuilder("[");
-            String separator = "";
-            for (Object object : (Object[]) value) {
-                sb.append(separator).append(stringifyObject(object));
-                separator = ", ";
-            }
-            return sb.append("]").toString();
-        } else if (value.getClass().isArray()) {
-            Object[] object = new Object[Array.getLength(value)];
-// array elements will be Character, Boolean, Byte, ... Double
-            for (int i = 0; i < object.length; i++) {
-                object[i] = Array.get(value, i);
-            }
-            return stringifyObject(object);
         }
         throw new IllegalArgumentException("Unsupported object: "
                 + value.getClass().getSimpleName());
@@ -311,10 +305,6 @@ public class JSON implements Cloneable {
             for (int i = 0; i < Array.getLength(obj); i++) {
                 checkObjectType(Array.get(obj, i));
             }
-//        } else if (obj instanceof Object[]) {
-//            for (Object entry : (Object[]) obj) {
-//                checkObjectType(entry);
-//            }
         } else {
             throw new IllegalArgumentException("Unsupported object: "
                     + obj.getClass().getSimpleName());
