@@ -34,7 +34,7 @@ public class JSONTest {
         JSON json = new JSON();
         json.set("Unescaped", unescaped)
                 .set("EmptyJSON", new JSON())
-                .set("Array", new int[]{0, 1, 2})
+                .set("Array", new int[][]{{0, 1, 2}, {3, 4, 5, 6}})
                 .set("Null", null)
                 .set("True", true)
                 .set("False", false)
@@ -44,8 +44,6 @@ public class JSONTest {
                 .set("Long", 1415926535897932384L)
                 .set("Int", 14159265)
                 .set("Byte", (byte) 0xFF);
-        json.exists("Unescaped");
-        json.set("Unescaped", unescaped);
         out(json);
         out("List properties: " + json.list());
         for (String propName : json.list()) {
@@ -61,8 +59,14 @@ public class JSONTest {
         out(json);
         json = (JSON) JSON.parse(json.toString());
         out(json);
-        out("\"Char\" is instance of: " + json.get("Char").getClass().getSimpleName());
-        out("\"Byte\" is instance of: " + json.get("Byte").getClass().getSimpleName());
+        for (String propName : json.list()) {
+            if (json.get(propName) != null) {
+                out("\"" + propName + "\" is instance of: "
+                        + json.get(propName).getClass().getSimpleName());
+            } else {
+                out("\"" + propName + "\" is " + json.get(propName));
+            }
+        }
 
         out("\n\rTest nullnamed/nonexistent property:");
         out("Remove null/nonexistent property returns: "
