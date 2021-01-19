@@ -3,29 +3,29 @@
 Release notes:
   - Java SE 7+, Android compatible;
   - in accordance with RFC 8259: https://datatracker.ietf.org/doc/rfc8259/?include_text=1
-  - parser converts JSON to Java objects:
+  - parser converts JSON text to Java objects:
       JSON object, String, Number (BigDecimal), Boolean, null, Object[] array of listed types;
-  - JSON properties are stored in order of appearance/creation;
-  - JSON object property setter also acceps all Java primitives and primitive arrays;
-  - in addition, generator converts Java Lists to JSON arrays [V[0],...,V[n]]
-    and Java Maps - to JSON objects {"K": V,...}. 
-    Null keys are converted to "null", unsupported objects are converted to strings.
+  - JSON object members (name/value pairs) are stored in order of appearance/creation;
+  - when the names within an object are not unique, parser stores the last name/value pair only;
+  - JSON object setter acceps types listed above, all Java primitives and primitive arrays;
+  - in addition, generator converts Java Lists to JSON arrays [V[0],...,V[n]] and
+    Java Maps - to JSON objects {"K": V,...}.
 
 Overview:
     static Object parse(String json) throws IOException, ParseException;
     static Object parse(Reader reader) throws IOException, ParseException;
-    static String stringify(Object object); // generate JSON
+    static String stringify(Object object); // generate JSON text
 
   Constructor:
     JSON();
 
   Methods:
     String toString();   // stringify object
-    JSON clone() throws CloneNotSupportedException; // clones the property list only
-    List<String> list(); // list properties
-    boolean exists(String propertyName);
-    Object get(String propertyName);
-    JSON set(String propertyName, Object value) throws NullPointerException,  IllegalArgumentException;
-    Object remove(String propertyName);
+    JSON clone() throws CloneNotSupportedException; // clones the member list only
+    List<String> list(); // list of member names
+    boolean exists(String memberName);
+    Object get(String memberName);
+    JSON set(String memberName, Object value) throws NullPointerException,  IllegalArgumentException;
+    Object remove(String memberName);
 
 Usage example see in https://github.com/miktim/JSON/blob/master/test/JSONTest.java
