@@ -31,10 +31,10 @@ public class JSONTest {
         outIsOK(unescaped.equals(JSON.unescapeString(escaped)));
 
         out("\n\rTest create/stringify JSON object:");
-        JSON json = new JSON();
-        json.set("Unescaped", unescaped)
+        JSON json = (new JSON())
+                .set("Unescaped", unescaped)
                 .set("EmptyJSON", new JSON())
-                .set("Array", new int[][]{{0, 1, 2}, {3, 4, 5, 6}})
+                .set("intArray", new int[][]{{0, 1, 2}, {3, 4, 5, 6}})
                 .set("Null", null)
                 .set("True", true)
                 .set("False", false)
@@ -84,6 +84,7 @@ public class JSONTest {
 
         out("\n\rTest JSON with Java arrays:");
         int[][] intArray = new int[][]{{0, 1, 2}, {3, 4, 5}};
+        out(JSON.stringify(intArray));
         cloned.set("Array", intArray);
         out(JSON.stringify(cloned.get("Array")));
         intArray[0][1] = 6;
@@ -118,9 +119,8 @@ public class JSONTest {
         Object object = JSON.parse(example1);
         out(((JSON) object).toString());
         out(((JSON) object).get("Image"));
-        out(((JSON) (((JSON) object).get("Image"))).set("Thumbnail", (Number) 256));
+        out(((JSON) (((JSON) object).get("Image"))).set("Thumbnail", 256));
         out(((JSON) (((JSON) object).get("Image"))).remove("Thumbnail"));
-        out(((JSON) object).clone().toString());
         String example2 = "[\n"
                 + "        {\n"
                 + "           \"precision\": \"zip\",\n"

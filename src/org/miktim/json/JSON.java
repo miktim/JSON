@@ -2,12 +2,11 @@
  * Java JSON parser/generator, MIT (c) 2020 miktim@mail.ru
  *
  * Release notes:
- * - java 1.7+, Android compatible;
+ * - Java 7+, Android compatible;
  * - in accordance with RFC 8259: https://datatracker.ietf.org/doc/rfc8259/?include_text=1
- * - supported java objects:
- *   JSON object, String, Number, Boolean, Character null, Object[] array of listed types;
- * - generator converts Character to String;
- * - parser implements BigDecimal for numbers;
+ * - supported Java objects:
+ *   JSON object, String, Number, Boolean, null, Object[] array of listed types;
+ * - parser applies BigDecimal for numbers;
  * - JSON properties are stored in creation/appearance order.
  *
  * Created: 2020-03-07
@@ -19,9 +18,7 @@ import java.io.Reader;
 import java.util.Map;
 import java.util.LinkedHashMap;
 import java.io.StringReader;
-import java.io.Writer;
 import java.lang.reflect.Array;
-import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -43,20 +40,20 @@ public class JSON implements Cloneable {
     public static String stringify(Object object) throws IllegalArgumentException {
         return stringifyObject(object);
     }
-    
+
     private LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
 
     public JSON() {
 
     }
 
-    public String stringify()  {
+    public String stringify() {
         return stringify(this);
     }
 
     @Override
     public String toString() {
-        return stringify(this);
+        return stringify();
     }
 
     @SuppressWarnings("unchecked")
@@ -77,7 +74,7 @@ public class JSON implements Cloneable {
         }
         return propName;
     }
-    
+
     public boolean exists(String propName) {
         return listProperties().containsKey(propName);
     }
@@ -261,13 +258,11 @@ public class JSON implements Cloneable {
             return "\"" + escapeString((String) value) + "\"";
         } else if (value instanceof Number || value instanceof Boolean) {
             return value.toString(); // Number, Boolean
-        } else if (value instanceof Character) {
-            return stringifyObject(value.toString());
-
+//        } else if (value instanceof Character) {
+//            return stringifyObject(value.toString());
         } else if (value instanceof JSON) {
             return stringifyObject(((JSON) value).properties);
         } else if (value.getClass().isArray()) {
-// array elements will be Character, Boolean, Byte, ... Double
             StringBuilder sb = new StringBuilder("[");
             String separator = "";
             for (int i = 0; i < Array.getLength(value); i++) {
@@ -282,7 +277,7 @@ public class JSON implements Cloneable {
             String separator = "";
             for (Map.Entry<Object, Object> entry : ((Map<Object, Object>) value).entrySet()) {
                 sb.append(separator)
-// null key (property name) is converted to "null" 
+                        // null key (property name) is converted to "null" 
                         .append(stringifyObject(String.valueOf(entry.getKey())))
                         .append(": ")
                         .append(stringifyObject(entry.getValue()));
@@ -290,8 +285,9 @@ public class JSON implements Cloneable {
             }
             return sb.append("}").toString();
         }
-        throw new IllegalArgumentException("Unsupported object: "
-                + value.getClass().getSimpleName());
+        return stringifyObject(String.valueOf(value));
+//        throw new IllegalArgumentException("Unsupported object: "
+//                + value.getClass().getSimpleName());
     }
 
     static Object checkObjectType(Object obj) throws IllegalArgumentException {
