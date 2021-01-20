@@ -4,6 +4,7 @@
 import java.io.File;
 import java.io.FileReader;
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Date;
 import org.miktim.json.JSON;
 
@@ -35,7 +36,7 @@ public class JSONTest {
                 .set("Unescaped", unescaped)
                 .set("EmptyJSON", new JSON())
                 .set("intArray", new int[][]{{0, 1, 2}, {3, 4, 5, 6}})
-                .set("Null", null)
+                .set(null, null)
                 .set("True", true)
                 .set("False", false)
                 .set("Char", 'c')
@@ -45,35 +46,37 @@ public class JSONTest {
                 .set("Int", 14159265)
                 .set("Byte", (byte) 0xFF);
         out(json);
-        out("List properties: " + json.list());
-        for (String propName : json.list()) {
-            if (json.get(propName) != null) {
-                out("\"" + propName + "\" is instance of: "
-                        + json.get(propName).getClass().getSimpleName());
+        out("List members: " + JSON.stringify(json.list()));
+        for (String memberName : json.list()) {
+            if (json.get(memberName) != null) {
+                out("\"" + memberName + "\" is instance of: "
+                        + json.get(memberName).getClass().getSimpleName());
             } else {
-                out("\"" + propName + "\" is " + json.get(propName));
+                out("\"" + memberName + "\" is " + json.get(memberName));
             }
         }
 
         out("\n\rTest stringify/parse JSON:");
         out(json);
+        out("List members: " + JSON.stringify(json.list()));
         json = (JSON) JSON.parse(json.toString());
         out(json);
-        for (String propName : json.list()) {
-            if (json.get(propName) != null) {
-                out("\"" + propName + "\" is instance of: "
-                        + json.get(propName).getClass().getSimpleName());
+        out("List members: " + JSON.stringify(json.list()));
+        for (String memberName : json.list()) {
+            if (json.get(memberName) != null) {
+                out("\"" + memberName + "\" is instance of: "
+                        + json.get(memberName).getClass().getSimpleName());
             } else {
-                out("\"" + propName + "\" is " + json.get(propName));
+                out("\"" + memberName + "\" is " + json.get(memberName));
             }
         }
 
-        out("\n\rTest nullnamed/nonexistent property:");
-        out("Remove null/nonexistent property returns: "
+        out("\n\rTest nullnamed/nonexistent member:");
+        out("Remove null/nonexistent member returns: "
                 + json.remove(null) + "/" + json.remove("nonexistent"));
-        out("Get null/nonexistent property returns: "
+        out("Get null/nonexistent member returns: "
                 + json.get(null) + "/" + json.get("nonexistent"));
-        out("Exists null/nonexistent property returns: "
+        out("Exists null/nonexistent member returns: "
                 + json.exists(null) + "/" + json.exists("nonexistent"));
 
         out("\n\rTest JSON clone then remove \"BigDecimal\":");
@@ -93,6 +96,12 @@ public class JSONTest {
         array[1] = new int[]{7, 8, 9};
         out(JSON.stringify(array));
         out(JSON.stringify(cloned.get("Array")));
+
+        out("\n\rTest generator with other Java objects (ArrayList with Date, File entries):");
+        ArrayList<Object> arrayList = new ArrayList<>();
+        arrayList.add(new Date());
+        arrayList.add(new File(path, "json.json"));
+        out(JSON.stringify(arrayList));
 
 // examples from RFC 8259 https://datatracker.ietf.org/doc/rfc8259/?include_text=1
         out("\n\rTest examples from RFC 8259:");
@@ -158,24 +167,15 @@ public class JSONTest {
         out(json.get("Description"));
         json.set("Description", "Naked Gun");
         out(JSON.stringify(array));
-        array[0] = 123;
-        array[1] = null;
-        out(JSON.stringify(array));
 
 // ParseExceptions        
 //        out(JSON.parse("\"asfas\\uD83\uDD1E\"")); // unparseable u-escaped char
 //        out(JSON.parse("\"\uD834\\uDD1\"")); // unparseable u-escaped char
 //        out(JSON.parse("123e")); // unparseable number
 //        out(JSON.parse("123 e")); // EOT Expected
+//        out(JSON.parse("{{}}"); // name expected
 //        out(JSON.parse("{\"Latitude\":  37.371991\n\"")); // "}" expected
 //        out(JSON.parse("b123")); // unexpected char
 //        out(JSON.parse("falsen")); // unknown literal
-// NullPointerException
-//        json.set(null,123); // null property name
-// IllegalArgumentExceptions
-//        json.set("File", new File(path,"json.json")); // unsupported object
-//        array[1] = new Date();
-//        JSON.stringify(array); // unsupported object in array
-//        json.set("unsupported", array) // unsupported object in array
     }
 }

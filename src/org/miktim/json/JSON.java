@@ -4,10 +4,10 @@
  * Release notes:
  * - Java 7+, Android compatible;
  * - in accordance with RFC 8259: https://datatracker.ietf.org/doc/rfc8259/?include_text=1
- * - supported Java objects:
- *   JSON object, String, Number, Boolean, null, Object[] array of listed types;
- * - parser applies BigDecimal for numbers;
- * - JSON properties are stored in creation/appearance order.
+ * - parser converts JSON text to Java objects:
+ *   JSON object, String, Number (BigDecimal), Boolean, null, Object[] array of listed types;
+ * - JSON object members (name/value pairs) are stored in creation/appearance order;
+ * - when the names within an object are not unique, parser stores the last value only;
  *
  * Created: 2020-03-07
  */
@@ -41,7 +41,7 @@ public class JSON implements Cloneable {
         return stringifyObject(object);
     }
 
-    private LinkedHashMap<String, Object> properties = new LinkedHashMap<>();
+    private LinkedHashMap<String, Object> members = new LinkedHashMap<>();
 
     public JSON() {
 
@@ -58,43 +58,38 @@ public class JSON implements Cloneable {
 
     @SuppressWarnings("unchecked")
     @Override
-    public JSON clone() throws CloneNotSupportedException {
-        JSON clone = (JSON) super.clone();
-        clone.properties = (LinkedHashMap<String, Object>) this.properties.clone();
+    public JSON clone() {//throws CloneNotSupportedException {
+//        JSON clone = (JSON) super.clone();
+        JSON clone = new JSON();
+        clone.members = (LinkedHashMap<String, Object>) this.members.clone();
         return clone;
     }
 
     public List<String> list() {
-        return new ArrayList<>(this.properties.keySet());
+        return new ArrayList<>(this.members.keySet());
     }
 
-    private String checkPropName(String propName) {
-        if (propName == null) {
-            throw new NullPointerException("Illegal property name");
-        }
-        return propName;
+    public boolean exists(String memberName) {
+        return getMembers().containsKey(memberName);
     }
 
-    public boolean exists(String propName) {
-        return listProperties().containsKey(propName);
+    public Object get(String memberName) {
+        return getMembers().get(memberName);
     }
 
-    public Object get(String propName) {
-        return listProperties().get(propName);
-    }
-
-    public JSON set(String propName, Object value)
-            throws NullPointerException, IllegalArgumentException {
-        listProperties().put(checkPropName(propName), checkObjectType(value));
+    public JSON set(String memberName, Object value) {
+//          throws NullPointerException, IllegalArgumentException {
+//        getMembers().put(checkPropName(memberName), checkObjectType(value));
+        getMembers().put(memberName, value);
         return this;
     }
 
-    public Object remove(String propName) {
-        return this.listProperties().remove(propName);
+    public Object remove(String memberName) {
+        return this.getMembers().remove(memberName);
     }
 
-    private LinkedHashMap<String, Object> listProperties() {
-        return this.properties;
+    private LinkedHashMap<String, Object> getMembers() {
+        return this.members;
     }
 
     static class Parser {
@@ -171,11 +166,11 @@ public class JSON implements Cloneable {
                 object = new JSON();
                 if (!expectedChar('}')) { // empty object
                     do {
-                        Object propName = parseObject();
-                        if ((propName instanceof String) && expectedChar(':')) {
-                            ((JSON) object).set((String) propName, parseObject());
+                        Object memberName = parseObject();
+                        if ((memberName instanceof String) && expectedChar(':')) {
+                            ((JSON) object).set((String) memberName, parseObject());
                         } else {
-                            throw newParseException("Property name expected",
+                            throw newParseException("Name expected",
                                     null, offset);
                         }
                     } while (expectedChar(','));
@@ -224,7 +219,7 @@ public class JSON implements Cloneable {
             } else if (charIn(NUMBERS, lastChar())) {
                 String number = nextChars(NUMBERS);
                 try {
-                    object = (Number) new BigDecimal(number);
+                    object = new BigDecimal(number);
                 } catch (NumberFormatException e) {
                     throw newParseException("Unparseable number:",
                             number, offset);
@@ -261,7 +256,7 @@ public class JSON implements Cloneable {
 //        } else if (value instanceof Character) {
 //            return stringifyObject(value.toString());
         } else if (value instanceof JSON) {
-            return stringifyObject(((JSON) value).properties);
+            return stringifyObject(((JSON) value).members);
         } else if (value.getClass().isArray()) {
             StringBuilder sb = new StringBuilder("[");
             String separator = "";
@@ -277,7 +272,7 @@ public class JSON implements Cloneable {
             String separator = "";
             for (Map.Entry<Object, Object> entry : ((Map<Object, Object>) value).entrySet()) {
                 sb.append(separator)
-                        // null key (property name) is converted to "null" 
+                        // null key (member name) is converted to "null" 
                         .append(stringifyObject(String.valueOf(entry.getKey())))
                         .append(": ")
                         .append(stringifyObject(entry.getValue()));
@@ -288,24 +283,6 @@ public class JSON implements Cloneable {
         return stringifyObject(String.valueOf(value));
 //        throw new IllegalArgumentException("Unsupported object: "
 //                + value.getClass().getSimpleName());
-    }
-
-    static Object checkObjectType(Object obj) throws IllegalArgumentException {
-        if (obj == null
-                || (obj instanceof String)
-                || (obj instanceof Number)
-                || (obj instanceof Boolean)
-                || (obj instanceof JSON)
-                || (obj instanceof Character)) {
-        } else if (obj.getClass().isArray()) {
-            for (int i = 0; i < Array.getLength(obj); i++) {
-                checkObjectType(Array.get(obj, i));
-            }
-        } else {
-            throw new IllegalArgumentException("Unsupported object: "
-                    + obj.getClass().getSimpleName());
-        }
-        return obj;
     }
 
     private static final char[] ESCAPED_CHARS = {'"', '/', '\\', 'b', 'f', 'n', 'r', 't'};

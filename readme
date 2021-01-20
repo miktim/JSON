@@ -6,10 +6,11 @@ Release notes:
   - parser converts JSON text to Java objects:
       JSON object, String, Number (BigDecimal), Boolean, null, Object[] array of listed types;
   - JSON object members (name/value pairs) are stored in order of appearance/creation;
-  - when the names within an object are not unique, parser stores the last name/value pair only;
-  - JSON object setter acceps types listed above, all Java primitives and primitive arrays;
-  - in addition, generator converts Java Lists to JSON arrays [V[0],...,V[n]] and
-    Java Maps - to JSON objects {"K": V,...}.
+  - when the names within an object are not unique, parser stores the last value only;
+  - JSON object setter accepts any Java object, all Java primitives and primitive arrays;
+  - in addition to the parsed types, the generator converts Java Lists to JSON arrays
+    and Java Maps to JSON objects. The null key is converted to a "null" member name.
+    Other Java objects are converted to JSON strings.
 
 Overview:
     static Object parse(String json) throws IOException, ParseException;
@@ -21,11 +22,11 @@ Overview:
 
   Methods:
     String toString();   // stringify object
-    JSON clone() throws CloneNotSupportedException; // clones the member list only
+    JSON clone(); // clones the member list only
     List<String> list(); // list of member names
     boolean exists(String memberName);
     Object get(String memberName);
-    JSON set(String memberName, Object value) throws NullPointerException,  IllegalArgumentException;
+    JSON set(String memberName, Object value);
     Object remove(String memberName);
 
 Usage example see in https://github.com/miktim/JSON/blob/master/test/JSONTest.java
