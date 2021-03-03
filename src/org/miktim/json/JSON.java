@@ -8,6 +8,10 @@
  *   JSON object, String, Number (BigDecimal), Boolean, null, Object[] array of listed types;
  * - JSON object members (name/value pairs) are stored in creation/appearance order;
  * - when the names within an object are not unique, parser stores the last value only;
+ * - JSON object setter accepts any Java object, all Java primitives and primitive arrays;
+ * - in addition to the parsed types, the generator converts Java Lists, Sets to JSON arrays
+ *   and Java Maps to JSON objects. The null key is converted to a "null" member name.
+ *   Other Java objects are converted to JSON strings.
  *
  * Created: 2020-03-07
  */
@@ -16,6 +20,7 @@ package org.miktim.json;
 import java.io.IOException;
 import java.io.Reader;
 import java.util.Map;
+import java.util.Set;
 import java.util.LinkedHashMap;
 import java.io.StringReader;
 import java.lang.reflect.Array;
@@ -265,8 +270,6 @@ public class JSON implements Cloneable {
                 separator = ", ";
             }
             return sb.append("]").toString();
-        } else if (value instanceof List) {
-            return stringifyObject(((List) value).toArray());
         } else if (value instanceof Map) {
             StringBuilder sb = new StringBuilder("{");
             String separator = "";
@@ -279,6 +282,10 @@ public class JSON implements Cloneable {
                 separator = ", ";
             }
             return sb.append("}").toString();
+        } else if (value instanceof List) {
+            return stringifyObject(((List) value).toArray());
+        } else if (value instanceof Set) {
+            return stringifyObject(((Set) value).toArray());
         }
         return stringifyObject(String.valueOf(value));
 //        throw new IllegalArgumentException("Unsupported object: "
