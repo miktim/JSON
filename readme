@@ -13,14 +13,14 @@ Release notes:
     Other Java objects are converted to JSON strings.
 
 Overview:
-    static Object parse(String json) throws IOException, ParseException;
-    static Object parse(Reader reader) throws IOException, ParseException;
-    static String stringify(Object object); // generate JSON text
-
   Constructor:
     JSON();
 
   Methods:
+    static Object parse(String json) throws IOException, ParseException;
+    static Object parse(Reader reader) throws IOException, ParseException;
+    static String stringify(Object object); // generate JSON text
+
     String toString();   // stringify object
     JSON clone(); // clones the member list only
     List<String> list(); // list of member names
