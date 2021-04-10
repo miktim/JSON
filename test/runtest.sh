@@ -10,5 +10,5 @@ else
   echo First make the ./JSON.jar file.
 fi
 echo
-echo Completed. Press any key...
+echo Completed. Press Enter to exit...
 read

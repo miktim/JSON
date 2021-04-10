@@ -18,5 +18,5 @@ rm -f -r ./org
 #more < ./compile.log
 cat compile.log
 echo
-echo Completed. Press any key...
+echo Completed. Press Enter to exit...
 read
