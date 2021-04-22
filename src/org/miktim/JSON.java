@@ -1,5 +1,5 @@
 /**
- * Java JSON parser/generator, MIT (c) 2020 miktim@mail.ru
+ * Java JSON parser/generator, MIT (c) 2020-2021 miktim@mail.ru
  *
  * Release notes:
  * - Java 7+, Android compatible;
@@ -16,7 +16,7 @@
  *
  * Created: 2020-03-07
  */
-package org.miktim.json;
+package org.miktim;
 
 import java.io.IOException;
 import java.io.Reader;
@@ -33,7 +33,7 @@ import static java.util.Arrays.binarySearch;
 import java.util.List;
 import java.util.Vector; //obsolete?
 
-public class JSON implements Cloneable {
+public class JSON extends LinkedHashMap<String, Object> {
 
     public static Object parse(String json) throws IOException, ParseException {
         return parse(new StringReader(json));
@@ -47,7 +47,7 @@ public class JSON implements Cloneable {
         return stringifyObject(object);
     }
 
-    private LinkedHashMap<String, Object> members = new LinkedHashMap<>();
+//    private LinkedHashMap<String, Object> members = new LinkedHashMap<>();
 
     public JSON() {
 
@@ -61,7 +61,7 @@ public class JSON implements Cloneable {
     public String toString() {
         return stringify();
     }
-
+/*
     @SuppressWarnings("unchecked")
     @Override
     public JSON clone() {//throws CloneNotSupportedException {
@@ -70,9 +70,9 @@ public class JSON implements Cloneable {
         clone.members = (LinkedHashMap<String, Object>) this.members.clone();
         return clone;
     }
-
+*/
     public List<String> list() {
-        return new ArrayList<>(this.members.keySet());
+        return new ArrayList<>(this.keySet());
     }
 
     public boolean exists(String memberName) {
@@ -95,7 +95,7 @@ public class JSON implements Cloneable {
     }
 
     private LinkedHashMap<String, Object> getMembers() {
-        return this.members;
+        return this;
     }
 
     static class Parser {
@@ -261,8 +261,8 @@ public class JSON implements Cloneable {
             return value.toString(); // Number, Boolean
 //        } else if (value instanceof Character) {
 //            return stringifyObject(value.toString());
-        } else if (value instanceof JSON) {
-            return stringifyObject(((JSON) value).members);
+//        } else if (value instanceof JSON) {
+//            return stringifyObject((JSON) value);
         } else if (value.getClass().isArray()) {
             StringBuilder sb = new StringBuilder("[");
             String separator = "";
