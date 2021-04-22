@@ -2,7 +2,7 @@
 
 echo $(javac -version)
 jname=JSON
-cpath=/org/miktim/json/
+cpath=/org/miktim/
 if [ ! -d ${cpath} ]
   then mkdir -p .${cpath}
   else rm -f ${cpath}/*.*
