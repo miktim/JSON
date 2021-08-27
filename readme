@@ -13,21 +13,25 @@ Release notes:
     and Java Maps to JSON objects. The null key is converted to a "null" member name.
     Other Java objects are converted to JSON strings.
 
+package org.miktim
+
 Overview:
-  Constructor:
-    JSON();
 
-  Methods:
-    static Object parse(String json) throws IOException, ParseException;
-    static Object parse(Reader reader) throws IOException, ParseException;
-    static String stringify(Object object); // generate JSON text
+  Class JSON extends LinkedHashMap<String, Object>.
+    Constructor:
+      JSON();
 
-    String toString();   // stringify object
-    JSON clone(); // clones the member list only
-    List<String> list(); // list of member names
-    boolean exists(String memberName);
-    Object get(String memberName);
-    JSON set(String memberName, Object value);
-    Object remove(String memberName);
+    Methods:
+      static Object parse(String json) throws IOException, ParseException;
+      static Object parse(Reader reader) throws IOException, ParseException;
+      static String stringify(Object object); // generate JSON text
+
+      String toString();   // stringify object
+      JSON clone();        // clones only the member list
+      List<String> list(); // list of member names
+      boolean exists(String memberName);
+      Object get(String memberName);
+      JSON set(String memberName, Object value);
+      Object remove(String memberName);
 
 Usage example see in https://github.com/miktim/JSON/blob/master/test/json/JSONTest.java
