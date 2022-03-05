@@ -34,4 +34,4 @@ Overview:
       JSON set(String memberName, Object value);
       Object remove(String memberName);
 
-Usage example see in https://github.com/miktim/JSON/blob/master/test/json/JSONTest.java
+Usage: see ./test/json/JSONTest.java
