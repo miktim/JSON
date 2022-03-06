@@ -1,5 +1,5 @@
 /*
- * JSONTest, MIT (c) 2020 miktim@mail.ru
+ * JSONTest, MIT (c) 2020-2022 miktim@mail.ru
  */
 import java.io.File;
 import java.io.FileReader;
@@ -25,6 +25,10 @@ public class JSONTest {
         }
 
         log("JSON package test");
+
+        log("\n\rTest constructor:");
+        log(new JSON("One", 1, "Two", 2, 3, "Three"));
+        
         log("\n\rTest escape/unescape string:");
         String unescaped = new String(new char[]{0x8, 0x9, 0xA, 0xC, 0xD, 0x22, 0x2F, 0x5C, 0, '-', 0x1F, 0xd834, 0xdd1e});
         String escaped = JSON.escapeString(unescaped);
@@ -80,13 +84,13 @@ public class JSONTest {
                 + json.exists(null) + "/" + json.exists("nonexistent"));
 
         log("\n\rTest JSON clone then remove \"BigDecimal\":");
-        JSON cloned = (JSON)json.clone();
+        JSON cloned = (JSON) json.clone();
         cloned.remove("BigDecimal");
         log(json.list());
         log(cloned.list());
 
         log("\n\rTest JSON with Java arrays:");
-        int[][] intArray = new int[][]{{0, 1, 2}, {3, 4, 5}};
+        int[][] intArray = new int[][]{{0, 1, 2}, {3, 4, 5, 6}};
         log(JSON.stringify(intArray));
         cloned.set("Array", intArray);
         log(JSON.stringify(cloned.get("Array")));

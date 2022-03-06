@@ -1,4 +1,4 @@
-# Java JSON parser/generator, MIT (c) 2020-2021 miktim@mail.ru
+# Java JSON parser/generator, MIT (c) 2020-2022 miktim@mail.ru
 
 Release notes:
   - Java SE 7+, Android compatible;
@@ -19,7 +19,7 @@ Overview:
 
   Class JSON extends LinkedHashMap<String, Object>.
     Constructor:
-      JSON();
+      JSON(Object... members) throws IndexOutOfBoundsException; // name,value pairs
 
     Methods:
       static Object parse(String json) throws IOException, ParseException;
@@ -30,7 +30,7 @@ Overview:
       List<String> list(); // returns list of member names
       boolean exists(String memberName);
       Object get(String memberName); // inherited
-      JSON set(String memberName, Object value);
-      Object remove(String memberName); // inherited, returns the previous value
+      JSON set(String memberName, Object value); // create or replace member
+      Object remove(String memberName); // inherited, returns the current value or null
 
 Usage: see ./test/json/JSONTest.java

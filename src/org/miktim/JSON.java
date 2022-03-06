@@ -1,5 +1,5 @@
 /**
- * Java JSON parser/generator, MIT (c) 2020-2021 miktim@mail.ru
+ * Java JSON parser/generator, MIT (c) 2020-2022 miktim@mail.ru
  *
  * Release notes:
  * - Java 7+, Android compatible;
@@ -47,12 +47,14 @@ public class JSON extends LinkedHashMap<String, Object> {
         return stringifyObject(object);
     }
 
-//    private LinkedHashMap<String, Object> members = new LinkedHashMap<>();
-
-    public JSON() {
-
+// Memebers: name,value pairs    
+    public JSON(Object... members) throws IndexOutOfBoundsException {
+        super();
+        for (int i = 0; i < members.length;) {
+            this.put(String.valueOf(members[i++]), members[i++]);
+        }
     }
-
+    
     public String stringify() {
         return stringify(this);
     }
@@ -61,40 +63,17 @@ public class JSON extends LinkedHashMap<String, Object> {
     public String toString() {
         return stringify();
     }
-/*
-    @SuppressWarnings("unchecked")
-    @Override
-    public JSON clone() {//throws CloneNotSupportedException {
-//        JSON clone = (JSON) super.clone();
-        JSON clone = new JSON();
-        clone.members = (LinkedHashMap<String, Object>) this.members.clone();
-        return clone;
-    }
-*/
+
     public List<String> list() {
         return new ArrayList<>(this.keySet());
     }
 
     public boolean exists(String memberName) {
-        return getMembers().containsKey(memberName);
-    }
-
-    public Object get(String memberName) {
-        return getMembers().get(memberName);
+        return this.containsKey(memberName);
     }
 
     public JSON set(String memberName, Object value) {
-//          throws NullPointerException, IllegalArgumentException {
-//        getMembers().put(checkPropName(memberName), checkObjectType(value));
-        getMembers().put(memberName, value);
-        return this;
-    }
-
-    public Object remove(String memberName) {
-        return this.getMembers().remove(memberName);
-    }
-
-    private LinkedHashMap<String, Object> getMembers() {
+        this.put(memberName, value);
         return this;
     }
 
@@ -250,7 +229,7 @@ public class JSON extends LinkedHashMap<String, Object> {
         }
     }
 
-// Java Lists converts to JSON arrays [V[0],...,V[n]], Maps - to object {"K":V,...}
+// Java Lists, Sets converts to JSON arrays [V[0],...,V[n]], Maps - to object {"K":V,...}
     @SuppressWarnings("unchecked")
     static String stringifyObject(Object value) {
         if (value == null) {
@@ -259,10 +238,6 @@ public class JSON extends LinkedHashMap<String, Object> {
             return "\"" + escapeString((String) value) + "\"";
         } else if (value instanceof Number || value instanceof Boolean) {
             return value.toString(); // Number, Boolean
-//        } else if (value instanceof Character) {
-//            return stringifyObject(value.toString());
-//        } else if (value instanceof JSON) {
-//            return stringifyObject((JSON) value);
         } else if (value.getClass().isArray()) {
             StringBuilder sb = new StringBuilder("[");
             String separator = "";
@@ -289,8 +264,6 @@ public class JSON extends LinkedHashMap<String, Object> {
             return stringifyObject(((Set) value).toArray());
         }
         return stringifyObject(String.valueOf(value));
-//        throw new IllegalArgumentException("Unsupported object: "
-//                + value.getClass().getSimpleName());
     }
 
     private static final char[] ESCAPED_CHARS = {'"', '/', '\\', 'b', 'f', 'n', 'r', 't'};
