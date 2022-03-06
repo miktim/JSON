@@ -26,12 +26,11 @@ Overview:
       static Object parse(Reader reader) throws IOException, ParseException;
       static String stringify(Object object); // generate JSON text
 
-      String toString();   // stringify object
-      JSON clone();        // clones only the member list
-      List<String> list(); // list of member names
+      String toString();   // overridden, stringify JSON object
+      List<String> list(); // returns list of member names
       boolean exists(String memberName);
-      Object get(String memberName);
+      Object get(String memberName); // inherited
       JSON set(String memberName, Object value);
-      Object remove(String memberName);
+      Object remove(String memberName); // inherited, returns the previous value
 
 Usage: see ./test/json/JSONTest.java
