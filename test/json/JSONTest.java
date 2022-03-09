@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import org.miktim.JSON;
 
@@ -24,19 +25,28 @@ public class JSONTest {
             path = args[0];
         }
 
-        log("JSON package test");
+        log("JSON class test");
 
         log("\n\rTest constructor:");
-        log(new JSON("One", 1, "Two", 2, 3, "Three"));
-        
+        JSON json = new JSON("One", 1, "Two", 2, 3, "Three",
+                "Nested", new JSON("Array",
+                        new float[][]{{1.1f, 2.2f}, {3.3f, 4.4f}}));
+        log(json);
+        log(json.getNumber("One").floatValue()); // Number(Integer)
+// java.lang.ClassCastException        
+//        log(json.getString("Two"));
+        log(json.stringify("Two"));
+        log(json.getString("3"));
+        log(json.getJSON("Nested").getNumber("Array", 1, 1).intValue());
+
         log("\n\rTest escape/unescape string:");
         String unescaped = new String(new char[]{0x8, 0x9, 0xA, 0xC, 0xD, 0x22, 0x2F, 0x5C, 0, '-', 0x1F, 0xd834, 0xdd1e});
         String escaped = JSON.escapeString(unescaped);
         log(escaped);
         logIsOK(unescaped.equals(JSON.unescapeString(escaped)));
 
-        log("\n\rTest create/stringify JSON object:");
-        JSON json = (new JSON())
+        log("\n\rTest JSON typecast.\r\nBefore normalization:");
+        json = (new JSON())
                 .set("Unescaped", unescaped)
                 .set("EmptyJSON", new JSON())
                 .set("intArray", new int[][]{{0, 1, 2}, {3, 4, 5, 6}})
@@ -50,69 +60,67 @@ public class JSONTest {
                 .set("Int", 14159265)
                 .set("Byte", (byte) 0xFF);
         log(json);
-        log("List members: " + JSON.stringify(json.list()));
+
+        log("List members: " + json.list());
         for (String memberName : json.list()) {
             if (json.get(memberName) != null) {
                 log("\"" + memberName + "\" is instance of: "
                         + json.get(memberName).getClass().getSimpleName());
             } else {
-                log("\"" + memberName + "\" is " + json.get(memberName));
+                log("\"" + memberName + "\" is null");
             }
         }
 
-        log("\n\rTest stringify/parse JSON:");
+        log("\n\rNormalized:");
+        json = json.normalize();
         log(json);
-        log("List members: " + JSON.stringify(json.list()));
-        json = (JSON) JSON.parse(json.toString());
-        log(json);
-        log("List members: " + JSON.stringify(json.list()));
+        log("List members: " + json.list());
         for (String memberName : json.list()) {
             if (json.get(memberName) != null) {
                 log("\"" + memberName + "\" is instance of: "
                         + json.get(memberName).getClass().getSimpleName());
             } else {
-                log("\"" + memberName + "\" is " + json.get(memberName));
+                log("\"" + memberName + "\" is null");
             }
         }
-
-        log("\n\rTest nullnamed/nonexistent member:");
-        log("Remove null/nonexistent member returns: "
-                + json.remove(null) + "/" + json.remove("nonexistent"));
-        log("Get null/nonexistent member returns: "
-                + json.get(null) + "/" + json.get("nonexistent"));
-        log("Exists null/nonexistent member returns: "
-                + json.exists(null) + "/" + json.exists("nonexistent"));
-
-        log("\n\rTest JSON clone then remove \"BigDecimal\":");
-        JSON cloned = (JSON) json.clone();
-        cloned.remove("BigDecimal");
-        log(json.list());
-        log(cloned.list());
 
         log("\n\rTest JSON with Java arrays:");
         int[][] intArray = new int[][]{{0, 1, 2}, {3, 4, 5, 6}};
-        log(JSON.stringify(intArray));
-        cloned.set("Array", intArray);
-        log(JSON.stringify(cloned.get("Array")));
-        intArray[0][1] = 6;
-        log(JSON.stringify(cloned.get("Array")));
-        Object[] array = intArray;
-        array[1] = new int[]{7, 8, 9};
-        log(JSON.stringify(array));
-        log(JSON.stringify(cloned.get("Array")));
+        json = new JSON("Array", intArray);
+        log(json.get("Array").getClass().getSimpleName());
+// array is instance of int[][]        
+// java.lang.ClassCastException 
+//        log(json.getArray("Array", 1).getClass().getSimpleName());
+        log(json.getNumber("Array", 1, 1).floatValue());
 
-        log("\n\rTest generator with other Java objects (ArrayList with Date, File entries):");
+        log(json = json.normalize());
+        log(json.get("Array").getClass().getSimpleName());
+// array is instance of Object[]        
+        log(json.getNumber("Array", 1, 1).floatValue());
+        Object[] array;
+        array = json.getArray("Array");
+        log(array.length);
+        array = json.getArray("Array",1);
+        log(array.length);
+// cast array. doesn't make much sense
+        Number[] na = Arrays.copyOf(array, array.length, Number[].class); 
+        log(JSON.stringify(na));
+
+        log("\n\rTest generator with other Java objects (ArrayList with Array, Date and File entries):");
         ArrayList<Object> arrayList = new ArrayList<>();
+        arrayList.add(new int[2]);
         arrayList.add(new Date());
         arrayList.add(new File(path, "json.json"));
-        log(JSON.stringify(arrayList));
+        String s = JSON.stringify(arrayList);
+        log(s);
+        Object o = JSON.parse(s);
+        log("is Array?: " + o.getClass().isArray());
 
 // examples from RFC 8259 https://datatracker.ietf.org/doc/rfc8259/?include_text=1
         log("\n\rTest examples from RFC 8259:");
         log(JSON.parse("\"\\uD834\\uDD1E\"")); // G-clef
         log(JSON.parse("3.141592653589793238462643383279"));
         log(JSON.parse("null"));
-        log(JSON.stringify(JSON.parse("\t[1, null, 3.2, {}, \"some text\" ] ")));
 
         String example1 = "{\n"
                 + "        \"Image\": {\n"
@@ -129,11 +137,11 @@ public class JSONTest {
                 + "            \"IDs\": [116, 943, 234, 38793]\n"
                 + "          }\n"
                 + "      } ";
-        Object object = JSON.parse(example1);
-        log(((JSON) object).toString());
-        log(((JSON) object).get("Image"));
-        log(((JSON) (((JSON) object).get("Image"))).set("Thumbnail", 256));
-        log(((JSON) (((JSON) object).get("Image"))).remove("Thumbnail"));
+        json = (JSON) JSON.parse(example1);
+        log(json);
+        log(json.get("Image"));
+        log(json.getJSON("Image").set("Thumbnail", 256)); // replace JSON object with number
+        log(json.getJSON("Image").remove("Thumbnail")); // remove member
         String example2 = "[\n"
                 + "        {\n"
                 + "           \"precision\": \"zip\",\n"
@@ -156,9 +164,9 @@ public class JSONTest {
                 + "           \"Country\":   \"US\"\n"
                 + "        }\n"
                 + "      ]";
-        object = JSON.parse(example2);
-        log(JSON.stringify(object));
-        log(JSON.stringify(((Object[]) object)[1]));
+        array = (Object[]) JSON.parse(example2);
+        log(JSON.stringify(array));
+        log(JSON.stringify(array[1]));
 
 // Example from https://docs.oracle.com/en/database/oracle/oracle-database/12.2/adjsn/json-data.html#GUID-FBC22D72-AA64-4B0A-92A2-837B32902E2C        
         log("\n\rTest one more example:");

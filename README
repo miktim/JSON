@@ -1,4 +1,4 @@
-# Java JSON parser/generator, MIT (c) 2020-2022 miktim@mail.ru
+# Java 7+/Android JSON parser/generator, MIT (c) 2020-2022 miktim@mail.ru
 
 Release notes:
   - Java SE 7+, Android compatible;
@@ -8,10 +8,17 @@ Release notes:
   - JSON object members (name/value pairs) are stored in order of appearance/creation;
   - when the names within an object are not unique, parser stores the last value only;
   - JSON object setter accepts any Java object, all Java primitives and primitive arrays;
-  - avoid recursion!;
-  - in addition to the parsed types, the generator converts Java Lists,Sets to JSON arrays
-    and Java Maps to JSON objects. The null key is converted to a "null" member name.
+  - AVOID RECURSION!;
+  - in addition, the generator converts Java Lists,Sets to JSON arrays, Java Maps to JSON objects.
+    The null key is converted to a "null" member name.
     Other Java objects are converted to JSON strings.
+
+Put, set, get notes:
+  - put, set methods casts Java primitives to the corresponding objects.
+    Java objects and arrays are stored "as is" (as reference). 
+    For example: int -> Integer, int[] -> int[], String[] -> String[]
+  - after JSON text parsing or normalization, they are stored as:
+    BigDecimal, Object[] {BigDecimal,...}, Object[] {String,...}
 
 package org.miktim
 
@@ -26,11 +33,20 @@ Overview:
       static Object parse(Reader reader) throws IOException, ParseException;
       static String stringify(Object object); // generate JSON text
 
-      String toString();   // overridden, stringify JSON object
       List<String> list(); // returns list of member names
-      boolean exists(String memberName);
-      Object get(String memberName); // inherited
+      boolean exists(String memberName); // alias of the inherited containsKey()
+      Object put(String memberName, Object value);   // inherited
       JSON set(String memberName, Object value); // create or replace member
-      Object remove(String memberName); // inherited, returns the current value or null
+      Object get(String memberName);    // inherited
+      Object get(String memberName, int... indices); // returns value or array element
+      JSON getJSON(String memberName, int... indices) throws ClassCastException;
+      String getString(String memberName, int... indices) throws ClassCastException;
+      Number getNumber(String memberName, int... indices) throws ClassCastException;
+      Boolean getBoolean(String memberName, int... indices) throws ClassCastException;
+      Object[] getArray(String memberName, int... indices) throws ClassCastException;
+      Object remove(String memberName); // inherited
+      JSON normalize() throws Exception;
+      String stringify(String memberName, int... indices); // stringify value or array element
+      String toString();   // overridden, stringify JSON object
 
 Usage: see ./test/json/JSONTest.java

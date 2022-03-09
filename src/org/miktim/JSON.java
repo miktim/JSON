@@ -10,7 +10,7 @@
  * - when the names within an object are not unique, parser stores the last value only;
  * - JSON object setter accepts any Java object, all Java primitives and primitive arrays;
  * - avoid recursion!;
- * - in addition to the parsed types, the generator converts Java Lists, Sets to JSON arrays
+ * - in addition, the generator converts Java Lists, Sets to JSON arrays
  *   and Java Maps to JSON objects. The null key is converted to a "null" member name.
  *   Other Java objects are converted to JSON strings.
  *
@@ -54,9 +54,13 @@ public class JSON extends LinkedHashMap<String, Object> {
             this.put(String.valueOf(members[i++]), members[i++]);
         }
     }
-    
+
     public String stringify() {
         return stringify(this);
+    }
+    
+    public String stringify(String memberName, int... indices) {
+        return JSON.stringify(get(memberName, indices));
     }
 
     @Override
@@ -75,6 +79,39 @@ public class JSON extends LinkedHashMap<String, Object> {
     public JSON set(String memberName, Object value) {
         this.put(memberName, value);
         return this;
+    }
+
+//  get value or array element
+    public Object get(String memberName, int... indices) {
+        Object obj = get(memberName);
+        for (int i = 0; i < indices.length; i++) {
+            obj = Array.get(obj, indices[i]);
+        }
+        return obj;
+    }
+
+    public JSON getJSON(String memberName, int... indices) {
+        return (JSON) get(memberName, indices);
+    }
+
+    public Number getNumber(String memberName, int... indices) {
+        return (Number) get(memberName, indices);
+    }
+
+    public String getString(String memberName, int... indices) {
+        return (String) get(memberName, indices);
+    }
+
+    public Boolean getBoolean(String memberName, int... indices) {
+        return (Boolean) get(memberName, indices);
+    }
+
+    public Object[] getArray(String memberName, int... indices) {
+        return (Object[]) get(memberName, indices);
+    }
+
+    public JSON normalize() throws Exception {
+        return (JSON) JSON.parse(toString()); // :)
     }
 
     static class Parser {
