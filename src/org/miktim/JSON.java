@@ -68,6 +68,11 @@ public class JSON extends LinkedHashMap<String, Object> {
         return stringify();
     }
 
+    public List<String> listNames() {
+        return new ArrayList<>(this.keySet());
+    }
+
+// Deprecated 1.1.0
     public List<String> list() {
         return new ArrayList<>(this.keySet());
     }

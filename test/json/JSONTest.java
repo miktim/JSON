@@ -61,8 +61,8 @@ public class JSONTest {
                 .set("Byte", (byte) 0xFF);
         log(json);
 
-        log("List members: " + json.list());
-        for (String memberName : json.list()) {
+        log("List members: " + json.listNames());
+        for (String memberName : json.listNames()) {
             if (json.get(memberName) != null) {
                 log("\"" + memberName + "\" is instance of: "
                         + json.get(memberName).getClass().getSimpleName());
@@ -74,8 +74,8 @@ public class JSONTest {
         log("\n\rNormalized:");
         json = json.normalize();
         log(json);
-        log("List members: " + json.list());
-        for (String memberName : json.list()) {
+        log("List members: " + json.listNames());
+        for (String memberName : json.listNames()) {
             if (json.get(memberName) != null) {
                 log("\"" + memberName + "\" is instance of: "
                         + json.get(memberName).getClass().getSimpleName());
@@ -138,7 +138,6 @@ public class JSONTest {
                 + "          }\n"
                 + "      } ";
         json = (JSON) JSON.parse(example1);
-        log(json);
         log(json.get("Image"));
         log(json.getJSON("Image").set("Thumbnail", 256)); // replace JSON object with number
         log(json.getJSON("Image").remove("Thumbnail")); // remove member

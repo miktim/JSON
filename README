@@ -33,7 +33,7 @@ Overview:
       static Object parse(Reader reader) throws IOException, ParseException;
       static String stringify(Object object); // generate JSON text
 
-      List<String> list(); // returns list of member names
+      List<String> listNames(); // returns list of member names
       boolean exists(String memberName); // alias of the inherited containsKey()
       Object put(String memberName, Object value);   // inherited
       JSON set(String memberName, Object value); // create or replace member
@@ -45,7 +45,7 @@ Overview:
       Boolean getBoolean(String memberName, int... indices) throws ClassCastException;
       Object[] getArray(String memberName, int... indices) throws ClassCastException;
       Object remove(String memberName); // inherited
-      JSON normalize() throws Exception;
+      JSON normalize() throws Exception; // not required to generate JSON text
       String stringify(String memberName, int... indices); // stringify value or array element
       String toString();   // overridden, stringify JSON object
 
