@@ -72,7 +72,8 @@ public class JSON extends LinkedHashMap<String, Object> {
         return new ArrayList<>(this.keySet());
     }
 
-// Deprecated 1.1.0
+// Deprecated in 1.2.0
+    @Deprecated
     public List<String> list() {
         return new ArrayList<>(this.keySet());
     }

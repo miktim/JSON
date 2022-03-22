@@ -25,6 +25,7 @@ package org.miktim
 Overview:
 
   Class JSON extends LinkedHashMap<String, Object>.
+
     Constructor:
       JSON(Object... members) throws IndexOutOfBoundsException; // name,value pairs
 
@@ -35,18 +36,21 @@ Overview:
 
       List<String> listNames(); // returns list of member names
       boolean exists(String memberName); // alias of the inherited containsKey()
-      Object put(String memberName, Object value);   // inherited
-      JSON set(String memberName, Object value); // create or replace member
+      Object put(String memberName, Object value); // inherited
+      JSON set(String memberName, Object value);   // create or replace member
       Object get(String memberName);    // inherited
+      Object remove(String memberName); // inherited
+
       Object get(String memberName, int... indices); // returns value or array element
       JSON getJSON(String memberName, int... indices) throws ClassCastException;
       String getString(String memberName, int... indices) throws ClassCastException;
       Number getNumber(String memberName, int... indices) throws ClassCastException;
       Boolean getBoolean(String memberName, int... indices) throws ClassCastException;
       Object[] getArray(String memberName, int... indices) throws ClassCastException;
-      Object remove(String memberName); // inherited
+
       JSON normalize() throws Exception; // not required to generate JSON text
+
       String stringify(String memberName, int... indices); // stringify value or array element
-      String toString();   // overridden, stringify JSON object
+      String toString();  // overridden, stringify JSON object
 
 Usage: see ./test/json/JSONTest.java
