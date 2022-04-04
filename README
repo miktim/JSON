@@ -11,7 +11,8 @@ Release notes:
   - AVOID RECURSION!;
   - in addition, the generator converts Java Lists,Sets to JSON arrays, Java Maps to JSON objects.
     The null key is converted to a "null" member name.
-    Other Java objects are converted to JSON strings.
+    Other Java objects are converted to JSON strings;
+  - JSON JavaScript - like interface.
 
 Put, set, get notes:
   - put, set methods casts Java primitives to the corresponding objects.
@@ -50,7 +51,7 @@ Overview:
 
       JSON normalize() throws Exception; // not required to generate JSON text
 
-      String stringify(String memberName, int... indices); // stringify value or array element
+      String toString(String memberName, int... indices); // stringify value or array element
       String toString();  // overridden, stringify JSON object
 
 Usage: see ./test/json/JSONTest.java

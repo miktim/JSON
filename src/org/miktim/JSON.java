@@ -59,7 +59,7 @@ public class JSON extends LinkedHashMap<String, Object> {
         return stringify(this);
     }
     
-    public String stringify(String memberName, int... indices) {
+    public String toString(String memberName, int... indices) {
         return JSON.stringify(get(memberName, indices));
     }
 
@@ -72,7 +72,7 @@ public class JSON extends LinkedHashMap<String, Object> {
         return new ArrayList<>(this.keySet());
     }
 
-// Deprecated in 1.2.0
+// Deprecated 1.2.0
     @Deprecated
     public List<String> list() {
         return new ArrayList<>(this.keySet());

@@ -35,7 +35,7 @@ public class JSONTest {
         log(json.getNumber("One").floatValue()); // Number(Integer)
 // java.lang.ClassCastException        
 //        log(json.getString("Two"));
-        log(json.stringify("Two"));
+        log(json.toString("Two"));
         log(json.getString("3"));
         log(json.getJSON("Nested").getNumber("Array", 1, 1).intValue());
 
@@ -94,6 +94,7 @@ public class JSONTest {
         log(json.getNumber("Array", 1, 1).floatValue());
 
         log(json = json.normalize());
+
         log(json.get("Array").getClass().getSimpleName());
 // array is instance of Object[]        
         log(json.getNumber("Array", 1, 1).floatValue());
