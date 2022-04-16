@@ -1,36 +1,98 @@
-# Java JSON parser/generator, MIT (c) 2020-2022 miktim@mail.ru
+# Java 7+/Android JSON parser/generator, MIT (c) 2020-2022 miktim@mail.ru
 
 Release notes:
-  - Java SE 7+, Android compatible;
+  - JSON JavaScript - like interface;
+  - Java SE 7+/Android compatible;
   - in accordance with RFC 8259: https://datatracker.ietf.org/doc/rfc8259/?include_text=1
-  - parser converts JSON text to Java objects:
-      JSON object, String, Number (BigDecimal), Boolean, null, Object[] array of listed types;
-  - JSON object members (name/value pairs) are stored in order of appearance/creation;
-  - when the names within an object are not unique, parser stores the last value only;
-  - JSON object setter accepts any Java object, all Java primitives and primitive arrays;
-  - avoid recursion!;
-  - in addition to the parsed types, the generator converts Java Lists,Sets to JSON arrays
-    and Java Maps to JSON objects. The null key is converted to a "null" member name.
-    Other Java objects are converted to JSON strings.
 
-package org.miktim
+package org.miktim.json
 
 Overview:
 
   Class JSON extends LinkedHashMap<String, Object>.
+
+    - parser converts JSON text to Java objects:
+      JSON object, String, Number (BigDecimal), Boolean, null, Object[] array of listed types;
+    - JSON object members (name/value pairs) are stored in order of appearance/creation;
+    - when the names within an object are not unique, parser stores the last value only;
+    - JSON object setter accepts any Java object, all Java primitives and primitive arrays;
+    - AVOID RECURSION!;
+    - in addition, the generator converts Java Lists,Sets to JSON arrays, Java Maps to JSON objects.
+      The null key is converted to a "null" member name.
+      Other Java objects are converted to string representation.
+    
+    Put, set, get notes:
+    - put, set methods casts Java primitives to the corresponding objects.
+      Java objects and arrays are stored "as is" (as reference). 
+      For example: int -> Integer, int[] -> int[], String[] -> String[]
+    - after JSON text parsing or normalization, they are stored as:
+      BigDecimal, Object[] {BigDecimal,...}, Object[] {String,...}
+
     Constructor:
       JSON(Object... members) throws IndexOutOfBoundsException; // name,value pairs
 
-    Methods:
+    Public methods:
       static Object parse(String json) throws IOException, ParseException;
       static Object parse(Reader reader) throws IOException, ParseException;
-      static String stringify(Object object); // generate JSON text
+      static String stringify(Object object); // generate JSON text as single line
 
-      String toString();   // overridden, stringify JSON object
-      List<String> list(); // returns list of member names
-      boolean exists(String memberName);
-      Object get(String memberName); // inherited
-      JSON set(String memberName, Object value); // create or replace member
-      Object remove(String memberName); // inherited, returns the current value or null
+      List<String> listNames(); // returns list of member names
+      boolean exists(String memberName); // alias of the inherited containsKey()
+      Object put(String memberName, Object value); // inherited
+      JSON set(String memberName, Object value);   // create or replace member
+      Object get(String memberName);    // inherited
+      Object remove(String memberName); // inherited
 
-Usage: see ./test/json/JSONTest.java
+      Object get(String memberName, int... indices); // returns value or array element
+      JSON getJSON(String memberName, int... indices) throws ClassCastException;
+      String getString(String memberName, int... indices) throws ClassCastException;
+      Number getNumber(String memberName, int... indices) throws ClassCastException;
+      Boolean getBoolean(String memberName, int... indices) throws ClassCastException;
+      Object[] getArray(String memberName, int... indices) throws ClassCastException;
+
+      JSON normalize() throws IOException, ParseException; // not required to generate JSON text
+
+      String toString(String memberName, int... indices); // stringify value or array element
+      String toString();  // overridden, stringify JSON object
+  
+
+  Class JSONAdapter;
+
+    Converts by sample a JSON variable or array to a Java primitive or an array of primitives.
+    - sample must be initialized;
+    - casting null to a Java primitive returns corresponding initial value;
+    - casting null to an array returns an empty array;
+    - casting to null returns null.
+
+    static <T> T castTo(Object jsonVal, T sample);
+    static <T> T castTo(Object jsonVal, Class <T> cls);
+
+  Abstract class JSONObject;
+
+    Converts Java object fields to/from JSON.
+    - see JSON set/get/cast rules for Java object fields in the notes for JSON object
+      and JSONAdapter;
+    - Enum, synthetic and final fields are ignored.
+
+    Constant:
+      static final Object IGNORED; // returned from replacer/reviever to skip the object field
+
+    Methods:
+      Object toJSON()
+        throws IllegalArgumentException, IllegalAccessException;
+      Object replacer(String fldName, Object value); 
+         // first call with object class name and new JSON object as value
+      JSONObject fromJSON(Object json)
+        throws IllegalArgumentException, IllegalAccessException;
+      Object reviever(String fldName, Object value); 
+         // first call with object class name and json argument as value
+      boolean isClassName(fldName);
+      <T> T castMember(String memberName, JSON jsonObj, T sample);
+         // returns the sample if member does not exists
+      void setIgnored(String[] fldNames); // set ignored field names
+      String[] getIgnored()
+
+Usage see:
+  ./test/json/JSONTest.java
+  ./test/json/JSONAdapterTest.java
+  ./test/json/JSONObjectTest.java

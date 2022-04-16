@@ -2,13 +2,14 @@
 
 echo $(javac -version)
 jname=JSON
-cpath=/org/miktim/
+cpath=/org/miktim/json/
 if [ ! -d ${cpath} ]
   then mkdir -p .${cpath}
   else rm -f ${cpath}/*.*
 fi
-javac -Xstdout ./compile.log -Xlint:unchecked -cp .${cpath} -d ./ \
-  ../../src${cpath}JSON.java
+#javac -Xstdout ./compile.log -Xlint:unchecked -cp .${cpath} -d ./ \
+javac -Xstdout ./compile.log -Xlint:deprecation -cp .${cpath} -d ./ \
+  ../../src${cpath}JSON.java  ../../src${cpath}JSONAdapter.java ../../src${cpath}JSONObject.java
 if [ $? -eq 0 ] ; then
   jar cvf ./${jname}.jar .${cpath}*.class
 #  javadoc -d ./${jname}Doc -nodeprecated -use package-info.java \
