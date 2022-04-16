@@ -17,7 +17,7 @@ public class A extends J {
     }
 
     @Override
-    protected Object reviever(String name, Object value) {
+    protected Object reviver(String name, Object value) {
         logName(this , name);
         return value;
     }

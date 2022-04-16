@@ -43,7 +43,7 @@ public class JSONObjectTest extends JSONObject {
     }
 
     @Override
-    protected Object reviever(String name, Object value) {
+    protected Object reviver(String name, Object value) {
         logName(this, name);
         return value;
     }
@@ -62,7 +62,7 @@ public class JSONObjectTest extends JSONObject {
         }
 
         @Override
-        protected Object reviever(String name, Object value) {
+        protected Object reviver(String name, Object value) {
             logName(this, name);
             if (isClassName(name)) {
 // load inherited
@@ -93,7 +93,7 @@ public class JSONObjectTest extends JSONObject {
                 .set("ai", 0)
                 .set("af", 0);
 
-        json.getJSON("mB") // replace inherited
+        json.getJSON("mB") // change inherited
                 .set("aS", "inherited aS changed")
                 .set("jc", "d");
 

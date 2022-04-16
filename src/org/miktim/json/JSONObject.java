@@ -33,7 +33,7 @@ public abstract class JSONObject {
         return sample;
     }
 
-    protected Object reviever(String fldName, Object value) {
+    protected Object reviver(String fldName, Object value) {
         return value;
     }
 
@@ -67,6 +67,7 @@ public abstract class JSONObject {
         Object json = jsonObj.replacer(name, new JSON());
         if (json instanceof JSON) {
             Field[] fields = jsonObj.getClass().getDeclaredFields();
+//            Field[] fields = getFields(jsonObj);
             for (Field field : fields) {
                 if (!jsonObj.isIgnored(field)) {
                     name = field.getName();
@@ -87,14 +88,15 @@ public abstract class JSONObject {
     private JSONObject fromJSON(JSONObject jsonObj, Object json)
             throws IllegalArgumentException, IllegalAccessException {
         String name = jsonObj.getClass().getName();
-        json = jsonObj.reviever(name, json);
+        json = jsonObj.reviver(name, json);
         if (json instanceof JSON) {
             Field[] fields = jsonObj.getClass().getDeclaredFields();
+//            Field[] fields = getFields(jsonObj);
             for (Field field : fields) {
                 name = field.getName();
                 if (!jsonObj.isIgnored(field) && ((JSON) json).exists(name)) {
                     field.setAccessible(true);
-                    Object newValue = jsonObj.reviever(name, ((JSON) json).get(name));
+                    Object newValue = jsonObj.reviver(name, ((JSON) json).get(name));
                     Object value = field.get(jsonObj);
                     if (newValue == null || !newValue.equals(IGNORED)) {
                         if (value != null && value instanceof JSONObject) {
@@ -109,7 +111,23 @@ public abstract class JSONObject {
         }
         return jsonObj;
     }
-
+/*
+    private Field[] getFields(Object obj) {
+        LinkedHashMap<String, Field> fields = new <String, Field>LinkedHashMap();
+        Class cls = obj.getClass();
+        do {
+            Field[] classFields = cls.getFields();//cls.getDeclaredFields();
+            for (Field field : classFields) {
+                String name = field.getName();
+                if (!(fields.containsKey(name) || isIgnored(field))) {
+                    fields.put(name, field);
+                }
+            }
+            cls = cls.getSuperclass();
+        } while (cls != null);
+        return fields.values().toArray(new Field[]{});
+    }
+*/
     private boolean isIgnored(Field field) {
         return field.isSynthetic() || field.isEnumConstant() //|| field.isAccessible() deprecated
                 || isIgnored(field.getName())

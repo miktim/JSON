@@ -80,11 +80,11 @@ Overview:
     Methods:
       Object toJSON()
         throws IllegalArgumentException, IllegalAccessException;
-      Object replacer(String fldName, Object value); 
+      Object replacer(String name, Object value); 
          // first call with object class name and new JSON object as value
       JSONObject fromJSON(Object json)
         throws IllegalArgumentException, IllegalAccessException;
-      Object reviever(String fldName, Object value); 
+      Object reviver(String name, Object value); 
          // first call with object class name and json argument as value
       boolean isClassName(fldName);
       <T> T castMember(String memberName, JSON jsonObj, T sample);
