@@ -22,19 +22,21 @@ import java.io.IOException;
 import java.io.Reader;
 import java.util.LinkedHashMap;
 import java.io.StringReader;
+import java.io.Writer;
 import java.lang.reflect.Array;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import static java.util.Arrays.binarySearch;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 public class JSON extends LinkedHashMap<String, Object> {
 
     public static Object parse(String json) throws IOException, ParseException {
+
         return parse(new StringReader(json));
     }
 
@@ -42,26 +44,26 @@ public class JSON extends LinkedHashMap<String, Object> {
         return (new Parser()).parse(reader);
     }
 
-    public static String stringify(Object object) throws IllegalArgumentException {
+    public static String stringify(Object object) {
+
         return stringifyObject(object);
     }
-/*
-// from https://www.tutorialspoint.com/get-array-dimensions-in-java    
-    public static int dimensionOf(Object arr) {
-        if (arr == null) {
-            return 0;
-        }
-        int dimensionCount = 0;
-        Class c = arr.getClass(); // getting the runtime class of an object
-        while (c.isArray()) { // check whether the object is an array {
-            c = c.getComponentType(); // returns the class denoting the component type of the array
-            dimensionCount++;
-        }
-        return dimensionCount;
+
+    public static void stringify(Object object, Writer writer) throws IOException {
+        writer.write(stringifyObject(object));
     }
-*/
-    
+
+    public JSON(String jsonText) throws IOException, ParseException {
+        super();
+        this.putAll((JSON) JSON.parse(jsonText));
+    }
+
+    public JSON(Reader reader) throws IOException, ParseException {
+        super();
+        this.putAll((JSON) JSON.parse(reader));
+    }
 // Memebers: name,value pairs    
+
     public JSON(Object... members) throws IndexOutOfBoundsException {
         super();
         for (int i = 0; i < members.length;) {
@@ -102,6 +104,14 @@ public class JSON extends LinkedHashMap<String, Object> {
             obj = Array.get(obj, indices[i]);
         }
         return obj;
+    }
+
+    public <T> T cast(String memberName, T sample, int... indices) {
+        return JSONAdapter.castTo(get(memberName, indices), sample);
+    }
+
+    public <T> T cast(String memberName, Class<T> cls, int... indices) {
+        return JSONAdapter.castTo(get(memberName, indices), cls);
     }
 
     public JSON getJSON(String memberName, int... indices) {
@@ -309,10 +319,12 @@ public class JSON extends LinkedHashMap<String, Object> {
                 separator = ", ";
             }
             return sb.append("}").toString();
-        } else if (value instanceof List) {
-            return stringifyObject(((List) value).toArray());
-        } else if (value instanceof Set) {
-            return stringifyObject(((Set) value).toArray());
+        } else if (value instanceof Collection) {
+            return stringifyObject(((Collection) value).toArray()); // List, Set, ...
+//        } else if (value instanceof List) {
+//            return stringifyObject(((List) value).toArray());
+//        } else if (value instanceof Set) {
+//            return stringifyObject(((Set) value).toArray());
         }
         return stringifyObject(String.valueOf(value));
     }

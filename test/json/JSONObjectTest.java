@@ -56,7 +56,7 @@ public class JSONObjectTest extends JSONObject {
             if (isClassName(name)) {
 // unload inherited
                 ((JSON) value).set("aS", aS).set("jc", getJc());
-                log("Unloaded inherited B.aS, B.jc: " + aS + ", " + getJc());
+                log("Unloaded inherited A.aS, J.jc: " + aS + ", " + getJc());
             }
             return value;
         }
@@ -68,7 +68,7 @@ public class JSONObjectTest extends JSONObject {
 // load inherited
                 aS = castMember("aS", (JSON) value, aS);
                 setJc(castMember("jc", (JSON) value, getJc()));
-                log("Loaded inherited B.aS, B.jc: " + aS + ", " + getJc());
+                log("Loaded inherited A.aS, J.jc: " + aS + ", " + getJc());
             }
             return value;
         }

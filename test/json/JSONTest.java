@@ -28,6 +28,7 @@ public class JSONTest {
         }
 
         log("JSON class test");
+        JSON.stringify(null);
 
         log("\n\rTest constructor:");
         JSON json = new JSON("One", 1, "Two", 2, 3, "Three",
@@ -37,7 +38,7 @@ public class JSONTest {
         log(json.getNumber("One").floatValue()); // Number(Integer)
 // java.lang.ClassCastException        
 //        log(json.getString("Two"));
-        log(json.stringify("Two"));
+        log(json.toString("Two"));
         log(json.getString("3"));
         log(json.getJSON("Nested").getNumber("Array", 1, 1).intValue());
 
@@ -105,10 +106,10 @@ public class JSONTest {
         Object[] array;
         array = json.getArray("Array");
         log(array.length);
-        array = json.getArray("Array",1);
+        array = json.getArray("Array", 1);
         log(array.length);
 // cast array. doesn't make much sense
-        Number[] na = Arrays.copyOf(array, array.length, Number[].class); 
+        Number[] na = Arrays.copyOf(array, array.length, Number[].class);
         log(JSON.stringify(na));
 
         log("\n\rTest generator with other Java objects (ArrayList with Array, Date and File entries):");
@@ -142,7 +143,7 @@ public class JSONTest {
                 + "            \"IDs\": [116, 943, 234, 38793]\n"
                 + "          }\n"
                 + "      } ";
-        json = (JSON) JSON.parse(example1);
+        json = new JSON(example1);
         log(json.get("Image"));
         log(json.getJSON("Image").set("Thumbnail", 256)); // replace JSON object with number
         log(json.getJSON("Image").remove("Thumbnail")); // remove member
@@ -174,15 +175,24 @@ public class JSONTest {
 
 // Example from https://docs.oracle.com/en/database/oracle/oracle-database/12.2/adjsn/json-data.html#GUID-FBC22D72-AA64-4B0A-92A2-837B32902E2C        
         log("\n\rTest one more example:");
-        json = (JSON) JSON.parse(new FileReader(new File(path, "json.json")));
+        try (FileReader reader = new FileReader(new File(path, "json.json"))) {
+            json = new JSON(reader);
+        }
+        log(json);
         log(json.get("AllowPartialShipment"));
-        array = (Object[]) json.get("LineItems");
-        json = (JSON) array[1];
+        json = json.getJSON("LineItems", 1);
         log(json.get("Quantity"));
         json = (JSON) json.get("Part");
+        log(json);
         log(json.get("Description"));
-        json.set("Description", "Naked Gun");
-        log(JSON.stringify(array));
+        float unitPrice = json.cast("UnitPrice", float.class);
+        log(unitPrice);
+        long upcCode = json.cast("UPCCode", long.class);
+        log(upcCode);
+        json.set("Description", "Naked Gun")
+                .set("UnitPrice", 59.91)
+                .set("UPCCode", 72982619358L);
+        log(json);
 
 // ParseExceptions        
 //        log(JSON.parse("\"asfas\\uD83\uDD1E\"")); // unparseable u-escaped char

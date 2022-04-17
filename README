@@ -1,9 +1,9 @@
 # Java 7+/Android JSON parser/generator, MIT (c) 2020-2022 miktim@mail.ru
 
 Release notes:
-  - JSON JavaScript - like interface;
   - Java SE 7+/Android compatible;
-  - in accordance with RFC 8259: https://datatracker.ietf.org/doc/rfc8259/?include_text=1
+  - in accordance with RFC 8259: https://datatracker.ietf.org/doc/rfc8259/?include_text=1 ;
+  - JSON JavaScript - like interface.
 
 package org.miktim.json
 
@@ -17,24 +17,28 @@ Overview:
     - when the names within an object are not unique, parser stores the last value only;
     - JSON object setter accepts any Java object, all Java primitives and primitive arrays;
     - AVOID RECURSION!;
-    - in addition, the generator converts Java Lists,Sets to JSON arrays, Java Maps to JSON objects.
+    - in addition, the generator converts Java Collections to JSON arrays, Java Maps to JSON objects.
       The null key is converted to a "null" member name.
-      Other Java objects are converted to string representation.
+      Other Java objects are converted to string representation;
+    - JSON text is generated as one line.
     
     Put, set, get notes:
-    - put, set methods casts Java primitives to the corresponding objects.
+    - put, set methods cast Java primitives to the corresponding objects.
       Java objects and arrays are stored "as is" (as reference). 
       For example: int -> Integer, int[] -> int[], String[] -> String[]
     - after JSON text parsing or normalization, they are stored as:
       BigDecimal, Object[] {BigDecimal,...}, Object[] {String,...}
 
     Constructor:
+      JSON(String jsonText) throws IOException, ParseException;
+      JSON(Reader reader) throws IOException, ParseException;
       JSON(Object... members) throws IndexOutOfBoundsException; // name,value pairs
 
     Public methods:
-      static Object parse(String json) throws IOException, ParseException;
+      static Object parse(String jsonText) throws IOException, ParseException;
       static Object parse(Reader reader) throws IOException, ParseException;
-      static String stringify(Object object); // generate JSON text as single line
+      static String stringify(Object obj); // generate JSON text
+      static String stringify(Object obj, Writer writer) throws IOException;
 
       List<String> listNames(); // returns list of member names
       boolean exists(String memberName); // alias of the inherited containsKey()
@@ -50,6 +54,9 @@ Overview:
       Boolean getBoolean(String memberName, int... indices) throws ClassCastException;
       Object[] getArray(String memberName, int... indices) throws ClassCastException;
 
+      <T> T cast(String memberName, T sample, int... indices); // cast by sample
+      <T> T cast(String memberName, Class <T> cls, int... indices); // cast by Class
+
       JSON normalize() throws IOException, ParseException; // not required to generate JSON text
 
       String toString(String memberName, int... indices); // stringify value or array element
@@ -58,10 +65,11 @@ Overview:
 
   Class JSONAdapter;
 
-    Converts by sample a JSON variable or array to a Java primitive or an array of primitives.
+    Casting by sample or Class of a JSON variable or array to a Java primitive or array.
     - sample must be initialized;
     - casting null to a Java primitive returns corresponding initial value;
     - casting null to an array returns an empty array;
+    - casting null to String returns "null";
     - casting to null returns null.
 
     static <T> T castTo(Object jsonVal, T sample);

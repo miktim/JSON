@@ -50,7 +50,7 @@ public class JSONAdapterTest {
         log(b);
         s = JSONAdapter.castTo(json.get("i"), s);
         log(s);
-        i = JSONAdapter.castTo(json.get("i"), i);
+        i = JSONAdapter.castTo(json.get("i"), int.class);
         log(i);
         d = JSONAdapter.castTo(json.get("i"), d);
         log(d);
