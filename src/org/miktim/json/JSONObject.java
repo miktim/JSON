@@ -28,7 +28,7 @@ public abstract class JSONObject {
     @SuppressWarnings("unchecked")
     protected <T> T castMember(String memberName, JSON jsonObj, T sample) {
         if (jsonObj.exists(memberName)) {
-            return JSONAdapter.castTo(jsonObj.get(memberName), sample);
+            return JSONAdapter.cast(jsonObj.get(memberName), sample);
         }
         return sample;
     }
@@ -37,7 +37,7 @@ public abstract class JSONObject {
         return value;
     }
 
-    protected static boolean isClassName(String fldName) {
+    public static boolean isClassName(String fldName) {
         try {
             Class.forName(fldName);
         } catch (ClassNotFoundException ex) {
@@ -103,7 +103,7 @@ public abstract class JSONObject {
                             field.set(jsonObj,
                                     ((JSONObject) value).fromJSON((JSONObject) value, newValue));
                         } else {
-                            field.set(jsonObj, JSONAdapter.castTo(newValue, value));
+                            field.set(jsonObj, JSONAdapter.cast(newValue, value));
                         }
                     }
                 }
@@ -111,23 +111,7 @@ public abstract class JSONObject {
         }
         return jsonObj;
     }
-/*
-    private Field[] getFields(Object obj) {
-        LinkedHashMap<String, Field> fields = new <String, Field>LinkedHashMap();
-        Class cls = obj.getClass();
-        do {
-            Field[] classFields = cls.getFields();//cls.getDeclaredFields();
-            for (Field field : classFields) {
-                String name = field.getName();
-                if (!(fields.containsKey(name) || isIgnored(field))) {
-                    fields.put(name, field);
-                }
-            }
-            cls = cls.getSuperclass();
-        } while (cls != null);
-        return fields.values().toArray(new Field[]{});
-    }
-*/
+
     private boolean isIgnored(Field field) {
         return field.isSynthetic() || field.isEnumConstant() //|| field.isAccessible() deprecated
                 || isIgnored(field.getName())

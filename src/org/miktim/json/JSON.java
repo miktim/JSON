@@ -36,7 +36,6 @@ import java.util.Map;
 public class JSON extends LinkedHashMap<String, Object> {
 
     public static Object parse(String json) throws IOException, ParseException {
-
         return parse(new StringReader(json));
     }
 
@@ -45,7 +44,6 @@ public class JSON extends LinkedHashMap<String, Object> {
     }
 
     public static String stringify(Object object) {
-
         return stringifyObject(object);
     }
 
@@ -62,8 +60,8 @@ public class JSON extends LinkedHashMap<String, Object> {
         super();
         this.putAll((JSON) JSON.parse(reader));
     }
-// Memebers: name,value pairs    
 
+// Memebers: name,value pairs    
     public JSON(Object... members) throws IndexOutOfBoundsException {
         super();
         for (int i = 0; i < members.length;) {
@@ -107,11 +105,11 @@ public class JSON extends LinkedHashMap<String, Object> {
     }
 
     public <T> T cast(String memberName, T sample, int... indices) {
-        return JSONAdapter.castTo(get(memberName, indices), sample);
+        return JSONAdapter.cast(get(memberName, indices), sample);
     }
 
     public <T> T cast(String memberName, Class<T> cls, int... indices) {
-        return JSONAdapter.castTo(get(memberName, indices), cls);
+        return JSONAdapter.cast(get(memberName, indices), cls);
     }
 
     public JSON getJSON(String memberName, int... indices) {

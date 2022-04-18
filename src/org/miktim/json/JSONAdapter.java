@@ -9,20 +9,20 @@ import java.lang.reflect.Array;
 public class JSONAdapter {
 
     @SuppressWarnings("unchecked")
-    public static <T> T castTo(Object jsonVal, T sample) {
+    public static <T> T cast(Object jsonVal, T sample) {
         if (sample == null) {
             return null;
         }
-        return (T) JSONAdapter.castTo(jsonVal, sample.getClass());
+        return (T) JSONAdapter.cast(jsonVal, sample.getClass());
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> T castTo(Object jsonVal, Class<T> cls) {
+    public static <T> T cast(Object jsonVal, Class<T> cls) {
         if (cls == null) {
             return null;
         }
         Adapter adapter = getAdapter(getElementClass(cls));
-        return (T) JSONAdapter.castTo(jsonVal, cls, adapter);
+        return (T) JSONAdapter.cast(jsonVal, cls, adapter);
     }
 
     private interface Adapter {
@@ -31,13 +31,13 @@ public class JSONAdapter {
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> T castTo(Object jsonObj, Class<T> cls, Adapter adapter) {
+    private static <T> T cast(Object jsonObj, Class<T> cls, Adapter adapter) {
         if (cls.isArray()) {
             int objLen = jsonObj == null ? 0 : Array.getLength(jsonObj);
             Class cmpCls = cls.getComponentType();
             T arr = (T) Array.newInstance(cmpCls, objLen);
             for (int i = 0; i < objLen; i++) {
-                Array.set(arr, i, castTo(Array.get(jsonObj, i), cmpCls, adapter));
+                Array.set(arr, i, cast(Array.get(jsonObj, i), cmpCls, adapter));
             }
             return (T) arr;
         }

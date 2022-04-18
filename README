@@ -61,7 +61,7 @@ Overview:
 
       String toString(String memberName, int... indices); // stringify value or array element
       String toString();  // overridden, stringify JSON object
-  
+ 
 
   Class JSONAdapter;
 
@@ -72,33 +72,34 @@ Overview:
     - casting null to String returns "null";
     - casting to null returns null.
 
-    static <T> T castTo(Object jsonVal, T sample);
-    static <T> T castTo(Object jsonVal, Class <T> cls);
+    static <T> T cast(Object jsonVal, T sample);
+    static <T> T cast(Object jsonVal, Class <T> cls);
+
 
   Abstract class JSONObject;
 
-    Converts Java object fields to/from JSON.
+    Converts Java object fields to/from JSON object.
     - see JSON set/get/cast rules for Java object fields in the notes for JSON object
       and JSONAdapter;
     - Enum, synthetic and final fields are ignored.
 
     Constant:
-      static final Object IGNORED; // returned from replacer/reviever to skip the object field
+      static final Object IGNORED; // returns from replacer/reviver to skip the field
 
     Methods:
       Object toJSON()
         throws IllegalArgumentException, IllegalAccessException;
-      Object replacer(String name, Object value); 
+      protected Object replacer(String name, Object value); 
          // first call with object class name and new JSON object as value
       JSONObject fromJSON(Object json)
         throws IllegalArgumentException, IllegalAccessException;
-      Object reviver(String name, Object value); 
+      protected Object reviver(String name, Object value); 
          // first call with object class name and json argument as value
-      boolean isClassName(fldName);
+      static boolean isClassName(fldName);
       <T> T castMember(String memberName, JSON jsonObj, T sample);
          // returns the sample if member does not exists
-      void setIgnored(String[] fldNames); // set ignored field names
-      String[] getIgnored()
+      protected void setIgnored(String[] fldNames); // set ignored field names
+      protected String[] getIgnored()
 
 Usage see:
   ./test/json/JSONTest.java

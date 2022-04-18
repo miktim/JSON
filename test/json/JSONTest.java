@@ -180,13 +180,14 @@ public class JSONTest {
         }
         log(json);
         log(json.get("AllowPartialShipment"));
-        json = json.getJSON("LineItems", 1);
+        JSON[] jsons = json.cast("LineItems", JSON[].class);
+        json = jsons[1];
         log(json.get("Quantity"));
         json = (JSON) json.get("Part");
         log(json);
         log(json.get("Description"));
-        float unitPrice = json.cast("UnitPrice", float.class);
-        log(unitPrice);
+        f = json.cast("UnitPrice", f);
+        log(f);
         long upcCode = json.cast("UPCCode", long.class);
         log(upcCode);
         json.set("Description", "Naked Gun")
