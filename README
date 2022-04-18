@@ -29,7 +29,7 @@ Overview:
     - after JSON text parsing or normalization, they are stored as:
       BigDecimal, Object[] {BigDecimal,...}, Object[] {String,...}
 
-    Constructor:
+    Constructors:
       JSON(String jsonText) throws IOException, ParseException;
       JSON(Reader reader) throws IOException, ParseException;
       JSON(Object... members) throws IndexOutOfBoundsException; // name,value pairs
@@ -70,6 +70,7 @@ Overview:
     - casting null to a Java primitive returns corresponding initial value;
     - casting null to an array returns an empty array;
     - casting null to String returns "null";
+    - casting null to other Java objects returns null;
     - casting to null returns null.
 
     static <T> T cast(Object jsonVal, T sample);
@@ -78,10 +79,10 @@ Overview:
 
   Abstract class JSONObject;
 
-    Converts Java object fields to/from JSON object.
+    Unloads/loads Java object accessible fields to/from JSON object.
+    - Java final, interface, abstract, transient, strict fields are ignored;
     - see JSON set/get/cast rules for Java object fields in the notes for JSON object
-      and JSONAdapter;
-    - Enum, synthetic and final fields are ignored.
+      and JSONAdapter.
 
     Constant:
       static final Object IGNORED; // returns from replacer/reviver to skip the field
@@ -97,7 +98,7 @@ Overview:
          // first call with object class name and json argument as value
       static boolean isClassName(String name);
       <T> T castMember(String memberName, JSON jsonObj, T sample);
-         // returns the sample if member does not exists
+         // returns the sample if JSON member does not exists
       protected void setIgnored(String[] fldNames); // set ignored field names
       protected String[] getIgnored()
 

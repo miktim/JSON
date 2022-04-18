@@ -10,9 +10,9 @@
  * - when the names within an object are not unique, parser stores the last value only;
  * - JSON object setter accepts any Java object, all Java primitives and primitive arrays;
  * - avoid recursion!;
- * - in addition, the generator converts Java Lists, Sets to JSON arrays
+ * - in addition, the generator converts Java Collections to JSON arrays
  *   and Java Maps to JSON objects. The null key is converted to a "null" member name.
- *   Other Java objects are converted to JSON strings.
+ *   Other Java objects are converted to string representation.
  *
  * Created: 2020-03-07
  */
