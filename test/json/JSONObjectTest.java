@@ -12,12 +12,14 @@ import org.miktim.json.JSONObject;
 public class JSONObjectTest extends JSONObject {
 
     public static String mS = "mS value";
+    static final String mSf = "Final fields ignored";
+    private double md = 3.14159;
+    private int mi = 123;
+    private String mSp = "mSp value";
+
     public A mA = new A(); // A extends J
     protected B mB = new B(); // B extends A
     J mJ = new J(); // J extends JSONObject
-    static final String mSf = "Final fields ignored";
-    private int mi = 123;
-    private String mSp = "mSp value";
 
     public static void log(Object s) {
         System.out.println(s);
@@ -54,9 +56,9 @@ public class JSONObjectTest extends JSONObject {
         protected Object replacer(String name, Object value) {
             logName(this, name); // logName(), log() inherited from J
             if (isClassName(name)) {
-// unload inherited
-                ((JSON) value).set("aS", aS).set("jc", getJc());
-                log("Unloaded inherited A.aS, J.jc: " + aS + ", " + getJc());
+// unload by getter
+                ((JSON) value).set("jc", getJc());
+                log("Unloaded by getter J.jc: " + getJc());
             }
             return value;
         }
@@ -65,10 +67,9 @@ public class JSONObjectTest extends JSONObject {
         protected Object reviver(String name, Object value) {
             logName(this, name);
             if (isClassName(name)) {
-// load inherited
-                aS = castMember("aS", (JSON) value, aS);
+// load by setter
                 setJc(castMember("jc", (JSON) value, getJc()));
-                log("Loaded inherited A.aS, J.jc: " + aS + ", " + getJc());
+                log("Loaded by setter J.jc: " + getJc());
             }
             return value;
         }

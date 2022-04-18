@@ -1,6 +1,15 @@
 /*
  * JSONAdapter class. MIT (c) 2022 miktim@mail.ru
- * Cast by sample/class JSON variable to Java primitive or primitive array
+ *
+ * Casting by sample or Class of a JSON variable or array to a Java primitive or array.
+ * - sample must be initialized;
+ * - casting null to a Java primitive returns corresponding initial value;
+ * - casting null to an array returns an empty array;
+ * - casting null to String returns "null";
+ * - casting null to other Java objects returns null;
+ * - casting to null returns null.
+ *
+ * Created: march 2022
  */
 package org.miktim.json;
 
