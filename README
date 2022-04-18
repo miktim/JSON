@@ -95,7 +95,7 @@ Overview:
         throws IllegalArgumentException, IllegalAccessException;
       protected Object reviver(String name, Object value); 
          // first call with object class name and json argument as value
-      static boolean isClassName(fldName);
+      static boolean isClassName(String name);
       <T> T castMember(String memberName, JSON jsonObj, T sample);
          // returns the sample if member does not exists
       protected void setIgnored(String[] fldNames); // set ignored field names
