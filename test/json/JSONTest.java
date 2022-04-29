@@ -6,19 +6,19 @@
 import java.io.File;
 import java.io.FileReader;
 import java.math.BigDecimal;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import json.A;
 import org.miktim.json.JSON;
+import org.miktim.json.JSONAdapter;
 
 public class JSONTest {
 
     static void log(Object s) {
         System.out.println(s);
-    }
-
-    static void logIsOK(boolean res) {
-        log((res ? "OK" : "FAILED"));
     }
 
     public static void main(String[] args) throws Exception {
@@ -27,108 +27,119 @@ public class JSONTest {
             path = args[0];
         }
 
-        log("JSON class test");
-        JSON.stringify(null);
-
-        log("\n\rTest constructor:");
-        JSON json = new JSON("One", 1, "Two", 2, 3, "Three",
-                "Nested", new JSON("Array",
-                        new float[][]{{1.1f, 2.2f}, {3.3f, 4.4f}}));
-        log(json);
-        log(json.getNumber("One").floatValue()); // Number(Integer)
-// java.lang.ClassCastException        
-//        log(json.getString("Two"));
-        log(json.toString("Two"));
-        log(json.getString("3"));
-        log(json.getJSON("Nested").getNumber("Array", 1, 1).intValue());
+        log("\n\rJSON class test");
+        JSON.generate(null);
 
         log("\n\rTest escape/unescape string:");
         String unescaped = new String(new char[]{0x8, 0x9, 0xA, 0xC, 0xD, 0x22, 0x2F, 0x5C, 0, '-', 0x1F, 0xd834, 0xdd1e});
         String escaped = JSON.escapeString(unescaped);
         log(escaped);
-        logIsOK(unescaped.equals(JSON.unescapeString(escaped)));
+        log(unescaped.equals(JSON.unescapeString(escaped)) ? "OK" : "FAIL");
 
-        log("\n\rTest JSON typecast.\r\nBefore normalization:");
+// ParseExceptions        
+//        log(JSON.parse("\"asfas\\uD83\uDD1E\"")); // unparseable u-escaped char
+//        log(JSON.parse("\"\uD834\\uDD1\"")); // unparseable u-escaped char
+//        log(JSON.parse("123e")); // unparseable number
+//        log(JSON.parse("123 e")); // EOT Expected
+//        log(JSON.parse("{{}}"); // name expected
+//        log(JSON.parse("{\"Latitude\":  37.371991\n\"")); // "}" expected
+//        log(JSON.parse("b123")); // unexpected char
+//        log(JSON.parse("falsen")); // unknown literal
+        log("\n\rTest constructors:");
+        JSON json = new JSON("One", 1, "Two", 2, 3, "Three", null, null,
+                "Nested", new JSON("array",
+                        new float[][]{{1.1f, 2.2f}, {3.3f, 4.4f}}));
+        log(json);
+        String jsonText = json.toString();
+        json = new JSON(jsonText);
+        log(json);
+
+        log("\n\rTest getting members:");
+        log(json.getNumber("One"));
+// java.lang.ClassCastException        
+//        log(json.getString("Two"));
+        log(json.generate("Two"));
+        log(json.getString("3"));
+        log(Arrays.toString(json.getJSON("Nested").getArray("array", 1)));
+        log(json.getJSON("Nested").getNumber("array", 1, 1).intValue());
+
+        log("\n\rTest JSON typecast.");
         json = (new JSON())
-                .set("Unescaped", unescaped)
-                .set("EmptyJSON", new JSON())
+                .set("String", unescaped)
+                .set("emptyJSON", new JSON())
                 .set("intArray", new int[][]{{0, 1, 2}, {3, 4, 5, 6}})
                 .set(null, null)
-                .set("True", true)
-                .set("False", false)
-                .set("Char", 'c')
-                .set("Double", 3.141592653589793238462643383279)
+                .set("boolean", true)
+                .set("double", 3.141592653589793238462643383279)
+                .set("float", 3.141592653589793238462643383279f)
+                .set("long", 3141592653589793238L)
+                .set("int", 314159265)
+                .set("byte", (byte) 31)
+                .set("char", 'c')
                 .set("BigDecimal", new BigDecimal("3.141592653589793238462643383279"))
-                .set("Long", 1415926535897932384L)
-                .set("Int", 14159265)
-                .set("Byte", (byte) 0xFF);
+                .set("Object", new A());
+        log("\n\rList members: " + json.listNames());
+        log("\n\rJSON object BEFORE normalization:");
         log(json);
-
-        log("List members: " + json.listNames());
+        JSON jsonn = json.normalize();
+        log("\n\rJSON object AFTER normalization:");
+        log(jsonn);
+        log("\n\rClasses of members before/after normalization:");
         for (String memberName : json.listNames()) {
             if (json.get(memberName) != null) {
-                log("\"" + memberName + "\" is instance of: "
-                        + json.get(memberName).getClass().getSimpleName());
+                log("\"" + memberName + "\"    instance of: "
+                        + json.get(memberName).getClass().getSimpleName()
+                        + " / "
+                        + jsonn.get(memberName).getClass().getSimpleName()
+                );
             } else {
                 log("\"" + memberName + "\" is null");
             }
         }
 
-        log("\n\rNormalized:");
-        json = json.normalize();
-        log(json);
-        log("List members: " + json.listNames());
-        for (String memberName : json.listNames()) {
-            if (json.get(memberName) != null) {
-                log("\"" + memberName + "\" is instance of: "
-                        + json.get(memberName).getClass().getSimpleName());
-            } else {
-                log("\"" + memberName + "\" is null");
-            }
-        }
-
-        log("\n\rTest JSON with Java arrays:");
+        log("\n\rTest JSON with Java array:");
         int[][] intArray = new int[][]{{0, 1, 2}, {3, 4, 5, 6}};
-        json = new JSON("Array", intArray);
-        log(json.get("Array").getClass().getSimpleName());
-// array is instance of int[][]        
-// java.lang.ClassCastException 
-//        log(json.getArray("Array", 1).getClass().getSimpleName());
-        float f = json.getNumber("Array", 1, 3).floatValue();
-        log(f);
+        json = new JSON("array", intArray);
+        log(json);
+// member "array" is instance of int[][]        
+        log(json.get("array").getClass().getSimpleName());
+        log(json.get("array", 1).getClass().getSimpleName());
+        log(json.getArray("array", 1).getClass().getSimpleName());
+        log(Arrays.toString(json.getArray("array", 1)));
+        log(json.get("array", 1, 3).getClass().getSimpleName());
+        int i = json.getNumber("array", 1, 3).intValue();
+        log(i);
 
+        log("Normalized object:");
         log(json = json.normalize());
 
-        log(json.get("Array").getClass().getSimpleName());
-// array is instance of Object[]        
-        f = json.getNumber("Array", 1, 3).floatValue();
-        log(f);
-        Object[] array;
-        array = json.getArray("Array");
-        log(array.length);
-        array = json.getArray("Array", 1);
-        log(array.length);
-// cast array. doesn't make much sense
-        Number[] na = Arrays.copyOf(array, array.length, Number[].class);
-        log(JSON.stringify(na));
+// member "array" is instance of Object[Object[], Object[]]        
+        log(json.get("array").getClass().getSimpleName());
+        log(json.get("array", 1).getClass().getSimpleName());
+        log(json.getArray("array", 1).getClass().getSimpleName());
+        log(Arrays.toString(json.getArray("array", 1)));
+        log(json.get("array", 1, 3).getClass().getSimpleName());
+        i = json.getNumber("array", 1, 3).intValue();
+        log(i);
 
         log("\n\rTest generator with other Java objects (ArrayList with Array, Date and File entries):");
         ArrayList<Object> arrayList = new ArrayList<>();
         arrayList.add(new int[2]);
         arrayList.add(new Date());
         arrayList.add(new File(path, "json.json"));
-        String s = JSON.stringify(arrayList);
+        String s = JSON.generate(arrayList);
         log(s);
-        Object o = JSON.parse(s);
-        log("is Array?: " + o.getClass().isArray());
+        Object obj = JSON.parse(s);
+        log("is Array?: " + obj.getClass().isArray());
 
+        log("\n\rTest examples:");
 // examples from RFC 8259 https://datatracker.ietf.org/doc/rfc8259/?include_text=1
-        log("\n\rTest examples from RFC 8259:");
         log(JSON.parse("\"\\uD834\\uDD1E\"")); // G-clef
         log(JSON.parse("3.141592653589793238462643383279"));
         log(JSON.parse("null"));
 
-        String example1 = "{\n"
+        log("\n\rTest example 1:");
+        String example1 = "\n{\n"
                 + "        \"Image\": {\n"
                 + "            \"Width\":  800,\n"
                 + "            \"Height\": 600,\n"
@@ -147,6 +158,8 @@ public class JSONTest {
         log(json.get("Image"));
         log(json.getJSON("Image").set("Thumbnail", 256)); // replace JSON object with number
         log(json.getJSON("Image").remove("Thumbnail")); // remove member
+
+        log("\n\rTest example 2:");
         String example2 = "[\n"
                 + "        {\n"
                 + "           \"precision\": \"zip\",\n"
@@ -169,12 +182,12 @@ public class JSONTest {
                 + "           \"Country\":   \"US\"\n"
                 + "        }\n"
                 + "      ]";
-        array = (Object[]) JSON.parse(example2);
-        log(JSON.stringify(array));
-        log(JSON.stringify(array[1]));
+        Object[] array = (Object[]) JSON.parse(example2);
+        log(JSON.generate(array));
+        log(JSON.generate(array[1]));
 
 // Example from https://docs.oracle.com/en/database/oracle/oracle-database/12.2/adjsn/json-data.html#GUID-FBC22D72-AA64-4B0A-92A2-837B32902E2C        
-        log("\n\rTest one more example:");
+        log("\n\rTest example 3:");
         try (FileReader reader = new FileReader(new File(path, "json.json"))) {
             json = new JSON(reader);
         }
@@ -186,7 +199,7 @@ public class JSONTest {
         json = (JSON) json.get("Part");
         log(json);
         log(json.get("Description"));
-        f = json.cast("UnitPrice", f);
+        float f = json.cast("UnitPrice", float.class);
         log(f);
         long upcCode = json.cast("UPCCode", long.class);
         log(upcCode);
@@ -194,15 +207,42 @@ public class JSONTest {
                 .set("UnitPrice", 59.91)
                 .set("UPCCode", 72982619358L);
         log(json);
+        log("\n\rTime(ms) for generation/parsing/casting an array of random values (double[1000]):");
+        double[] ad = new double[1000];
+        for (i = 0; i < ad.length; i++) {
+            ad[i] = Math.random() * ad.length;
+        }
+        long start = System.currentTimeMillis();
+        String sa = JSON.generate(ad);
+        log("Generation: " + (System.currentTimeMillis() - start));
 
-// ParseExceptions        
-//        log(JSON.parse("\"asfas\\uD83\uDD1E\"")); // unparseable u-escaped char
-//        log(JSON.parse("\"\uD834\\uDD1\"")); // unparseable u-escaped char
-//        log(JSON.parse("123e")); // unparseable number
-//        log(JSON.parse("123 e")); // EOT Expected
-//        log(JSON.parse("{{}}"); // name expected
-//        log(JSON.parse("{\"Latitude\":  37.371991\n\"")); // "}" expected
-//        log(JSON.parse("b123")); // unexpected char
-//        log(JSON.parse("falsen")); // unknown literal
+        start = System.currentTimeMillis();
+        Object[] an = (Object[]) JSON.parse(sa);
+        log("Parsing: " + (System.currentTimeMillis() - start));
+
+        start = System.currentTimeMillis();
+        JSON.generate(an);
+        log("Normalized object generation: " + (System.currentTimeMillis() - start));
+
+        start = System.currentTimeMillis();
+        JSONAdapter.cast(an, double[].class);
+        log("Normalized object casting to double[]: " + (System.currentTimeMillis() - start));
+
+        log("\n\rAverage time(ms) of example 3 parsing/generation:");
+        jsonText = new String(Files.readAllBytes(
+                FileSystems.getDefault().getPath(path, "json.json")));
+        
+        start = System.currentTimeMillis();
+        for (i = 0; i < 100; i++) {
+            obj = JSON.parse(s);
+        }
+        log("Parsing: " + ((float)(System.currentTimeMillis() - start))/100);
+
+        start = System.currentTimeMillis();
+        for (i = 0; i < 100; i++) {
+            s = JSON.generate(obj);
+        }
+        log("Generation " + ((float)(System.currentTimeMillis() - start))/100);
+
     }
 }

@@ -1,5 +1,5 @@
 #!/bin/bash
-
+ 
 echo $(javac -version)
 jname=JSON
 cpath=/org/miktim/json/

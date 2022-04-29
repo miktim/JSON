@@ -43,17 +43,17 @@ public class JSON extends LinkedHashMap<String, Object> {
         return (new Parser()).parse(reader);
     }
 
-    public static String stringify(Object object) {
+    public static String generate(Object object) {
         return stringifyObject(object);
     }
 
-    public static void stringify(Object object, Writer writer) throws IOException {
+    public static void generate(Object object, Writer writer) throws IOException {
         writer.write(stringifyObject(object));
     }
 
     public JSON(String jsonText) throws IOException, ParseException {
         super();
-        this.putAll((JSON) JSON.parse(jsonText));
+        this.putAll((JSON) JSON.parse(jsonText));//??? another way
     }
 
     public JSON(Reader reader) throws IOException, ParseException {
@@ -69,17 +69,17 @@ public class JSON extends LinkedHashMap<String, Object> {
         }
     }
 
-    public String stringify() {
-        return stringify(this);
+    public String gen() {
+        return generate(this);
     }
 
-    public String toString(String memberName, int... indices) {
-        return JSON.stringify(get(memberName, indices));
+    public String gen(String memberName, int... indices) {
+        return JSON.generate(get(memberName, indices));
     }
 
     @Override
     public String toString() {
-        return stringify();
+        return gen();
     }
 
     public List<String> listNames() {
@@ -104,14 +104,6 @@ public class JSON extends LinkedHashMap<String, Object> {
         return obj;
     }
 
-    public <T> T cast(String memberName, T sample, int... indices) {
-        return JSONAdapter.cast(get(memberName, indices), sample);
-    }
-
-    public <T> T cast(String memberName, Class<T> cls, int... indices) {
-        return JSONAdapter.cast(get(memberName, indices), cls);
-    }
-
     public JSON getJSON(String memberName, int... indices) {
         return (JSON) get(memberName, indices);
     }
@@ -129,7 +121,23 @@ public class JSON extends LinkedHashMap<String, Object> {
     }
 
     public Object[] getArray(String memberName, int... indices) {
-        return (Object[]) get(memberName, indices);
+        Object obj = get(memberName, indices);
+        Class cls = obj.getClass();
+        if (cls == Object[].class) {
+            return (Object[]) obj;
+        } else if (cls.isArray()) {
+            return (Object[]) JSONAdapter.cast(obj, Object[].class);
+        }
+        return (Object[]) obj; // throws ClassCastException
+    }
+
+// casting by sample or class the value of a member or element of an array
+    public <T> T cast(String memberName, T sample, int... indices) {
+        return JSONAdapter.cast(get(memberName, indices), sample);
+    }
+
+    public <T> T cast(String memberName, Class<T> cls, int... indices) {
+        return JSONAdapter.cast(get(memberName, indices), cls);
     }
 
     public JSON normalize() throws Exception {

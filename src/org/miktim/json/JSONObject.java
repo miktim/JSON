@@ -28,9 +28,9 @@ public abstract class JSONObject {
         return value;
     }
 
-    public void fromJSON(Object json)
+    public void fromJSON(Object obj)
             throws IllegalArgumentException, IllegalAccessException {
-        fromJSON(this, json);
+        fromJSON(this, obj);
     }
 
     @SuppressWarnings("unchecked")
@@ -74,11 +74,9 @@ public abstract class JSONObject {
         String name = jsonObj.getClass().getName();
         Object json = jsonObj.replacer(name, new JSON());
         if (json instanceof JSON) {
-//            Field[] fields = jsonObj.getClass().getDeclaredFields();
             Field[] fields = getAccessibleFields(jsonObj);
             for (Field field : fields) {
                 name = field.getName();
-//                if (!jsonObj.isIgnored(field)) {
                 if (!jsonObj.isIgnored(name)) {
                     field.setAccessible(true);
                     Object value = jsonObj.replacer(name, field.get(jsonObj));
@@ -99,11 +97,9 @@ public abstract class JSONObject {
         String name = jsonObj.getClass().getName();
         json = jsonObj.reviver(name, json);
         if (json instanceof JSON) {
-//            Field[] fields = jsonObj.getClass().getDeclaredFields();
             Field[] fields = getAccessibleFields(jsonObj);
             for (Field field : fields) {
                 name = field.getName();
-//                if (!jsonObj.isIgnored(field) && ((JSON) json).exists(name)) {
                 if (!jsonObj.isIgnored(name) && ((JSON) json).exists(name)) {
                     field.setAccessible(true);
                     Object newValue = jsonObj.reviver(name, ((JSON) json).get(name));
@@ -122,13 +118,6 @@ public abstract class JSONObject {
         return jsonObj;
     }
 
-    /*
-    private boolean isIgnored(Field field) {
-        return field.isSynthetic() || field.isEnumConstant() //|| field.isAccessible() deprecated
-                || isIgnored(field.getName())
-                || (field.getModifiers() & Modifier.FINAL) != 0;
-    }*/
-
     private Field[] getAccessibleFields(Object obj) {
         LinkedHashMap<String, Field> accessibleFields = new LinkedHashMap<>();
         Class cls = obj.getClass();
@@ -146,7 +135,7 @@ public abstract class JSONObject {
                     accessibleFields.put(name, field);
                 }
             }
-// for all super classes disable PRIVATE
+// for all super classes ignore PRIVATE
             ignore |= Modifier.PRIVATE;
             cls = cls.getSuperclass();
         }

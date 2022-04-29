@@ -4,7 +4,7 @@
 package json;
 
 import org.miktim.json.JSONObject;
-
+ 
 public class J extends JSONObject {
 
     public short js = 10;

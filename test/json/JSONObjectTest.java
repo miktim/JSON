@@ -1,5 +1,5 @@
 /*
- * JSONObject test, MIT (c) 2022 miktim@mail.ru
+ * JSONObject test, MIT (c) 2022 miktim@mail.ru 
  */
 //package json; 
 
@@ -58,7 +58,7 @@ public class JSONObjectTest extends JSONObject {
             if (isClassName(name)) {
 // unload by getter
                 ((JSON) value).set("jc", getJc());
-                log("Unloaded by getter J.jc: " + getJc());
+                log("Unloaded J.jc by getter: " + getJc());
             }
             return value;
         }
@@ -69,7 +69,7 @@ public class JSONObjectTest extends JSONObject {
             if (isClassName(name)) {
 // load by setter
                 setJc(castMember("jc", (JSON) value, getJc()));
-                log("Loaded by setter J.jc: " + getJc());
+                log("Loaded J.jc by setter: " + getJc());
             }
             return value;
         }
@@ -77,7 +77,7 @@ public class JSONObjectTest extends JSONObject {
 
     public static void main(String[] args)
             throws IllegalArgumentException, IllegalAccessException, InstantiationException, InvocationTargetException, Exception {
-        log("\r\nJSONObject test\n\r");
+        log("\n\rJSONObject test\n\r");
         JSONObjectTest t = new JSONObjectTest();
 
         log("toJSON:\n\r");

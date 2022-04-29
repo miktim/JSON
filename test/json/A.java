@@ -4,7 +4,7 @@
 package json;
 
 public class A extends J {
-
+ 
     private double[] aad = {1.1, 2.2, 3.3};
     int ai = 6789;
     protected float af = 12.345f;

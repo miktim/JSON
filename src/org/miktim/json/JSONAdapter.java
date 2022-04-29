@@ -1,6 +1,6 @@
 /*
  * JSONAdapter class. MIT (c) 2022 miktim@mail.ru
- *
+ * 
  * Casting by sample or Class of a JSON variable or array to a Java primitive or array.
  * - sample must be initialized;
  * - casting null to a Java primitive returns corresponding initial value;

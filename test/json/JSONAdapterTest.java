@@ -10,7 +10,7 @@ import org.miktim.json.JSON;
 import org.miktim.json.JSONAdapter;
 
 public class JSONAdapterTest {
-
+ 
     static void log(Object s) {
         System.out.println(String.valueOf(s));
     }
