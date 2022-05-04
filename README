@@ -107,3 +107,6 @@ Usage see:
   ./test/json/JSONTest.java
   ./test/json/JSONAdapterTest.java
   ./test/json/JSONObjectTest.java
+
+RFC compatibility parsing test result:
+  https://miktim.github.io/JSONTestSuite/results/parsing.html

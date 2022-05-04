@@ -339,29 +339,33 @@ public class JSON extends LinkedHashMap<String, Object> {
     private static final char[] CHARS_UNESCAPED = {0x22, 0x2F, 0x5C, 0x8, 0xC, 0xA, 0xD, 0x9};
 
     public static String unescapeString(String s) throws ParseException {
-        StringBuilder sb = new StringBuilder(64);
+        StringBuilder sb = new StringBuilder(128);
         char[] chars = s.toCharArray();
         for (int i = 0; i < chars.length; i++) {
             char c = chars[i];
             if (c == '\\') {
                 c = chars[++i];
-                int ei = binarySearch(ESCAPED_CHARS, c);
-                if (ei >= 0) {
-                    sb.append(CHARS_UNESCAPED[ei]);
-                    continue;
-                } else if (c == 'u') {
+                if (c == 'u') {
                     try {
-                        sb.append((char) Integer.parseInt(
+                        c = ((char) Integer.parseInt(
                                 new String(chars, i + 1, 4), 16));
+                        i += 4;
                     } catch (NumberFormatException | IndexOutOfBoundsException e) {
-//                        sb.append("\\u"); // ignore unparseable u-escaped char
-//                        continue;
                         throw new ParseException("Unparseable u-escaped char in: \""
                                 + s + "\" at " + --i, i);
                     }
-                    i += 4;
-                    continue;
+                } else {
+                    int ei = binarySearch(ESCAPED_CHARS, c);
+                    if (ei >= 0) {
+                        c = (CHARS_UNESCAPED[ei]);
+                    } else {
+                        throw new ParseException("Wrong two-character escape in: \""
+                                + s + "\" at " + --i, i);
+                    }
                 }
+            } else if (c < 0x20) {
+                throw new ParseException("Unescaped control char in: \""
+                        + s + "\" at " + i, i);
             }
             sb.append(c);
         }
@@ -378,7 +382,7 @@ public class JSON extends LinkedHashMap<String, Object> {
             int ei = binarySearch(UNESCAPED_CHARS, c);
             if (ei >= 0) {
                 sb.append(CHARS_ESCAPED[ei]);
-            } else if (c <= 0x1F) {
+            } else if (c < 0x20) {
                 sb.append(String.format("\\u%04X", c));
             } else if (c > 0xFFFF) {
                 c -= 0x10000;

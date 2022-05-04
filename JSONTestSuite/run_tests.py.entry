@@ -1,5 +1,0 @@
-   "Java miktim json 2.0":
-       {
-           "url":"https://github.com/miktim/JSON",
-           "commands":["/usr/bin/java", "-jar", os.path.join(PARSERS_DIR, "test_java_miktim_json_2_0/TestJSONParsing.jar")]
-       },
