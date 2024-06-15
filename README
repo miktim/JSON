@@ -1,8 +1,9 @@
 # Java 7+/Android JSON parser/generator, MIT (c) 2020-2022 miktim@mail.ru
 
 Release notes:
-  - Java SE 7+/Android compatible;
-  - in accordance with RFC 8259: https://datatracker.ietf.org/doc/rfc8259/?include_text=1 ;
+  - Java SE 7+/Android RFC 8259 compliant package
+    (see: https://datatracker.ietf.org/doc/rfc8259/?include_text=1 );
+  - no external dependencies;
   - JavaScript JSON - like interface.
 
 package org.miktim.json
@@ -23,13 +24,14 @@ Overview:
     - JSON text is generated as one line.
     
     Put, set, get notes:
+    - RFC 8259 does not recommend using Java BigDecimal and BigInteger as JSON member values;
     - put, set methods cast Java primitives to the corresponding objects.
       Java objects and arrays are stored "as is" (as reference). 
       For example: int -> Integer, int[] -> int[], String[] -> String[]
     - after JSON text parsing or normalization, they are stored as:
       BigDecimal, Object[] {BigDecimal,...}, Object[] {String,...};
     - getters eliminate these differences by casting types to JSON-declared.
-
+    
     Constructors:
       JSON(Object... members) throws IndexOutOfBoundsException; // name,value pairs
       JSON(String jsonText) throws IOException, ParseException;
@@ -55,8 +57,8 @@ Overview:
       Boolean getBoolean(String memberName, int... indices) throws ClassCastException;
       Object[] getArray(String memberName, int... indices) throws ClassCastException;
 
-      <T> T cast(String memberName, T sample, int... indices); // cast value or array by sample
-      <T> T cast(String memberName, Class <T> cls, int... indices); // cast value or array by Class
+      <T> T cast(String memberName, T sample, int... indices); // casting value or array by sample
+      <T> T cast(String memberName, Class <T> cls, int... indices); // casting value or array by Class
 
       JSON normalize() throws IOException, ParseException; // not required to generate JSON text
 
@@ -66,7 +68,7 @@ Overview:
 
   Class JSONAdapter;
 
-    Casting by sample or Class of a JSON variable or array to a Java primitive or array.
+    Casting a JSON variable or array to a Java primitive or array using a sample or class.
     - sample must be initialized;
     - casting null to a Java primitive returns corresponding initial value;
     - casting null to an array returns an empty array;
@@ -80,7 +82,7 @@ Overview:
 
   Abstract class JSONObject;
 
-    Unloads/loads the accessible fields of the Java object to/from the JSON object.
+    Unloads/loads the accessible fields (properties) of the Java object to/from the JSON object.
     - Java final, interface, abstract, transient, strict fields are ignored;
     - see JSON set/get/cast rules for Java object fields in the notes for JSON object
       and JSONAdapter.
@@ -91,13 +93,17 @@ Overview:
     Methods:
       Object toJSON()
         throws IllegalArgumentException, IllegalAccessException;
+         // returns JSON object
+         // convertible object parameters must be initialized
       protected Object replacer(String name, Object value); 
          // first call with object class name and empty JSON object as value
-      JSONObject fromJSON(Object obj)
+      Object fromJSON(Object jsonObj)
         throws IllegalArgumentException, IllegalAccessException;
+         // returns this object
+         // convertible object parameters must be initialized
       protected Object reviver(String name, Object value); 
          // first call with object class name and obj argument as value
-      static boolean isClassName(String name);
+      static final boolean isClassName(String name);
       protected <T> T castMember(String memberName, JSON jsonObj, T sample);
          // returns the sample if JSON member does not exists
       protected void setIgnored(String[] fldNames); // set ignored field names
@@ -108,5 +114,5 @@ Usage see:
   ./test/json/JSONAdapterTest.java
   ./test/json/JSONObjectTest.java
 
-RFC compatibility parsing test result:
+The result of the JSON parsing test for compliance with RFC 8259:
   https://miktim.github.io/JSONTestSuite/results/parsing.html

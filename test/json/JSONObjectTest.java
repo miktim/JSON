@@ -11,6 +11,7 @@ import org.miktim.json.JSONObject;
 
 public class JSONObjectTest extends JSONObject {
 
+    C[] mC = {new C(), new C()};
     public static String mS = "mS value";
     static final String mSf = "Final fields ignored";
     private double md = 3.14159;
@@ -40,13 +41,35 @@ public class JSONObjectTest extends JSONObject {
             return IGNORED; // another way to ignore the field
         } else if (name.equals("mS")) {
             return "mS value replaced";
+        } else if (name.equals("mC")) {
+            Object[] mmC = new Object[mC.length];
+            for (int i = 0; i < mC.length; i++) {
+                try {
+                    mmC[i] = mC[i].toJSON();
+                } catch (IllegalAccessException | IllegalArgumentException ex) {
+                    log(ex);
+                }
+            }
+            value = mmC;
         }
         return value;
     }
 
     @Override
     protected Object reviver(String name, Object value) {
-        logName(this, name);
+//        logName(this, name);
+        if (name.equals("mC")) {
+            Object[] jmC = (Object[]) value;
+            this.mC = new C[jmC.length];
+            for (int i = 0; i < jmC.length; i++) {
+                try {
+                    (this.mC[i] = new C()).fromJSON(jmC[i]);
+                } catch (IllegalAccessException | IllegalArgumentException ex) {
+                    log(ex);
+                }
+            }
+            return IGNORED;
+        }
         return value;
     }
 
@@ -60,6 +83,7 @@ public class JSONObjectTest extends JSONObject {
                 ((JSON) value).set("jc", getJc());
                 log("Unloaded J.jc by getter: " + getJc());
             }
+            super.replacer(name, value);
             return value;
         }
 
@@ -72,6 +96,18 @@ public class JSONObjectTest extends JSONObject {
                 log("Loaded J.jc by setter: " + getJc());
             }
             return value;
+        }
+    }
+
+    class C extends JSONObject {
+
+        public String mS = "mS value";
+        static final String mSf = "Final fields ignored";
+        private double md = 3.14159;
+        private int mi = 123;
+        private String mSp = "mSp value";
+
+        C() {
         }
     }
 

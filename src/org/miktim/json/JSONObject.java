@@ -28,9 +28,10 @@ public abstract class JSONObject {
         return value;
     }
 
-    public void fromJSON(Object obj)
+    public Object fromJSON(Object obj)
             throws IllegalArgumentException, IllegalAccessException {
         fromJSON(this, obj);
+        return this;
     }
 
     @SuppressWarnings("unchecked")
