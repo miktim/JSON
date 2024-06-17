@@ -69,17 +69,17 @@ public class JSON extends LinkedHashMap<String, Object> {
         }
     }
 
-    public String gen() {
-        return generate(this);
-    }
+//    public String generate() {
+//        return JSON.generate(this);
+//    }
 
-    public String gen(String memberName, int... indices) {
+    public String toString(String memberName, int... indices) {
         return JSON.generate(get(memberName, indices));
     }
 
     @Override
     public String toString() {
-        return gen();
+        return JSON.generate(this);
     }
 
     public List<String> listNames() {

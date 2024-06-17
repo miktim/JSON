@@ -62,8 +62,9 @@ Overview:
 
       JSON normalize() throws IOException, ParseException; // not required to generate JSON text
 
-      String gen(String memberName, int... indices); // stringify value or array element
-      String toString();  // overridden, stringify JSON object
+      String toString(); // overridden, stringify JSON object
+      String toString(String memberName, int... indices); 
+        // stringify member or array element
  
 
   Class JSONAdapter;
@@ -84,8 +85,8 @@ Overview:
 
     Unloads/loads the accessible fields (properties) of the Java object to/from the JSON object.
     - Java final, interface, abstract, transient, strict fields are ignored;
-    - see JSON set/get/cast rules for Java object fields in the notes for JSON object
-      and JSONAdapter.
+    - see JSON set/get/cast rules for Java object fields in the notes for JSON object and JSONAdapter;
+    - arrays and collections of objects must be managed using replacer/reviewer.
 
     Constant:
       static final Object IGNORED; // returns from replacer/reviver to skip the field
@@ -97,12 +98,19 @@ Overview:
          // convertible object parameters must be initialized
       protected Object replacer(String name, Object value); 
          // first call with object class name and empty JSON object as value
+      public String toJSONText()
+        throws IllegalArgumentException, IllegalAccessException
+         // returns JSON text as one line
+
       Object fromJSON(Object jsonObj)
         throws IllegalArgumentException, IllegalAccessException;
          // returns this object
          // convertible object parameters must be initialized
       protected Object reviver(String name, Object value); 
          // first call with object class name and obj argument as value
+      public Object fromJSONText(String jsonText)
+        throws IOException, ParseException, IllegalArgumentException, IllegalAccessException 
+
       static final boolean isClassName(String name);
       protected <T> T castMember(String memberName, JSON jsonObj, T sample);
          // returns the sample if JSON member does not exists

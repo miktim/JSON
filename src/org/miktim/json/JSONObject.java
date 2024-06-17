@@ -10,8 +10,10 @@
  */
 package org.miktim.json;
 
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
+import java.text.ParseException;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 
@@ -23,17 +25,26 @@ public abstract class JSONObject {
             throws IllegalArgumentException, IllegalAccessException {
         return toJSON(this);
     }
-
+    
+    public String toJSONText() throws IllegalArgumentException, IllegalAccessException {
+        return JSON.generate(toJSON());
+    }
+    
     protected Object replacer(String fldName, Object value) {
         return value;
     }
 
-    public Object fromJSON(Object obj)
+    public Object fromJSON(Object jsonObj)
             throws IllegalArgumentException, IllegalAccessException {
-        fromJSON(this, obj);
+        fromJSON(this, jsonObj);
         return this;
     }
-
+    
+    public Object fromJSONText(String jsonText)
+            throws IOException, ParseException, IllegalArgumentException, IllegalAccessException {
+        return fromJSON(JSON.parse(jsonText));
+    }
+    
     @SuppressWarnings("unchecked")
     protected <T> T castMember(String memberName, JSON jsonObj, T sample) {
         if (jsonObj.exists(memberName)) {

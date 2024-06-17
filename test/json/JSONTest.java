@@ -11,6 +11,7 @@ import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import json.A;
 import org.miktim.json.JSON;
 import org.miktim.json.JSONAdapter;
@@ -122,15 +123,23 @@ public class JSONTest {
         i = json.getNumber("array", 1, 3).intValue();
         log(i);
 
-        log("\n\rTest generator with other Java objects (ArrayList with Array, Date and File entries):");
+        log("\n\rTest generator with other Java objects:");
+        log("  HashMap with int[3], Date and File entries:");
+        HashMap<String,Object> hashMap = new HashMap<>();
+        hashMap.put("int[]",new int[3]);
+        hashMap.put("Date",new Date());
+        hashMap.put("File", new File(path, "json.json"));
+        String s = JSON.generate(hashMap);
+        log(s);
+        log("  ArrayList with int[3], Date and File entries:");
         ArrayList<Object> arrayList = new ArrayList<>();
-        arrayList.add(new int[2]);
+        arrayList.add(new int[3]);
         arrayList.add(new Date());
         arrayList.add(new File(path, "json.json"));
-        String s = JSON.generate(arrayList);
+        s = JSON.generate(arrayList);
         log(s);
         Object obj = JSON.parse(s);
-        log("is Array?: " + obj.getClass().isArray());
+        log("is Array?: " + (obj instanceof Object[]));//obj.getClass().isArray());
 
         log("\n\rTest examples:");
 // examples from RFC 8259 https://datatracker.ietf.org/doc/rfc8259/?include_text=1
