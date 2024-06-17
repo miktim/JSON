@@ -131,7 +131,7 @@ public abstract class JSONObject {
     }
 
     private Field[] getAccessibleFields(Object obj) {
-        LinkedHashMap<String, Field> accessibleFields = new LinkedHashMap<>();
+        LinkedHashMap<String, Field> accessibleFields = new LinkedHashMap<String, Field>();
         Class cls = obj.getClass();
         Package pkg = cls.getPackage();
         int ignore = Modifier.FINAL | Modifier.TRANSIENT | Modifier.STRICT

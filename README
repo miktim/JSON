@@ -1,4 +1,4 @@
-# Java 7+/Android JSON parser/generator, MIT (c) 2020-2022 miktim@mail.ru
+# Java 7+/Android JSON parser/generator, MIT (c) 2020-2024 miktim@mail.ru
 
 Release notes:
   - Java SE 7+/Android RFC 8259 compliant package
@@ -95,7 +95,7 @@ Overview:
       Object toJSON()
         throws IllegalArgumentException, IllegalAccessException;
          // returns JSON object
-         // convertible object parameters must be initialized
+         // the accessible fields of the object must be initialized
       protected Object replacer(String name, Object value); 
          // first call with object class name and empty JSON object as value
       public String toJSONText()
@@ -105,7 +105,7 @@ Overview:
       Object fromJSON(Object jsonObj)
         throws IllegalArgumentException, IllegalAccessException;
          // returns this object
-         // convertible object parameters must be initialized
+         // the accessible fields of the object must be initialized
       protected Object reviver(String name, Object value); 
          // first call with object class name and obj argument as value
       public Object fromJSONText(String jsonText)
@@ -117,10 +117,10 @@ Overview:
       protected void setIgnored(String[] fldNames); // set ignored field names
       protected String[] getIgnored()
 
-Usage see:
-  ./test/json/JSONTest.java
-  ./test/json/JSONAdapterTest.java
-  ./test/json/JSONObjectTest.java
+Usage see:  
+  ./test/json/JSONTest.java  
+  ./test/json/JSONAdapterTest.java  
+  ./test/json/JSONObjectTest.java  
 
 The result of the JSON parsing test for compliance with RFC 8259:
   https://miktim.github.io/JSONTestSuite/results/parsing.html

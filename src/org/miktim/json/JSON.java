@@ -83,7 +83,7 @@ public class JSON extends LinkedHashMap<String, Object> {
     }
 
     public List<String> listNames() {
-        return new ArrayList<>(this.keySet());
+        return new ArrayList<String>(this.keySet());
     }
 
     public boolean exists(String memberName) {
@@ -231,7 +231,7 @@ public class JSON extends LinkedHashMap<String, Object> {
                     }
                 }
             } else if (expectedChar('[')) { // JSON array
-                List<Object> list = new ArrayList<>(); //
+                List<Object> list = new ArrayList<Object>(); //
                 if (!expectedChar(']')) { // empty array
                     do {
                         list.add(parseObject());

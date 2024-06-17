@@ -125,14 +125,14 @@ public class JSONTest {
 
         log("\n\rTest generator with other Java objects:");
         log("  HashMap with int[3], Date and File entries:");
-        HashMap<String,Object> hashMap = new HashMap<>();
+        HashMap<String,Object> hashMap = new HashMap<String,Object>();
         hashMap.put("int[]",new int[3]);
         hashMap.put("Date",new Date());
         hashMap.put("File", new File(path, "json.json"));
         String s = JSON.generate(hashMap);
         log(s);
         log("  ArrayList with int[3], Date and File entries:");
-        ArrayList<Object> arrayList = new ArrayList<>();
+        ArrayList<Object> arrayList = new ArrayList<Object>();
         arrayList.add(new int[3]);
         arrayList.add(new Date());
         arrayList.add(new File(path, "json.json"));
