@@ -1,5 +1,5 @@
 /**
- * Java JSON parser/generator, MIT (c) 2020-2022 miktim@mail.ru
+ * Java JSON parser/generator, MIT (c) 2020-2024 miktim@mail.ru
  *
  * Release notes:
  * - Java 7+, Android compatible;
@@ -24,7 +24,6 @@ import java.util.LinkedHashMap;
 import java.io.StringReader;
 import java.io.Writer;
 import java.lang.reflect.Array;
-import java.math.BigDecimal;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -33,64 +32,71 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
-public class JSON extends LinkedHashMap<String, Object> {
+public class Json extends LinkedHashMap<String, Object> {
 
-    public static Object parse(String json) throws IOException, ParseException {
-        return parse(new StringReader(json));
+// TODO Writer/Reader Stream, String. Define indents
+// readJSON inputStream  Options... options charset
+// writeJSON outputStream, Object... options: indent charset,
+    public static Object fromJSON(String json) throws IOException, ParseException {
+        return fromJSON(new StringReader(json));
     }
 
-    public static Object parse(Reader reader) throws IOException, ParseException {
+    public static Object fromJSON(Reader reader) throws IOException, ParseException {
         return (new Parser()).parse(reader);
     }
-
-    public static String generate(Object object) {
+    
+    public static String toJSON(Object object) {
         return stringifyObject(object);
     }
 
-    public static void generate(Object object, Writer writer) throws IOException {
+    public static void toJSON(Object object, Writer writer) throws IOException {
         writer.write(stringifyObject(object));
     }
 
-    public JSON(String jsonText) throws IOException, ParseException {
+    public Json(String jsonText) throws IOException, ParseException {
         super();
-        this.putAll((JSON) JSON.parse(jsonText));//??? another way
+        this.putAll((Json) Json.fromJSON(jsonText));//??? another way
     }
 
-    public JSON(Reader reader) throws IOException, ParseException {
+    public Json(Reader reader) throws IOException, ParseException {
         super();
-        this.putAll((JSON) JSON.parse(reader));
+        this.putAll((Json) Json.fromJSON(reader));
     }
 
 // Memebers: name,value pairs    
-    public JSON(Object... members) throws IndexOutOfBoundsException {
+    public Json(Object... members) throws IndexOutOfBoundsException {
         super();
         for (int i = 0; i < members.length;) {
             this.put(String.valueOf(members[i++]), members[i++]);
         }
     }
 
-//    public String generate() {
-//        return JSON.generate(this);
-//    }
-
-    public String toString(String memberName, int... indices) {
-        return JSON.generate(get(memberName, indices));
+    public String toJSON() {
+        return stringifyObject(this);
+    }
+    
+    public String toJSON(String memberName) {
+        return stringifyObject(this.get(memberName));
+    }
+    
+    public String toJSON(String memberName, int... indices) {
+        return stringifyObject(get(memberName, indices));
     }
 
     @Override
     public String toString() {
-        return JSON.generate(this);
+        return stringifyObject(this);
     }
 
-    public List<String> listNames() {
-        return new ArrayList<String>(this.keySet());
+    public String[] listNames() {
+        return this.keySet().toArray(new String[0]);
     }
 
     public boolean exists(String memberName) {
         return this.containsKey(memberName);
     }
 
-    public JSON set(String memberName, Object value) {
+    public Json set(String memberName, Object value) {
         this.put(memberName, value);
         return this;
     }
@@ -104,8 +110,8 @@ public class JSON extends LinkedHashMap<String, Object> {
         return obj;
     }
 
-    public JSON getJSON(String memberName, int... indices) {
-        return (JSON) get(memberName, indices);
+    public Json getJSON(String memberName, int... indices) {
+        return (Json) get(memberName, indices);
     }
 
     public Number getNumber(String memberName, int... indices) {
@@ -126,22 +132,22 @@ public class JSON extends LinkedHashMap<String, Object> {
         if (cls == Object[].class) {
             return (Object[]) obj;
         } else if (cls.isArray()) {
-            return (Object[]) JSONAdapter.cast(obj, Object[].class);
+            return (Object[]) JsonAdapter.cast(obj, Object[].class);
         }
         return (Object[]) obj; // throws ClassCastException
     }
 
 // casting by sample or class the value of a member or element of an array
     public <T> T cast(String memberName, T sample, int... indices) {
-        return JSONAdapter.cast(get(memberName, indices), sample);
+        return JsonAdapter.cast(get(memberName, indices), sample);
     }
 
     public <T> T cast(String memberName, Class<T> cls, int... indices) {
-        return JSONAdapter.cast(get(memberName, indices), cls);
+        return JsonAdapter.cast(get(memberName, indices), cls);
     }
 
-    public JSON normalize() throws Exception {
-        return (JSON) JSON.parse(toString()); // :)
+    public Json normalize() throws Exception {
+        return (Json) Json.fromJSON(toString()); // :)
     }
 
     static class Parser {
@@ -215,12 +221,12 @@ public class JSON extends LinkedHashMap<String, Object> {
 //            skipWhitespaces(); // leading
             Object object = null;
             if (expectedChar('{')) { // JSON object
-                object = new JSON();
+                object = new Json();
                 if (!expectedChar('}')) { // empty object
                     do {
                         Object memberName = parseObject();
                         if ((memberName instanceof String) && expectedChar(':')) {
-                            ((JSON) object).set((String) memberName, parseObject());
+                            ((Json) object).set((String) memberName, parseObject());
                         } else {
                             throw newParseException("Name expected",
                                     null, offset);
@@ -271,9 +277,9 @@ public class JSON extends LinkedHashMap<String, Object> {
             } else if (charIn(NUMBERS, lastChar())) {
                 String number = nextChars(NUMBERS);
                 try {
-                    object = new BigDecimal(number);
+                    object = toNumber(number);
                 } catch (NumberFormatException e) {
-                    throw newParseException("Unparseable number:",
+                    throw newParseException("Number format:",
                             number, offset);
                 }
             } else {
@@ -282,6 +288,14 @@ public class JSON extends LinkedHashMap<String, Object> {
             }
             skipWhitespaces(); // trailing
             return object;
+        }
+
+        public static Number toNumber(String number) {
+//          return new BigDecimal(number);
+            if (number.indexOf('.') >= 0 || number.indexOf('E') >= 0 || number.indexOf('e') >= 0) {
+                return new Double(number);
+            }
+            return new Long(number);
         }
 
         Object parse(Reader reader) throws IOException, ParseException {
@@ -372,8 +386,8 @@ public class JSON extends LinkedHashMap<String, Object> {
         return sb.toString();
     }
 
-    private static final int[] UNESCAPED_CHARS = {0x8, 0x9, 0xA, 0xC, 0xD, 0x22, 0x2F, 0x5C}; //
-    private static final String[] CHARS_ESCAPED = {"\\b", "\\t", "\\n", "\\f", "\\r", "\\\"", "\\/", "\\\\"};
+    private static final int[] UNESCAPED_CHARS = {0x8, 0x9, 0xA, 0xC, 0xD, 0x22, 0x5C}; // {0x8, 0x9, 0xA, 0xC, 0xD, 0x22, 0x2F, 0x5C}
+    private static final String[] CHARS_ESCAPED = {"\\b", "\\t", "\\n", "\\f", "\\r", "\\\"", "\\\\"}; // {"\\b", "\\t", "\\n", "\\f", "\\r", "\\\"", "\\/", "\\\\"}
 
     public static String escapeString(String s) {
         StringBuilder sb = new StringBuilder(64);

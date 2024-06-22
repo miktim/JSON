@@ -15,14 +15,14 @@ package org.miktim.json;
 
 import java.lang.reflect.Array;
 
-public class JSONAdapter {
+public class JsonAdapter {
 
     @SuppressWarnings("unchecked")
     public static <T> T cast(Object jsonVal, T sample) {
         if (sample == null) {
             return null;
         }
-        return (T) JSONAdapter.cast(jsonVal, sample.getClass());
+        return (T) JsonAdapter.cast(jsonVal, sample.getClass());
     }
 
     @SuppressWarnings("unchecked")
@@ -31,7 +31,7 @@ public class JSONAdapter {
             return null;
         }
         Adapter adapter = getAdapter(getElementClass(cls));
-        return (T) JSONAdapter.cast(jsonVal, cls, adapter);
+        return (T) JsonAdapter.cast(jsonVal, cls, adapter);
     }
 
     private interface Adapter {
