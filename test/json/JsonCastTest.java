@@ -1,22 +1,22 @@
 /*
- * JsonAdapterTest. MIT (c) 2022-2024 miktim@mail.ru
+ * JsonCastTest. MIT (c) 2022-2024 miktim@mail.ru
  */
 
 //package json;
 
 import java.math.BigDecimal;
 import java.util.Arrays;
+import org.miktim.json.JSON;
 import org.miktim.json.Json;
-import org.miktim.json.JsonAdapter;
 
-public class JsonAdapterTest {
+public class JsonCastTest {
  
     static void log(Object s) {
         System.out.println(String.valueOf(s));
     }
 
     public static void main(String[] args) throws Exception {
-        log("JSONAdapter test\n\r");
+        log("JsonCastTest\n\r");
 
         Json json = new Json(
                 "i", 1234567,
@@ -42,35 +42,35 @@ public class JsonAdapterTest {
         double d = 0;
         Integer iI = 0;
         char c = 0;
-        boolean bl = JsonAdapter.cast(null, boolean.class); // false
+        boolean bl = JSON.cast(null, boolean.class); // false
         String st = "";
 
         log("\n\rMember \"i\" to byte, short, int, double:");
-        b = JsonAdapter.cast(json.get("i"), byte.class);
+        b = JSON.cast(json.get("i"), byte.class);
         log(b);
-        s = JsonAdapter.cast(json.get("i"), s);
+        s = JSON.cast(json.get("i"), s);
         log(s);
-        i = JsonAdapter.cast(json.get("i"), int.class);
+        i = JSON.cast(json.get("i"), int.class);
         log(i);
-        d = JsonAdapter.cast(json.get("i"), d);
+        d = JSON.cast(json.get("i"), d);
         log(d);
         log("\n\rMember \"bi\" to int, long:");
-        i = JsonAdapter.cast(json.get("bi"), 0); // use constant as sample
+        i = JSON.cast(json.get("bi"), 0); // use constant as sample
         log(i);
-        l = JsonAdapter.cast(json.get("bi"), l);
+        l = JSON.cast(json.get("bi"), l);
         log(l);
         log("\n\rMember \"bd\" to int, String:");
-        i = JsonAdapter.cast(json.get("bd"), 0); // use constant as sample
+        i = JSON.cast(json.get("bd"), 0); // use constant as sample
         log(i);
-        st = JsonAdapter.cast(json.get("bd"), "");// use constant as sample
+        st = JSON.cast(json.get("bd"), "");// use constant as sample
         log(st);
 
         log("\n\rMember \"c\" to char:");
-        c = JsonAdapter.cast(json.get("c"), c);
+        c = JSON.cast(json.get("c"), c);
         log(c);
 
         log("\n\rMember \"bl\" to boolean:");
-        log(JsonAdapter.cast(json.get("bl"), bl));
+        log(JSON.cast(json.get("bl"), bl));
 
         float[] af1 = new float[0];
         int[][] ai2 = new int[0][0];
@@ -83,44 +83,44 @@ public class JsonAdapterTest {
         boolean[] abl1 = new boolean[0];
         
         log("\n\rCast arrays:");
-        af1 = JsonAdapter.cast(json.getArray("af1"), af1);
+        af1 = JSON.cast(json.getArray("af1"), af1);
         log(Arrays.toString(af1) + " \"af1\" to " + af1.getClass().getSimpleName());
-        aI1 = JsonAdapter.cast(json.getArray("af1"), aI1);
+        aI1 = JSON.cast(json.getArray("af1"), aI1);
         log(Arrays.deepToString(aI1) + " \"af1\" to " + aI1.getClass().getSimpleName());
-        ai2 = JsonAdapter.cast(json.getArray("ai2"), int[][].class);
+        ai2 = JSON.cast(json.getArray("ai2"), int[][].class);
         log(Arrays.deepToString(ai2) + " \"ai2\" to " + ai2.getClass().getSimpleName());
-        ast2 = JsonAdapter.cast(json.getArray("ai2"), ast2);
+        ast2 = JSON.cast(json.getArray("ai2"), ast2);
         log(Arrays.deepToString(ast2) + " \"ai2\" to " + ast2.getClass().getSimpleName());
-        ac2 = JsonAdapter.cast(json.getArray("ac2"), ac2);
+        ac2 = JSON.cast(json.getArray("ac2"), ac2);
         log(Arrays.deepToString(ac2) + " \"ac2\" to " + ac2.getClass().getSimpleName());
-        ac1 = JsonAdapter.cast(json.getArray("ac1"), ac1);
+        ac1 = JSON.cast(json.getArray("ac1"), ac1);
         log(Arrays.toString(ac1) + " \"ac1\" to " + ac1.getClass().getSimpleName());
-        ast1 = JsonAdapter.cast(json.getArray("ac1"), ast1); // !!!null cast to "null"
+        ast1 = JSON.cast(json.getArray("ac1"), ast1); // !!!null cast to "null"
         log(Arrays.deepToString(ast1) + " \"ac1\" to " + ast1.getClass().getSimpleName());
-        abl1 = JsonAdapter.cast(json.getArray("abl1"), abl1);
+        abl1 = JSON.cast(json.getArray("abl1"), abl1);
         log(Arrays.toString(abl1) + " \"abl1\" to " + abl1.getClass().getSimpleName());
 // casting char[][] to char[][][] throws java.lang.IllegalArgumentException: array element type mismatch       
-//        ac3 = JSONAdapter.castTo(json.getArray("ac2"), ac3);
+//        ac3 = JSON.cast(json.getArray("ac2"), ac3);
 // casting char[][] to char[] throws java.lang.ClassCastException: [Ljava.lang.Object; cannot be cast to java.lang.String
-//        ac1 = JSONAdapter.castTo(json.getArray("ac2"), ac1);
+//        ac1 = JSON.cast(json.getArray("ac2"), ac1);
 // casting to null returns null, casting null to an array returns an empty array
 // casting null to primitive returns initial value: boolen = false, char = (char) 0, int = 0 ...
         log("\n\rCasting null or to null:");
-        ai2 = JsonAdapter.cast(null, ai2);
+        ai2 = JSON.cast(null, ai2);
         log(Arrays.deepToString(ai2) + " " + ai2.getClass().getSimpleName());
         ai2 = null;
-        ai2 = JsonAdapter.cast(json.getArray("ai2"), ai2);
+        ai2 = JSON.cast(json.getArray("ai2"), ai2);
         log(ai2);
-        ai2 = JsonAdapter.cast(null, null);
+        ai2 = JSON.cast(null, null);
         log(ai2);
 // casting null to String returns "null"
-        st = JsonAdapter.cast(null, st);
+        st = JSON.cast(null, st);
         log(st);
-        i = JsonAdapter.cast(null, i);
+        i = JSON.cast(null, i);
         log(i);
 // restore ai2 = null
         log("\n\rCast to an uninitialized array:");
-        ai2 = JsonAdapter.cast(json.getArray("ai2"), int[][].class);
+        ai2 = JSON.cast(json.getArray("ai2"), int[][].class);
         log(Arrays.deepToString(ai2) + " " + ai2.getClass().getSimpleName());
 
     }

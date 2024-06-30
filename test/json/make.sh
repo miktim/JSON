@@ -8,8 +8,8 @@ if [ ! -d ${cpath} ]
   else rm -f ${cpath}/*.*
 fi
 #javac -Xstdout ./compile.log -Xlint:unchecked -cp .${cpath} -d ./ \
-javac -Xstdout ./compile.log -Xlint:deprecation -cp .${cpath} -d ./ \
-  ../../src${cpath}JSON.java  ../../src${cpath}JSONAdapter.java ../../src${cpath}JSONObject.java
+javac -Xstdout ./compile.log -Xlint:unchecked -cp .${cpath} -d ./ \
+  ../../src${cpath}*.java
 if [ $? -eq 0 ] ; then
   jar cvf ./${jname}.jar .${cpath}*.class
 #  javadoc -d ./${jname}Doc -nodeprecated -use package-info.java \

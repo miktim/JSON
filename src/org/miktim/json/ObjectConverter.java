@@ -1,7 +1,6 @@
 /*
  * AbstractObject class. MIT (c) 2024 miktim@mail.ru
  */
-
 package org.miktim.json;
 
 import java.lang.reflect.Field;
@@ -9,9 +8,11 @@ import java.lang.reflect.Modifier;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
-import static org.miktim.json.JsonObject.IGNORED;
 
-abstract class AbstractObject {
+abstract class ObjectConverter {
+
+    protected static final transient Object IGNORED = new Object();
+
     protected Object replacer(String fldName, Object value) {
         return value;
     }
@@ -22,8 +23,8 @@ abstract class AbstractObject {
 
     @SuppressWarnings("unchecked")
     protected <T> T castMember(String memberName, Json jsonObj, T sample) {
-        if (jsonObj.exists(memberName)) {
-            return JsonAdapter.cast(jsonObj.get(memberName), sample);
+        if (jsonObj.get(memberName) != null) {
+            return JSON.cast(jsonObj.get(memberName), sample);
         }
         return sample;
     }
@@ -36,8 +37,15 @@ abstract class AbstractObject {
         }
         return true;
     }
-
-    private final transient HashSet<String> ignoredFields = new HashSet<>();//
+/*    
+    protected static final class IgnoredFields extends HashSet<String> {
+        IgnoredFields() {
+            super();
+        }
+    }
+    protected transient IgnoredFields ignoredFields = new IgnoredFields();
+*/    
+    protected transient HashSet<String> ignoredFields = new HashSet<>();
 
     protected final boolean isIgnored(String fldName) {
         return ignoredFields.contains(fldName);
@@ -48,7 +56,7 @@ abstract class AbstractObject {
         addIgnored(fldNames);
     }
 
-    protected void addIgnored(String[] fldNames) {
+    protected final void addIgnored(String[] fldNames) {
         Collections.addAll(ignoredFields, fldNames);
     }
 
@@ -56,64 +64,72 @@ abstract class AbstractObject {
         return ignoredFields.toArray(new String[0]);
     }
 
-    Json unload(AbstractObject thisObj, Object targetObj) // returns Object
+    Json unload(ObjectConverter thisObj, Object targetObj) // returns Object
             throws IllegalArgumentException, IllegalAccessException {
-        String name = targetObj.getClass().getName();
-        Object json = thisObj.replacer(name, targetObj);
+        if (targetObj instanceof JsonObject) {
+            thisObj = (ObjectConverter) targetObj;
+        }
+        String className = targetObj.getClass().getName();
+        Object json = thisObj.replacer(className, targetObj);
         if (json.equals(targetObj)) {
             json = new Json();
         }
         if (json instanceof Json) {
-            Field[] fields = getAccessibleFields(targetObj);
+            Field[] fields = getAccessibleFields(thisObj,targetObj);
             for (Field field : fields) {
-                name = field.getName();
-                if (!thisObj.isIgnored(name)) {
+                String fieldName = field.getName();
+                if (!thisObj.isIgnored(fieldName)) {
                     field.setAccessible(true);
-                    Object value = thisObj.replacer(name, field.get(targetObj));
+                    Object value = thisObj.replacer(fieldName, field.get(targetObj));
                     if (value == null || !value.equals(IGNORED)) {
                         if (value != null && value instanceof JsonObject) {
                             value = ((JsonObject) value).unload((JsonObject) value, value);
                         }
-                        ((Json) json).set(name, value);
+                        ((Json) json).set(fieldName, value);
                     }
                 }
             }
         }
-        return (Json)json;//.normalize(); //???
+        return (Json) json;//.normalize(); //???
     }
 
-    <T> T load(AbstractObject thisObj, T targetObj, Object json)
+    <T> T load(ObjectConverter thisObj, T targetObj, Object json)
             throws IllegalArgumentException, IllegalAccessException {
-        String name = targetObj.getClass().getName();
-        json = thisObj.reviver(name, json);
+        if (targetObj instanceof JsonObject) {
+            thisObj = (ObjectConverter) targetObj;
+        }
+        String className = targetObj.getClass().getName();
+        json = thisObj.reviver(className, json);
         if (json instanceof Json) {
-            Field[] fields = getAccessibleFields(targetObj);
+            Field[] fields = getAccessibleFields(thisObj, targetObj);
             for (Field field : fields) {
-                name = field.getName();
-                if (!thisObj.isIgnored(name) && ((Json) json).exists(name)) {
+                String fieldName = field.getName();
+                if (!thisObj.isIgnored(fieldName) && ((Json) json).exists(fieldName)) {
                     field.setAccessible(true);
-                    Object newValue = thisObj.reviver(name, ((Json) json).get(name));
+                    Object newValue = thisObj.reviver(fieldName, ((Json) json).get(fieldName));
                     Object value = field.get(targetObj);
-                    if (newValue == null || !newValue.equals(IGNORED)) {
+                    if ((field.getModifiers() & Modifier.FINAL) == 0 && 
+                            (newValue == null || !newValue.equals(IGNORED))) {
                         if (value != null && value instanceof JsonObject) {
                             field.set(targetObj,
                                     ((JsonObject) value).load((JsonObject) value, value, newValue));
                         } else {
-                            field.set(targetObj, JsonAdapter.cast(newValue, value));
+                            field.set(targetObj, JSON.cast(newValue, value));
                         }
                     }
                 }
             }
         }
-        return targetObj;
+        return  (T) targetObj;
     }
 
-    private Field[] getAccessibleFields(Object obj) {
+    private Field[] getAccessibleFields(Object thisObj, Object targetObj) {
         LinkedHashMap<String, Field> accessibleFields = new LinkedHashMap<>();
-        Class cls = obj.getClass();
-        Package pkg = cls.getPackage();
-        int ignore = Modifier.FINAL | Modifier.TRANSIENT | Modifier.STRICT
+        Class thisCls =thisObj.getClass();
+        Package thisPkg = thisCls.getPackage();
+        int ignore = Modifier.TRANSIENT | Modifier.STRICT
                 | Modifier.INTERFACE | Modifier.ABSTRACT | Modifier.NATIVE;
+        Class cls = targetObj.getClass();
         while (cls != null) {
             Field[] fields = cls.getDeclaredFields();
             Package clsPkg = cls.getPackage();
@@ -122,12 +138,12 @@ abstract class AbstractObject {
                     continue;
                 }
 // for different package public or protected fields 
-                if (clsPkg != pkg && (field.getModifiers()
+                if (clsPkg != thisPkg && (field.getModifiers()
                         & (Modifier.PUBLIC | Modifier.PROTECTED)) == 0) {
                     continue;
                 }
                 String name = field.getName();
-// skip overloaded fields                
+// skip overriden fields                
                 if (!accessibleFields.containsKey(name)
                         && (field.getModifiers() & ignore) == 0) {
                     accessibleFields.put(name, field);
@@ -139,5 +155,5 @@ abstract class AbstractObject {
         }
         return accessibleFields.values().toArray(new Field[]{});
     }
-    
+
 }

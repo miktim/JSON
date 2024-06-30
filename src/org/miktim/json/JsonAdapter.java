@@ -1,164 +1,34 @@
 /*
- * JSONAdapter class. MIT (c) 2022 miktim@mail.ru
- * 
- * Casting by sample or Class of a JSON variable or array to a Java primitive or array.
- * - sample must be initialized;
- * - casting null to a Java primitive returns corresponding initial value;
- * - casting null to an array returns an empty array;
- * - casting null to String returns "null";
- * - casting null to other Java objects returns null;
- * - casting to null returns null.
+ * JsonAdapter class. MIT (c) 2024 miktim@mail.ru
+ * Java object to Json converter
  *
- * Created: march 2022
+ * Unloads/loads Java object accessible fields to/from Json object.
+ * - Java final, transient fields are ignored;
+ *   TODO initialized final object fields?
+ * - see the notes for Json set/get/cast methods.
  */
 package org.miktim.json;
 
-import java.lang.reflect.Array;
+import java.io.IOException;
+import java.text.ParseException;
 
-public class JsonAdapter {
+public class JsonAdapter extends ObjectConverter { //
 
-    @SuppressWarnings("unchecked")
-    public static <T> T cast(Object jsonVal, T sample) {
-        if (sample == null) {
-            return null;
-        }
-        return (T) JsonAdapter.cast(jsonVal, sample.getClass());
+    public static transient JsonAdapter defaultAdapter = new JsonAdapter();
+
+    public final <T> T fromJSON(T target, String jsonText)
+            throws IllegalArgumentException, IllegalAccessException, IOException, ParseException {
+        return (T) load(this, target, new Json(jsonText));
     }
 
-    @SuppressWarnings("unchecked")
-    public static <T> T cast(Object jsonVal, Class<T> cls) {
-        if (cls == null) {
-            return null;
-        }
-        Adapter adapter = getAdapter(getElementClass(cls));
-        return (T) JsonAdapter.cast(jsonVal, cls, adapter);
+    public final <T> T fromJson(T target, Json json)
+            throws IllegalArgumentException, IllegalAccessException {
+        return (T) load(this, target, json);
     }
 
-    private interface Adapter {
-
-        <T> T castValue(Object jsonVal);
+    public final Json toJson(Object target)
+            throws IllegalArgumentException, IllegalAccessException {
+        return (Json) unload(this, target);
     }
-
-    @SuppressWarnings("unchecked")
-    private static <T> T cast(Object jsonObj, Class<T> cls, Adapter adapter) {
-        if (cls.isArray()) {
-            int objLen = jsonObj == null ? 0 : Array.getLength(jsonObj);
-            Class cmpCls = cls.getComponentType();
-            T arr = (T) Array.newInstance(cmpCls, objLen);
-            for (int i = 0; i < objLen; i++) {
-                Array.set(arr, i, cast(Array.get(jsonObj, i), cmpCls, adapter));
-            }
-            return (T) arr;
-        }
-
-        return adapter.castValue(jsonObj);
-    }
-
-    private static Class getElementClass(Class cls) {
-        while (cls.isArray()) {
-            cls = cls.getComponentType();
-        }
-// cast primitive to corresponding object
-        Object sample = Array.get(Array.newInstance(cls, 1), 0);
-        if (sample != null) {
-            cls = sample.getClass();
-        }
-        return cls;
-    }
-
-    @SuppressWarnings("unchecked")
-    private static Adapter getAdapter(Class cls) {
-        if (cls == Integer.class) {
-            return intAdapter;
-        } else if (cls == Long.class) {
-            return longAdapter;
-        } else if (cls == Double.class) {
-            return doubleAdapter;
-        } else if (cls == Float.class) {
-            return floatAdapter;
-        } else if (cls == Byte.class) {
-            return byteAdapter;
-        } else if (cls == Short.class) {
-            return shortAdapter;
-        } else if (cls == Character.class) {
-            return charAdapter;
-        } else if (cls == Boolean.class) {
-            return booleanAdapter;
-        } else if (cls == String.class) {
-            return stringAdapter;
-        }
-        return defaultAdapter;
-    }
-    @SuppressWarnings("unchecked")
-    private static final Adapter defaultAdapter = new Adapter() {
-        @Override
-        public Object castValue(Object obj) {
-            return obj;
-        }
-    };
-    @SuppressWarnings("unchecked")
-    private static final Adapter booleanAdapter = new Adapter() {
-        @Override
-        public Object castValue(Object obj) {
-            return obj == null ? false : obj;
-        }
-    };
-    @SuppressWarnings("unchecked")
-    private static final Adapter intAdapter = new Adapter() {
-        @Override
-        public Object castValue(Object obj) {
-            return obj == null ? 0 : ((Number) obj).intValue();
-        }
-    };
-    @SuppressWarnings("unchecked")
-    private static final Adapter byteAdapter = new Adapter() {
-        @Override
-        public Object castValue(Object obj) {
-            return obj == null ? 0 : ((Number) obj).byteValue();
-        }
-    };
-    @SuppressWarnings("unchecked")
-    private static final Adapter shortAdapter = new Adapter() {
-        @Override
-        public Object castValue(Object obj) {
-            return obj == null ? 0 : ((Number) obj).shortValue();
-        }
-    };
-    @SuppressWarnings("unchecked")
-    private static final Adapter longAdapter = new Adapter() {
-        @Override
-        public Object castValue(Object obj) {
-            return obj == null ? 0 : ((Number) obj).longValue();
-        }
-    };
-    @SuppressWarnings("unchecked")
-    private static final Adapter floatAdapter = new Adapter() {
-        @Override
-        public Object castValue(Object obj) {
-            return obj == null ? 0 : ((Number) obj).floatValue();
-        }
-    };
-    @SuppressWarnings("unchecked")
-    private static final Adapter doubleAdapter = new Adapter() {
-        @Override
-        public Object castValue(Object obj) {
-            return obj == null ? 0 : ((Number) obj).doubleValue();
-        }
-    };
-    @SuppressWarnings("unchecked")
-    private static final Adapter charAdapter = new Adapter() {
-        @Override
-        public Object castValue(Object obj) {
-            return obj == null ? (char) 0
-                    : (obj instanceof Character ? obj : (((String) obj)+"\u0000").charAt(0));
-        }
-    };
-    @SuppressWarnings("unchecked")
-    private static final Adapter stringAdapter = new Adapter() {
-        @Override
-        public String castValue(Object obj) {
-            return String.valueOf(obj);
-        }
-    };
-
+   
 }
