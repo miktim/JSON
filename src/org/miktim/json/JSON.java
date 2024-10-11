@@ -5,14 +5,16 @@
  * - Java 7+, Android compatible;
  * - in accordance with RFC 8259: https://datatracker.ietf.org/doc/rfc8259/?include_text=1
  * - parser converts JSON text to Java objects:
- *   Json object, String, Number (Double or Long), Boolean, null, Object[] array of listed types;
+ *   Json object, String, Number, Boolean, null, Object[] array of listed types;
  * - JSON object members (name/value pairs) are stored in creation/appearance order;
  * - when the names within an object are not unique, parser stores the last value only;
  * - in addition, the generator converts Java Collections to JSON arrays
  *   and Java Maps to Json objects. The null key is converted to a "null" member name.
  *   Other Java objects are converted to string representation.
+ * Reasons for using the Object[]:
+ * - JSON allows mixed-type arrays;
+ * - JSON empty array has unknown Java type.
  */
-
 package org.miktim.json;
 
 import java.io.ByteArrayInputStream;
@@ -22,22 +24,42 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.text.ParseException;
-import static java.util.Arrays.binarySearch;
 
 public abstract class JSON {
+/*
+    static {
+        try {
 
-    public static <T>T toJSON(T obj, OutputStream out, int space, String charsetName)
+        } catch (Exception e) {
+
+        }
+    }
+
+    private static LinkedHashMap<String, JsonObject> objects
+            = new LinkedHashMap<>();
+
+    public static void registerJsonObject(Object obj) {
+        if (obj instanceof JsonObject) {
+            registerJsonObject((JsonObject) obj, obj.getClass().getName());
+        }
+    }
+
+    public static void registerJsonObject(JsonObject obj, String className) {
+        objects.put(className, obj);
+    }
+*/
+    public static <T> T toJSON(T obj, OutputStream out, int space, String charsetName)
             throws IOException {
-        JSONgenerator generator = new JSONgenerator(out, space, charsetName);
+        GeneratorJSON generator = new GeneratorJSON(out, space, charsetName);
         generator.generateObject(obj, 0);
         return obj;
     }
 
-    public static <T>T toJSON(T obj, OutputStream out)
+    public static <T> T toJSON(T obj, OutputStream out)
             throws IOException {
         return toJSON(obj, out, 0, "UTF-8");
     }
-    
+
     public static String toJSON(Object obj, int space) throws IOException {
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         toJSON(obj, stream, space, "UTF-8");
@@ -47,92 +69,58 @@ public abstract class JSON {
     public static String toJSON(Object obj) throws IOException {
         return toJSON(obj, 0);
     }
-    
 
-    public static Object fromJSON(InputStream in, String charsetName) 
+    public static Object fromJSON(InputStream in, String charsetName)
             throws IOException, ParseException {
-        JSONparser parser = new JSONparser(in, charsetName);
+        ParserJSON parser = new ParserJSON(in, charsetName);
         return parser.parseObject();
     }
 
-    public static Object fromJSON(String jsonText) 
+    public static Object fromJSON(String jsonText)
             throws IOException, ParseException {
-        ByteArrayInputStream in = 
-                new ByteArrayInputStream(jsonText.getBytes("UTF-8"));
+        ByteArrayInputStream in
+                = new ByteArrayInputStream(jsonText.getBytes("UTF-8"));
         return fromJSON(in, "UTF-8");
     }
-
-    public static Number toNumber(String number)
-            throws NumberFormatException {
-//          return new BigDecimal(number);
-        if (number.indexOf('.') >= 0 || number.indexOf('E') >= 0 || number.indexOf('e') >= 0) {
-            return Double.parseDouble(number);
+/*
+    public static boolean isMemberType(Object obj) {
+        if (obj == null) {
+            return true;
         }
-        return Long.parseLong(number);
+        Class<?> c = obj.getClass();
+        return isBasicClass(c)
+                || c.isArray();
     }
 
-    private static final char[] ESCAPED_CHARS = {'"', '/', '\\', 'b', 'f', 'n', 'r', 't'};
-    private static final char[] CHARS_UNESCAPED = {0x22, 0x2F, 0x5C, 0x8, 0xC, 0xA, 0xD, 0x9};
-
-    public static String unescapeString(String s) throws ParseException {
-        StringBuilder sb = new StringBuilder(128);
-        char[] chars = s.toCharArray();
-        for (int i = 0; i < chars.length; i++) {
-            char c = chars[i];
-            if (c == '\\') {
-                c = chars[++i];
-                if (c == 'u') {
-                    try {
-                        c = ((char) Integer.parseInt(
-                                new String(chars, i + 1, 4), 16));
-                        i += 4;
-                    } catch (NumberFormatException | IndexOutOfBoundsException e) {
-                        throw new ParseException("Unparseable u-escaped char in: \""
-                                + s + "\" at " + --i, i);
-                    }
-                } else {
-                    int ei = binarySearch(ESCAPED_CHARS, c);
-                    if (ei >= 0) {
-                        c = (CHARS_UNESCAPED[ei]);
-                    } else {
-                        throw new ParseException("Wrong two-character escape in: \""
-                                + s + "\" at " + --i, i);
-                    }
-                }
-            } else if (c < 0x20) {
-                throw new ParseException("Unescaped control char in: \""
-                        + s + "\" at " + i, i);
-            }
-            sb.append(c);
+    public static boolean isBasicArrayType(Object obj) {
+        if (obj == null) {
+            return false;
         }
-        return sb.toString();
-    }
-
-    private static final int[] UNESCAPED_CHARS = {0x8, 0x9, 0xA, 0xC, 0xD, 0x22, 0x5C}; // {0x8, 0x9, 0xA, 0xC, 0xD, 0x22, 0x2F, 0x5C}
-    private static final String[] CHARS_ESCAPED = {"\\b", "\\t", "\\n", "\\f", "\\r", "\\\"", "\\\\"}; // {"\\b", "\\t", "\\n", "\\f", "\\r", "\\\"", "\\/", "\\\\"}
-
-    public static String escapeString(String s) {
-        StringBuilder sb = new StringBuilder(64);
-        for (int i = 0; i < s.length(); i++) {
-            int c = s.codePointAt(i);
-            int ei = binarySearch(UNESCAPED_CHARS, c);
-            if (ei >= 0) {
-                sb.append(CHARS_ESCAPED[ei]);
-            } else if (c < 0x20) {
-                sb.append(String.format("\\u%04X", c));
-            } else if (c > 0xFFFF) {
-                c -= 0x10000;
-                sb.append(String.format("\\u%04X\\u%04X",
-                        (c >>> 10) + 0xD800, (c & 0x3FF) + 0xDC00)); // surrogates
-                i++;
-            } else {
-                sb.append((char) c);
+        Class<?> c = obj.getClass();
+        for (; c.isArray(); c = c.getComponentType()) {
+            if (!(c.isArray() || isBasicClass(c))) {
+                return false;
             }
         }
-        return sb.toString();
+        return true;
     }
+
+    public static boolean isBasicType(Object obj) {
+        if (obj == null) {
+            return true;
+        }
+        Class<?> c = obj.getClass();
+        return isBasicClass(c);
+    }
+
+    public static boolean isBasicClass(Class<?> c) {
+        return c.getSuperclass().equals(Number.class)
+                || c.equals(String.class)
+                || c.equals(Boolean.class)
+                || c.equals(Json.class);
+    }
+*/
 //public class JsonAdapter {
-
     @SuppressWarnings("unchecked")
     public static <T> T cast(Object jsonVal, T sample) {
         if (sample == null) {
@@ -150,9 +138,11 @@ public abstract class JSON {
         return (T) cast(jsonVal, cls, adapter);
     }
 
-    private interface Adapter {
+    public interface Adapter {
 
-        <T> T castValue(Object jsonVal);
+        <T> T fromJson(Object jsonVal);
+
+        <T> T toJson(Object val);
     }
 
     @SuppressWarnings("unchecked")
@@ -167,7 +157,7 @@ public abstract class JSON {
             return (T) arr;
         }
 
-        return adapter.castValue(jsonObj);
+        return adapter.fromJson(jsonObj);
     }
 
     private static Class getElementClass(Class cls) {
@@ -208,73 +198,122 @@ public abstract class JSON {
     @SuppressWarnings("unchecked")
     private static final Adapter defaultAdapter = new Adapter() {
         @Override
-        public Object castValue(Object obj) {
+        public Object fromJson(Object obj) {
+            return obj;
+        }
+
+        @Override
+        public Object toJson(Object obj) {
             return obj;
         }
     };
     @SuppressWarnings("unchecked")
     private static final Adapter booleanAdapter = new Adapter() {
         @Override
-        public Object castValue(Object obj) {
+        public Object fromJson(Object obj) {
             return obj == null ? false : obj;
         }
-    };
-    @SuppressWarnings("unchecked")
-    private static final Adapter intAdapter = new Adapter() {
+
         @Override
-        public Object castValue(Object obj) {
-            return obj == null ? 0 : ((Number) obj).intValue();
-        }
-    };
-    @SuppressWarnings("unchecked")
-    private static final Adapter byteAdapter = new Adapter() {
-        @Override
-        public Object castValue(Object obj) {
-            return obj == null ? 0 : ((Number) obj).byteValue();
-        }
-    };
-    @SuppressWarnings("unchecked")
-    private static final Adapter shortAdapter = new Adapter() {
-        @Override
-        public Object castValue(Object obj) {
-            return obj == null ? 0 : ((Number) obj).shortValue();
-        }
-    };
-    @SuppressWarnings("unchecked")
-    private static final Adapter longAdapter = new Adapter() {
-        @Override
-        public Object castValue(Object obj) {
-            return obj == null ? 0 : ((Number) obj).longValue();
-        }
-    };
-    @SuppressWarnings("unchecked")
-    private static final Adapter floatAdapter = new Adapter() {
-        @Override
-        public Object castValue(Object obj) {
-            return obj == null ? 0 : ((Number) obj).floatValue();
-        }
-    };
-    @SuppressWarnings("unchecked")
-    private static final Adapter doubleAdapter = new Adapter() {
-        @Override
-        public Object castValue(Object obj) {
-            return obj == null ? 0 : ((Number) obj).doubleValue();
+        public Object toJson(Object obj) {
+            return obj;
         }
     };
     @SuppressWarnings("unchecked")
     private static final Adapter charAdapter = new Adapter() {
         @Override
-        public Object castValue(Object obj) {
+        public Object fromJson(Object obj) {
             return obj == null ? (char) 0
-                    : (obj instanceof Character ? obj : (((String) obj)+"\u0000").charAt(0));
+                    : (obj instanceof Character ? obj : (((String) obj) + "\u0000").charAt(0));
+        }
+
+        @Override
+        public Object toJson(Object obj) {
+            return obj;
+        }
+    };
+    @SuppressWarnings("unchecked")
+    private static final Adapter intAdapter = new Adapter() {
+        @Override
+        public Object fromJson(Object obj) {
+            return obj == null ? 0 : ((Number) obj).intValue();
+        }
+
+        @Override
+        public Object toJson(Object obj) {
+            return obj;
+        }
+    };
+    @SuppressWarnings("unchecked")
+    private static final Adapter byteAdapter = new Adapter() {
+        @Override
+        public Object fromJson(Object obj) {
+            return obj == null ? 0 : ((Number) obj).byteValue();
+        }
+
+        @Override
+        public Object toJson(Object obj) {
+            return obj;
+        }
+    };
+    @SuppressWarnings("unchecked")
+    private static final Adapter shortAdapter = new Adapter() {
+        @Override
+        public Object fromJson(Object obj) {
+            return obj == null ? 0 : ((Number) obj).shortValue();
+        }
+
+        @Override
+        public Object toJson(Object obj) {
+            return obj;
+        }
+    };
+    @SuppressWarnings("unchecked")
+    private static final Adapter longAdapter = new Adapter() {
+        @Override
+        public Object fromJson(Object obj) {
+            return obj == null ? 0 : ((Number) obj).longValue();
+        }
+
+        @Override
+        public Object toJson(Object obj) {
+            return obj;
+        }
+    };
+    @SuppressWarnings("unchecked")
+    private static final Adapter floatAdapter = new Adapter() {
+        @Override
+        public Object fromJson(Object obj) {
+            return obj == null ? 0 : ((Number) obj).floatValue();
+        }
+
+        @Override
+        public Object toJson(Object obj) {
+            return obj;
+        }
+    };
+    @SuppressWarnings("unchecked")
+    private static final Adapter doubleAdapter = new Adapter() {
+        @Override
+        public Object fromJson(Object obj) {
+            return obj == null ? 0 : ((Number) obj).doubleValue();
+        }
+
+        @Override
+        public Object toJson(Object obj) {
+            return obj;
         }
     };
     @SuppressWarnings("unchecked")
     private static final Adapter stringAdapter = new Adapter() {
         @Override
-        public String castValue(Object obj) {
+        public String fromJson(Object obj) {
             return String.valueOf(obj);
         }
-    };
 
+        @Override
+        public Object toJson(Object obj) {
+            return obj;
+        }
+    };
 }

@@ -7,7 +7,6 @@
  * - JSON object members (name/value pairs) are stored in creation/appearance order;
  * - when the names within an object are not unique, parser stores the last value only;
  */
-
 package org.miktim.json;
 
 import java.io.IOException;
@@ -20,15 +19,13 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import static java.util.Arrays.binarySearch;
 import java.util.List;
-import static org.miktim.json.JSON.toNumber;
-import static org.miktim.json.JSON.unescapeString;
 
-class JSONparser {
+class ParserJSON {
 
     String charsetName;
     InputStream stream;
 
-    JSONparser(InputStream inStream, String charsetName) throws UnsupportedEncodingException {
+    ParserJSON(InputStream inStream, String charsetName) throws UnsupportedEncodingException {
         this.charsetName = charsetName;
         stream = inStream;
         reader = new InputStreamReader(inStream, charsetName);
@@ -47,17 +44,9 @@ class JSONparser {
     private int lastChar = 0x20;
     private int offset = -1;
 
-    ParseException newParseException(String message, String lexeme, int offset) {
-        int off = offset - (lexeme == null ? 0 : lexeme.length());
-        String msg = message
-                + (lexeme == null ? "" : " \"" + lexeme + "\"")
-                + " at " + off;
-        return new ParseException(msg, off);
-    }
-
     char getChar() throws IOException, ParseException {
         if (eot()) { // end of text
-            throw newParseException("Unexpected EOT", null, offset);
+            throw new ParseException("Unexpected EOT", offset);
         }
         this.lastChar = this.reader.read();
         this.offset++;
@@ -66,6 +55,10 @@ class JSONparser {
 
     char lastChar() {
         return (char) this.lastChar;
+    }
+
+    String errorChar() {
+        return String.valueOf(lastChar);
     }
 
     boolean charIn(char[] chars, char key) {
@@ -107,14 +100,14 @@ class JSONparser {
                 do {
                     Object memberName = parseObject();
                     if ((memberName instanceof String) && expectedChar(':')) {
-                        ((Json) object).set((String) memberName, parseObject());
+                        // superPut without checking value
+                        ((Json) object).superPut((String) memberName, parseObject());
                     } else {
-                        throw newParseException("Name expected",
-                                null, offset);
+                        throw new ParseException("Name expected", offset);
                     }
                 } while (expectedChar(','));
                 if (!expectedChar('}')) {
-                    throw newParseException("\"}\" expected", null, offset);
+                    throw new ParseException("\"}\" expected", offset);
                 }
             }
         } else if (expectedChar('[')) { // JSON array
@@ -124,11 +117,11 @@ class JSONparser {
                     list.add(parseObject());
                 } while (expectedChar(','));
                 if (!expectedChar(']')) {
-                    throw newParseException("\"]\" expected",
-                            null, offset);
+                    throw new ParseException("\"]\" expected", offset);
                 }
             }
             object = list.toArray();
+//            object = list.toArray(Array.newInstance(list.get(0).getClass(), 0));
         } else if (lastChar() == '"') { // String
             StringBuilder sb = new StringBuilder(128); // ???CharBuffer
             while (getChar() != '"') {
@@ -152,22 +145,65 @@ class JSONparser {
                     object = null;
                     break;
                 default:
-                    throw newParseException("Unknown literal:",
-                            literal, offset);
+                    throw new ParseException("Unknown literal: " + literal, offset);
             }
         } else if (charIn(NUMBERS, lastChar())) {
             String number = nextChars(NUMBERS);
             try {
                 object = toNumber(number);
             } catch (NumberFormatException e) {
-                throw newParseException("Number format:",
-                        number, offset);
+                throw new ParseException("Number format: " + number, offset);
             }
         } else {
-            throw newParseException("Unexpected char:",
-                    Character.toString(lastChar()), offset + 1); // !
+            throw new ParseException("Unexpected char: " + errorChar(), offset); // !
         }
         skipWhitespaces(); // trailing
         return object;
+    }
+
+    static Number toNumber(String number)
+            throws NumberFormatException {
+//          return new BigDecimal(number);
+        if (number.indexOf('.') >= 0 || number.indexOf('E') >= 0 || number.indexOf('e') >= 0) {
+            return Double.parseDouble(number);
+        }
+        return Long.parseLong(number);
+    }
+
+    private static final char[] ESCAPED_CHARS = {'"', '/', '\\', 'b', 'f', 'n', 'r', 't'};
+    private static final char[] CHARS_UNESCAPED = {0x22, 0x2F, 0x5C, 0x8, 0xC, 0xA, 0xD, 0x9};
+
+    static String unescapeString(String s) throws ParseException {
+        StringBuilder sb = new StringBuilder(128);
+        char[] chars = s.toCharArray();
+        for (int i = 0; i < chars.length; i++) {
+            char c = chars[i];
+            if (c == '\\') {
+                c = chars[++i];
+                if (c == 'u') {
+                    try {
+                        c = ((char) Integer.parseInt(
+                                new String(chars, i + 1, 4), 16));
+                        i += 4;
+                    } catch (NumberFormatException | IndexOutOfBoundsException e) {
+                        throw new ParseException("Unparseable u-escaped char in: \""
+                                + s + "\" at " + --i, i);
+                    }
+                } else {
+                    int ei = binarySearch(ESCAPED_CHARS, c);
+                    if (ei >= 0) {
+                        c = (CHARS_UNESCAPED[ei]);
+                    } else {
+                        throw new ParseException("Wrong two-character escape in: \""
+                                + s + "\" at " + --i, i);
+                    }
+                }
+            } else if (c < 0x20) {
+                throw new ParseException("Unescaped control char in: \""
+                        + s + "\" at " + i, i);
+            }
+            sb.append(c);
+        }
+        return sb.toString();
     }
 }

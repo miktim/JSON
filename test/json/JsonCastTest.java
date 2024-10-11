@@ -16,15 +16,13 @@ public class JsonCastTest {
     }
 
     public static void main(String[] args) throws Exception {
-        log("JsonCastTest\n\r");
+        log("JsonCast test\n\r");
 
         Json json = new Json(
                 "i", 1234567,
-                "c", 'c',
                 "bl", true,
                 "bd", new BigDecimal("3.641592653589793238462643383279"),
                 "bi", new BigDecimal("3141592653589793238"),
-                "ac2", new char[][]{{'b', 'c'}, {'d', 'e', 'f', 'g'}},
                 "ac1", new String[]{"abc", "", "def", null},
                 "abl1", new boolean[]{true, false, true, false},
                 "af1", new double[]{1.5, 2.1},
@@ -41,7 +39,7 @@ public class JsonCastTest {
 //        float f = 0;
         double d = 0;
         Integer iI = 0;
-        char c = 0;
+//        char c = 0;
         boolean bl = JSON.cast(null, boolean.class); // false
         String st = "";
 
@@ -65,9 +63,9 @@ public class JsonCastTest {
         st = JSON.cast(json.get("bd"), "");// use constant as sample
         log(st);
 
-        log("\n\rMember \"c\" to char:");
-        c = JSON.cast(json.get("c"), c);
-        log(c);
+//        log("\n\rMember \"c\" to char:");
+//        c = JSON.cast(json.get("c"), c);
+//        log(c);
 
         log("\n\rMember \"bl\" to boolean:");
         log(JSON.cast(json.get("bl"), bl));
@@ -91,8 +89,8 @@ public class JsonCastTest {
         log(Arrays.deepToString(ai2) + " \"ai2\" to " + ai2.getClass().getSimpleName());
         ast2 = JSON.cast(json.getArray("ai2"), ast2);
         log(Arrays.deepToString(ast2) + " \"ai2\" to " + ast2.getClass().getSimpleName());
-        ac2 = JSON.cast(json.getArray("ac2"), ac2);
-        log(Arrays.deepToString(ac2) + " \"ac2\" to " + ac2.getClass().getSimpleName());
+//        ac2 = JSON.cast(json.getArray("ac2"), ac2);
+//        log(Arrays.deepToString(ac2) + " \"ac2\" to " + ac2.getClass().getSimpleName());
         ac1 = JSON.cast(json.getArray("ac1"), ac1);
         log(Arrays.toString(ac1) + " \"ac1\" to " + ac1.getClass().getSimpleName());
         ast1 = JSON.cast(json.getArray("ac1"), ast1); // !!!null cast to "null"
@@ -122,6 +120,5 @@ public class JsonCastTest {
         log("\n\rCast to an uninitialized array:");
         ai2 = JSON.cast(json.getArray("ai2"), int[][].class);
         log(Arrays.deepToString(ai2) + " " + ai2.getClass().getSimpleName());
-
     }
 }

@@ -12,6 +12,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import org.miktim.json.JSON;
 import org.miktim.json.Json;
 
@@ -27,14 +28,28 @@ public class JsonTest {
             path = args[0];
         }
 
-        log("\n\rJSON class test");
-//      log(JSON.toJSON(null));
+        log("\n\rJson class test");
+        log(JSON.toJSON(null));
+//log(Boolean[].class.getName());
+//log(Byte[].class.getName());
+//log(JSON.isBasicArrayType(new int[0]));
+int[] ai = new int[0];
+log(((Object) ai).getClass().getName());
+log(((Object) ai).getClass().getCanonicalName());
+Number[] aI = new Number[0];
+log(((Object) aI).getClass().getName());
+log(((Object) aI).getClass().getCanonicalName());
+LinkedHashMap<Integer,String> hm = new LinkedHashMap<Integer,String>();
+log(hm.getClass().getName());
+log(hm.getClass().getCanonicalName());
+log(hm.getClass().getSimpleName());
+log(hm.getClass());
 
         log("\n\rTest escape/unescape string:");
         String unescaped = new String(new char[]{0x8, 0x9, 0xA, 0xC, 0xD, 0x22, 0x2F, 0x5C, 0, '-', 0x1F, 0xd834, 0xdd1e});
-        String escaped = JSON.escapeString(unescaped);
+        String escaped = JSON.toJSON(unescaped);
         log(escaped);
-        log(unescaped.equals(JSON.unescapeString(escaped)) ? "OK" : "FAIL");
+        log(unescaped.equals(JSON.fromJSON(escaped)) ? "OK" : "FAIL");
 
         log("\n\rTest parse/generate literals:");
         String fmt = "%s -> %s";
@@ -82,8 +97,8 @@ public class JsonTest {
 //        log(json.getString("Two"));
         log(json.toJSON("Two"));
         log(json.getString("3"));
-        log(Arrays.toString(json.getJSON("Nested Json").getArray("array", 1)));
-        log(json.getJSON("Nested Json").getNumber("array", 1, 1).intValue());
+        log(Arrays.toString(json.getJson("Nested Json").getArray("array", 1)));
+        log(json.getJson("Nested Json").getNumber("array", 1, 1).intValue());
 
         log("\n\rTest JSON typecast.");
         json = (new Json())
@@ -97,9 +112,9 @@ public class JsonTest {
                 .set("long", 3141592653589793238L)
                 .set("int", 314159265)
                 .set("byte", (byte) 31)
-                .set("char", 'c')
-                .set("BigDecimal", new BigDecimal("3.141592653589793238462643383279"))
-                .set("Object", new Object());
+//                .set("char", 'c')
+                .set("BigDecimal", new BigDecimal("3.141592653589793238462643383279")
+                );
         log("\n\rList members: " + JSON.toJSON(json.listNames()));
         log("\n\rJSON object BEFORE normalization:");
         log(json);
@@ -146,7 +161,7 @@ public class JsonTest {
         log(json.get("array", 1, 3).getClass().getSimpleName());
         i = json.getNumber("array", 1, 3).intValue();
         log(i);
-//        log(JSON.toJSON(json.castMember(int[][].class,"array")));
+        log(JSON.toJSON(json.castMember(int[][].class,"array")));
 
         log("\n\rTest generator with other Java objects:");
         log("  1. HashMap with int[3], Date, String and File entries:");
@@ -191,8 +206,8 @@ public class JsonTest {
                 + "      } ";
         json = new Json(example1);
         log(json.get("Image"));
-        log(json.getJSON("Image").set("Thumbnail", 256)); // replace JSON object with number
-        log(json.getJSON("Image").remove("Thumbnail")); // remove member
+        log(json.getJson("Image").set("Thumbnail", 256)); // replace JSON object with number
+        log(json.getJson("Image").remove("Thumbnail")); // remove member
 
         log("\n\rTest example 2:");
         String example2 = "[\n"
@@ -223,7 +238,7 @@ public class JsonTest {
 
 // Example from https://docs.oracle.com/en/database/oracle/oracle-database/12.2/adjsn/json-data.html#GUID-FBC22D72-AA64-4B0A-92A2-837B32902E2C        
         log("\n\rTest example 3:");
-        try (FileInputStream in = new FileInputStream(new File(path, "json.json"))) {
+        try (FileInputStream in = new FileInputStream(new File(path, "Example3.json"))) {
             json = new Json(in);
         }
         log(json);
@@ -265,11 +280,13 @@ public class JsonTest {
 
         log("\n\rAverage time(ms) of example 3 parsing/generation:");
         jsonText = new String(Files.readAllBytes(
-                FileSystems.getDefault().getPath(path, "json.json")));
+                FileSystems.getDefault().getPath(path, "Example3.json")));
         
         start = System.currentTimeMillis();
+        obj = null;
+//        String s;
         for (i = 0; i < 100; i++) {
-            obj = JSON.fromJSON(s);
+            obj = JSON.fromJSON(jsonText);
         }
         log("Parsing: " + ((float)(System.currentTimeMillis() - start))/100);
 

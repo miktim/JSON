@@ -8,7 +8,7 @@ if [ ! -d ${cpath} ]
   else rm -f ${cpath}/*.*
 fi
 #javac -Xstdout ./compile.log -Xlint:unchecked -cp .${cpath} -d ./ \
-javac -Xstdout ./compile.log -Xlint:unchecked -cp .${cpath} -d ./ \
+javac -Xstdout ./compile.log -Xlint:unchecked -Xlint:deprecated -cp .${cpath} -d ./ \
   ../../src${cpath}*.java
 if [ $? -eq 0 ] ; then
   jar cvf ./${jname}.jar .${cpath}*.class

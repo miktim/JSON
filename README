@@ -1,4 +1,4 @@
-# Java 7+/Android JSON parser/generator, MIT (c) 2020-2024 miktim@mail.ru
+Java 7+/Android JSON parser/generator v3.0.0-alpha, MIT (c) 2020-2024 miktim@mail.ru
 
 Release notes:
   - Java SE 7+/Android RFC 8259 compliant package
@@ -9,21 +9,24 @@ package org.miktim.json
 
 Overview:
 
+  "JSON" means text in JSON format. JSON text exchanged between systems
+     MUST be encoded using UTF-8 (default charset).
+  "Json" means the Java representation of a JSON object
+
   Class JSON.
 
-    Contains static parse/generate JSON text functions.
-    - parser converts JSON text to Java objects:
-      Json object, String, Number (Double or Long), Boolean, null, Object[] array of listed types;
-    - Json object members (name/value pairs) are stored in order of appearance/creation;
-    - when the names within an object are not unique, parser stores the last value only;
-    - in addition to listed types, the generator converts Java Lists, Sets to JSON arrays, Java Maps to JSON objects.
-      The null key is converted to a "null" member name.
-      Other Java objects are converted to string representation;
+    The class contains static functions for parsing/generating text in JSON format.
+      - JSON parser converts JSON text to Java objects:
+        Json object, String, Number, Boolean, null, Object[] array of listed types;
+      - when the names within an object are not unique, parser stores the last value only;
+      - in addition to listed types, the generator converts Java Collections to JSON arrays
+        and Java Maps to Json objects. The null key is converted to a "null" member name.
+        Other Java objects are converted to string representation.
 
       static Object fromJSON(String jsonText)
         throws IOException, ParseException;
         // parse JSON text
-      public static Object fromJSON(InputStream in, String charsetName) 
+      static Object fromJSON(InputStream in, String charsetName) 
         throws IOException, ParseException;
 
       static String toJSON(Object obj) throws IOException;
@@ -33,32 +36,27 @@ Overview:
       static <T>T toJSON(T obj, OutputStream out, int space, String charsetName)
         throws IOException;
 
-      static String escapeString(String s);
-      static String unescapeString(String s) throws ParseException;
-        // returns escaped/unescaped string (RFC 8259 7.)
-      static Number toNumber(String number) throws NumberFormatException;
-        // returns Double or Long
-
-      Converting a JSON-supported objects to a Java primitive or an array of Java primitives.
-      - sample must be initialized;
-      - casting numbers may involve rounding or truncation;
-      - casting null to a Java primitive returns corresponding initial value;
-      - casting null to an array returns an empty array;
-      - casting null to String returns "null";
-      - casting null to other Java objects returns null;
-      - casting to null returns null.
+    Methods for converting objects supported by JSON to a Java primitive or an array of Java primitives.
 
       static <T> T cast(Object obj, T sample);
-        // cast Java object or by sample
+        // cast Java object by sample
       static <T> T cast(Object obj, Class <T> cls);
         // cast Java object by class
+        
+      Notes:  
+        - sample must be initialized;
+        - casting numbers may involve rounding or truncation;
+        - casting null to a Java primitive returns corresponding initial value;
+        - casting null to an array returns an empty array;
+        - casting null to String returns "null";
+        - casting null to other Java objects returns null;
+        - casting to null returns null.
 
   Class Json extends LinkedHashMap<String, Object>.
 
-    Java representation of a JSON object
+    This class is a Java representation of a JSON object
     - Json members:
-      Json object, String, Number (BigDecimal), Boolean, null, Object[] array of listed types;
-    - Json object members (name/value pairs) are stored in creation/appearance order;
+      Json object, String, Number, Boolean, null, Object[] array of listed types.
    
     Put, set, get notes:
     - Json object setters accept any Java object, all Java primitives and primitive arrays;
@@ -101,7 +99,7 @@ Overview:
         throws ClassCastException, IndexOutOfBoundsException;
 
       <T> T castMember(T sample, String memberName, int... indices);
-        // casting Json Member value or array element by sample
+        // casting Json member value or array element by sample
       <T> T castMember(Class <T> cls, String memberName, int... indices);
         // casting Json member value or array element by Class
         // see notes for a JSON.cast methods
@@ -119,77 +117,64 @@ Overview:
         // outStream is UTF-8 encoded single line JSON text
 
 
-  JsonObject and JsonAdapter classes unload/load visible fields of a Java object to/from a Json object or JSON text.
+  Abstract class JsonObject;
+    Java objects extender. Unload/load fields of a Java object to/from a Json object.
+    - visibility of object fields as from the object constructor, except for private fields
     - Java transient fields are ignored;
     - Java final fields are unloaded, but not initialized at load;
-    - the accessible fields of the object MUST(?) be initialized;
-    - see Json set/get/cast rules for Java object fields in the notes for Json object and JsonAdapter;
+    - the accessible fields of the object MUST be initialized;
+    - see Json set/get/cast rules for Java object fields in the notes for Json object;
     - arrays of custom objects and collections MUST be managed using replacer/reviewer.
-  
-  abstract class ObjectConverter;  
-
+ 
     Constants:
       protected static final transient Object IGNORED; 
          // returns from replacer/reviver to skip the field
 
     Methods:
+      Json toJson()
+        throws IllegalArgumentException, IllegalAccessException;
+         // returns Json object from this object
+
+      <T>T fromJson(Json jsonObj)
+        throws IllegalArgumentException, IllegalAccessException;
+         // load Json to this object
+
+      Json toJson(Object targetObj)   
+        throws IllegalArgumentException, IllegalAccessException;
+         // returns Json object from target object
+
+      <T> T fromJson(T targetObj, Json json) 
+        throws IllegalArgumentException, IllegalAccessException;
+         // load Json to target object
+
       protected Object replacer(String name, Object value);
-         - applies on unloading; 
-         - name is object field name, value is object field value;
-         - first call with the target object class name and the target object as the value;
-         - returns Json-supported object or IGNORED
+        - applies on unloading; 
+        - name is object field class and name delimitet with dot (.), value is object field value;
+        - first call with the target object class name and the target object as the value;
+        - returns Json-supported object or IGNORED
 
       protected Object reviver(String name, Object value);
-         - applies on loading;
-         - name is object field name, value is Json-supported object
-         - first call with the target object class name and Json object as value
-         - returns a value that is compatible with the object field or IGNORED
+        - applies on loading;
+        - name is object field class and name delimitet with dot (.), value is Json-supported object
+        - first call with the target object class name and Json object as value
+        - returns a value that is compatible with the object field or IGNORED
+
+      protected void onError(String name, Exception e);
+        default action: print error message to System.err
+
+      protected <T> T getTarget();
+        // get target object. Accessible from replacer/reviver
 
       static boolean isClassName(String name);
       protected <T> T castMember(String memberName, Json jsonObj, T sample);
-         // returns the sample if Json member does not exists or is null
+        // returns the sample if Json member does not exists or is null
 
-      protected final void setIgnored(String[] fldNames); 
-         // set ignored field names
-      protected final void addIgnored(String[] fldNames); 
-         // add ignored field names
-      protected final String[] getIgnored()
-      protected final boolean isIgnored(String fldName);
 
-  abstract class JsonObject extends ObjectConverter;
-    Java new object extender.
+  class JsonConverter extends JsonObject;
+    
+    Constructor:
+      JsonConverter();
 
-    Methods:
-      String toJSON()
-        throws IllegalArgumentException, IllegalAccessException
-         // returns JSON text as one line
-      Object toJson()
-        throws IllegalArgumentException, IllegalAccessException;
-         // returns Json object
-
-      Object fromJSON(String jsonText)
-        throws IOException, ParseException, IllegalArgumentException, IllegalAccessException 
-         // returns this object
-      Object fromJson(Json jsonObj)
-        throws IllegalArgumentException, IllegalAccessException;
-         // returns this object
-  
-  class JsonAdapter extends ObjectConverter;
-    Java objects to/from Json converter
-
-    Fields:
-      static JsonAdapter defaultAdapter;
-
-    Methods:
-      <T>T fromJSON(T object, String jsonText)
-        throws IOException, ParseException, IllegalArgumentException, IllegalAccessException 
-         // returns object loaded from JSON text 
-      <T>T fromJson(T object, Json json)
-        throws IllegalArgumentException, IllegalAccessException;
-         // returns object loaded from Json object
-
-      Json toJson(Object Object)
-         // unload object to Json
  
 Usage see:  
   ./test/json/JsonTest.java  

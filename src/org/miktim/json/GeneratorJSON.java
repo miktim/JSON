@@ -2,14 +2,13 @@
  * JSON generator, MIT (c) 2020-2024 miktim@mail.ru
  *
  * Release notes:
- * - parser converts JSON text to Java objects:
- *   Json object, String, Number (Double or Long), Boolean, null, Object[] array of listed types;
- * - in addition to listed types, the generator converts:
- *     Java Collections to JSON arrays;
- *     Java Maps to Json objects. The null key is converted to a "null" member name;
- *     Other Java objects are converted to string representation.
+ * - generator converts to JSON Java objects:
+ *   Json object, String, Number, Boolean, null, Object[] array of listed types;
+ * - Java primitives and arrays of primitives;
+ * - in addition, the generator converts Java Collections to JSON arrays
+ *   and Java Maps to Json objects. The null key is converted to a "null" member name.
+ *   Other Java objects are converted to string representation.
  */
-
 package org.miktim.json;
 
 import java.io.IOException;
@@ -17,18 +16,18 @@ import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Array;
 import java.util.Arrays;
+import static java.util.Arrays.binarySearch;
 import java.util.Collection;
 import java.util.Map;
-import static org.miktim.json.JSON.escapeString;
 
-class JSONgenerator {
+class GeneratorJSON {
 
     int intend = 0;
     String charsetName = "UTF-8";
     OutputStream stream;
     byte[] newLine = "\n".getBytes();
 
-    JSONgenerator(OutputStream outStream, int space, String charsetName) {
+    GeneratorJSON(OutputStream outStream, int space, String charsetName) {
         intend = space;
         this.charsetName = charsetName;
         stream = outStream;
@@ -54,7 +53,8 @@ class JSONgenerator {
     @SuppressWarnings("unchecked")
     void generateObject(Object value, int level) throws IOException {
         level++;
-        if (value == null || value instanceof Number || value instanceof Boolean) {
+        if (value == null || value instanceof Number
+                || value instanceof Boolean) {
             write(value);
             return;
         } else if (value instanceof String) {
@@ -71,7 +71,7 @@ class JSONgenerator {
             write("", level - 1);
             write("]");
             return;
-        } else if (value instanceof Map) {
+        } else if (value instanceof Map) { //Json) {
             write("{");
             String separator = "";
             for (Map.Entry<Object, Object> entry : ((Map<Object, Object>) value).entrySet()) {
@@ -89,6 +89,32 @@ class JSONgenerator {
             generateObject(((Collection) value).toArray(), level);
             return;
         }
+//        throw new RuntimeException("Unsupported type: " + value.getClass().getName());
         generateObject(String.valueOf(value), level);
     }
+
+    private static final int[] UNESCAPED_CHARS = {0x8, 0x9, 0xA, 0xC, 0xD, 0x22, 0x5C}; // {0x8, 0x9, 0xA, 0xC, 0xD, 0x22, 0x2F, 0x5C}
+    private static final String[] CHARS_ESCAPED = {"\\b", "\\t", "\\n", "\\f", "\\r", "\\\"", "\\\\"}; // {"\\b", "\\t", "\\n", "\\f", "\\r", "\\\"", "\\/", "\\\\"}
+
+    static String escapeString(String s) {
+        StringBuilder sb = new StringBuilder(64);
+        for (int i = 0; i < s.length(); i++) {
+            int c = s.codePointAt(i);
+            int ei = binarySearch(UNESCAPED_CHARS, c);
+            if (ei >= 0) {
+                sb.append(CHARS_ESCAPED[ei]);
+            } else if (c < 0x20) {
+                sb.append(String.format("\\u%04X", c));
+            } else if (c > 0xFFFF) {
+                c -= 0x10000;
+                sb.append(String.format("\\u%04X\\u%04X",
+                        (c >>> 10) + 0xD800, (c & 0x3FF) + 0xDC00)); // surrogates
+                i++;
+            } else {
+                sb.append((char) c);
+            }
+        }
+        return sb.toString();
+    }
+
 }

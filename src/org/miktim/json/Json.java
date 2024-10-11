@@ -1,14 +1,13 @@
 /**
  * Json class, MIT (c) 2020-2024 miktim@mail.ru
  * Java representation of a JSON object.
- * 
+ *
  * Release notes:
  * - Java 7+, Android compatible;
  * - Json members:
  *   Json object, String, Number (Double or Long), Boolean, null, Object[] array of listed types;
- * - Json object members (name/value pairs) are stored in creation/appearance order;
- * - Json object setter accepts any Java object, all Java primitives and primitive arrays;
- * - avoid recursion!;
+ * - Json object setter accept  all Java primitives and primitive arrays;
+ * - avoid recursion!.
  *
  * Created: 2020-03-07
  */
@@ -20,9 +19,10 @@ import java.io.OutputStream;
 import java.util.LinkedHashMap;
 import java.lang.reflect.Array;
 import java.text.ParseException;
+// TODO HashMap: The order of the JSON members does not matter
 
 public class Json extends LinkedHashMap<String, Object> {
-    
+
     public Json(InputStream inStream) throws IOException, ParseException {
         super();
         this.putAll((Json) JSON.fromJSON(inStream, "UTF-8"));
@@ -37,7 +37,7 @@ public class Json extends LinkedHashMap<String, Object> {
     public Json(Object... members) throws IndexOutOfBoundsException {
         super();
         for (int i = 0; i < members.length;) {
-            this.put(String.valueOf(members[i++]), members[i++]);
+            this.set(members[i++], members[i++]);
         }
     }
 
@@ -52,7 +52,7 @@ public class Json extends LinkedHashMap<String, Object> {
     public String toJSON(String memberName, int... indices) throws IOException {
         return JSON.toJSON(this.get(memberName, indices));
     }
-    
+
     public Json toJSON(OutputStream outStream) throws IOException {
         return JSON.toJSON(this, outStream, 0, "UTF-8");
     }
@@ -74,11 +74,21 @@ public class Json extends LinkedHashMap<String, Object> {
     public boolean exists(String memberName) {
         return this.containsKey(memberName);
     }
-    
-//    @Override
-//    public Object put(String key, Object value) {
-//        return super.put(key == null ? "null" : key, value);
-//    }
+
+    @SuppressWarnings("unchecked")
+// for parser, no checking values
+    <T> T superPut(String key, T value) {
+        return (T) super.put(key, value);
+    }
+
+    @Override
+    public Object put(String key, Object value) {
+ //       if (!JSON.isMemberType(value)) {
+ //           throw new IllegalArgumentException(
+ //                   "Unsupported type: " + value.getClass().getName());
+ //       }
+        return super.put(key == null ? "null" : key, value);
+    }
 
     public Json set(Object memberName, Object value) {
         put(String.valueOf(memberName), value);
@@ -94,7 +104,7 @@ public class Json extends LinkedHashMap<String, Object> {
         return obj;
     }
 
-    public Json getJSON(String memberName, int... indices) {
+    public Json getJson(String memberName, int... indices) {
         return (Json) get(memberName, indices);
     }
 
