@@ -98,7 +98,7 @@ log(hm.getClass());
         log(json.toJSON("Two"));
         log(json.getString("3"));
         log(Arrays.toString(json.getJson("Nested Json").getArray("array", 1)));
-        log(json.getJson("Nested Json").getNumber("array", 1, 1).intValue());
+        log(json.getJson("Nested Json").getNumber("array", 1, 1));
 
         log("\n\rTest JSON typecast.");
         json = (new Json())

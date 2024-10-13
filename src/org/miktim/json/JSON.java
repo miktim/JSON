@@ -50,7 +50,7 @@ public abstract class JSON {
 */
     public static <T> T toJSON(T obj, OutputStream out, int space, String charsetName)
             throws IOException {
-        GeneratorJSON generator = new GeneratorJSON(out, space, charsetName);
+        JSONGenerator generator = new JSONGenerator(out, space, charsetName);
         generator.generateObject(obj, 0);
         return obj;
     }
@@ -72,7 +72,7 @@ public abstract class JSON {
 
     public static Object fromJSON(InputStream in, String charsetName)
             throws IOException, ParseException {
-        ParserJSON parser = new ParserJSON(in, charsetName);
+        JSONParser parser = new JSONParser(in, charsetName);
         return parser.parseObject();
     }
 

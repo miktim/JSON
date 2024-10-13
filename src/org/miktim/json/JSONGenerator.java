@@ -1,13 +1,12 @@
 /**
  * JSON generator, MIT (c) 2020-2024 miktim@mail.ru
  *
- * Release notes:
- * - generator converts to JSON Java objects:
- *   Json object, String, Number, Boolean, null, Object[] array of listed types;
+ * Generator converts to JSON Java objects:
+ * - Json object, String, Number, Boolean, null, Object[] array of listed types;
  * - Java primitives and arrays of primitives;
- * - in addition, the generator converts Java Collections to JSON arrays
- *   and Java Maps to Json objects. The null key is converted to a "null" member name.
- *   Other Java objects are converted to string representation.
+ * - Java Collections to JSON arrays and Java Maps to Json objects.
+ *   The null key is converted to a "null" member name;
+ * - Other Java objects are converted to string representation.
  */
 package org.miktim.json;
 
@@ -20,14 +19,14 @@ import static java.util.Arrays.binarySearch;
 import java.util.Collection;
 import java.util.Map;
 
-class GeneratorJSON {
+class JSONGenerator {
 
     int intend = 0;
     String charsetName = "UTF-8";
     OutputStream stream;
     byte[] newLine = "\n".getBytes();
 
-    GeneratorJSON(OutputStream outStream, int space, String charsetName) {
+    JSONGenerator(OutputStream outStream, int space, String charsetName) {
         intend = space;
         this.charsetName = charsetName;
         stream = outStream;

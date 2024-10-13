@@ -1,10 +1,8 @@
 /**
- * JSON parser, MIT (c) 2020 -2024 miktim@mail.ru
+ * JSON parser, MIT (c) 2020-2024 miktim@mail.ru
  *
- * Release notes:
- * - parser converts JSON text to Java objects:
- *   Json object, String, Number (Double or Long), Boolean, null, Object[] array of listed types;
- * - JSON object members (name/value pairs) are stored in creation/appearance order;
+ * - Parser converts JSON text to Java objects:
+ *   Json object, String, Number, Boolean, null, Object[] array of listed types;
  * - when the names within an object are not unique, parser stores the last value only;
  */
 package org.miktim.json;
@@ -20,12 +18,12 @@ import java.util.Arrays;
 import static java.util.Arrays.binarySearch;
 import java.util.List;
 
-class ParserJSON {
+class JSONParser {
 
     String charsetName;
     InputStream stream;
 
-    ParserJSON(InputStream inStream, String charsetName) throws UnsupportedEncodingException {
+    JSONParser(InputStream inStream, String charsetName) throws UnsupportedEncodingException {
         this.charsetName = charsetName;
         stream = inStream;
         reader = new InputStreamReader(inStream, charsetName);

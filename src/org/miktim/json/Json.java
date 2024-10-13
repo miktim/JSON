@@ -6,7 +6,7 @@
  * - Java 7+, Android compatible;
  * - Json members:
  *   Json object, String, Number (Double or Long), Boolean, null, Object[] array of listed types;
- * - Json object setter accept  all Java primitives and primitive arrays;
+ * - Json setters accept any Java objects, all Java primitives and primitive arrays;
  * - avoid recursion!.
  *
  * Created: 2020-03-07
@@ -61,8 +61,8 @@ public class Json extends LinkedHashMap<String, Object> {
     public String toString() {
         try {
             return JSON.toJSON(this);
-        } catch (IOException ex) {
-            ex.printStackTrace();
+        } catch (IOException ie) {
+            ie.printStackTrace();
             return null;
         }
     }
