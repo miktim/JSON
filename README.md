@@ -1,5 +1,4 @@
 ### Java 7+/Android JSON parser/generator, MIT (c) 2020-2024 miktim@mail.ru
-<link rel="stylesheet" href="readme.css">  
 
 **Release notes:**  
 \- Java SE 7+/Android RFC 8259 compliant package  
@@ -19,8 +18,8 @@ The class contains static methods for parsing/generating text in JSON format.
 \- in addition to listed types, the generator converts Java Lists to JSON arrays and Java Maps to JSON objects. The null key is converted to a "null" member name.
 Other Java objects are converted to string representation.
   
-<p style="background-color: LightGray;">
-&emsp;Methods:
+<p style="background-color: #B0C4DE;">
+&emsp;<b>Methods:</b>
 </p>  
 
 **static Object fromJSON(String jsonText) throws IOException, ParseException**  
@@ -51,12 +50,11 @@ Methods for converting objects supported by JSON to a Java primitive or an array
 **static &lt;T\> T cast(Object obj, T sample) throws ClassCastException**  
 Cast Java object by sample  
 
-**static &lt;T\> T cast(Object obj, Class <T> cls) throws ClassCastException**  
+**static &lt;T\> T cast(Object obj, Class &lt;T\> cls) throws ClassCastException**  
 Cast Java object by class  
 
 
-### Class Json extends HashMap &lt;String, Object\>.
-
+### Class Json extends HashMap &lt;String, Object\>
 This class is a Java representation of a JSON object.
 Json member types:  
 Json object, String, Number, Boolean, null, Object[ ] array of listed types.
@@ -72,8 +70,8 @@ Put, set, get notes:
 Double, Object[ ]{Object[ ]{Long,...}, Object[ ]{Long,...}}, Object[ ] {String,...};  
 \- getters return null if the member does not exist.
 
-<p style="background-color: LightGray;">
-&emsp;Constructors:
+<p style="background-color: #B0C4DE;">
+&emsp;<b>Constructors:</b>
 </p>  
 
 **Json(Object... members) throws IndexOutOfBoundsException**  
@@ -85,8 +83,8 @@ Create Json object from String
 **Json(InputStream inStream) throws IOException, ParseException**  
 Create Json object from UTF-8 encoded stream.
 
-<p style="background-color: LightGray;">
-&emsp;Methods:
+<p style="background-color: #B0C4DE;">
+&emsp;<b>Methods:</b>
 </p>  
 
 **String[ ] listNames()**  
@@ -111,23 +109,28 @@ inherited
 Returns null, value or array element  
 
 **Json getJson(String memberName, int... indices) throws ClassCastException, IndexOutOfBoundsException**  
+Cast member or array element to Json object  
   
 **String getString(String memberName, int... indices)     throws ClassCastException, IndexOutOfBoundsException**
-  
+Cast member or array element to String  
+
 **Number getNumber(String memberName, int... indices)         throws ClassCastException, IndexOutOfBoundsException**  
+Cast member or array element to Number
   
 **Boolean getBoolean(String memberName, int... indices)        throws ClassCastException, IndexOutOfBoundsException**  
-  
+Cast member or array element to Boolean  
+
 **Object[ ] getArray(String memberName, int... indices)        throws ClassCastException, IndexOutOfBoundsException**  
+Cast member or array element to Object array  
 
 **&lt;T\> T castMember(T sample, String memberName, int... indices) throws ClassCastException, IndexOutOfBoundsException**  
-Casting Json member value or array element by sample  
+Casting Json member value or array element by sample. See notes for a JSON.cast methods    
 
-**&lt;T\> T castMember(Class <T> cls, String memberName, int... indices) throws ClassCastException, IndexOutOfBoundsException**  
-Casting Json member value or array element by Class.  see notes for a JSON.cast methods  
+**&lt;T\> T castMember(Class &lt;T\> cls, String memberName, int... indices) throws ClassCastException, IndexOutOfBoundsException**  
+Casting Json member value or array element by Class. See notes for a JSON.cast methods  
 
 **Json normalize() throws IOException, ParseException**  
-not required to generate JSON text  
+Returns normalized Json object  
 
 **String toString()**  
 overridden. Returns JSON text as single line  
@@ -141,9 +144,10 @@ Stringify member value or array element as single line
 **Json toJSON(OutputStream outStream) throws IOException**  
 OutStream is UTF-8 encoded single line JSON text. Returns this     
   
+  
 ### Abstract Class JsonObject
 Java object extender. Unload/load fields of a Java object to/from a Json object.  
-\- visibility of object fields as from the object constructor, except for private fields  
+\- visibility of object fields as from the object constructor;  
 \- Java transient fields are ignored;  
 \- Java final fields are unloaded, but not initialized at load;  
 \- the accessible fields of the object MUST be initialized;  
@@ -151,15 +155,15 @@ Java object extender. Unload/load fields of a Java object to/from a Json object.
 \- arrays of custom objects and collections MUST be managed using replacer/reviewer;  
 \- it is recommended to create a default constructor  
   
-<p style="background-color: LightGray;">
-&emsp;Constants:
+<p style="background-color: #B0C4DE;">
+&emsp;<b>Constants:</b>
 </p>  
   
 **protected static final transient Object IGNORED**  
 Returned from the replacer/reviver methods to skip the field  
 
-<p style="background-color: LightGray;">
-&emsp;Methods:
+<p style="background-color: #B0C4DE;">
+&emsp;<b>Methods:</b>
 </p>  
 
 **Json toJson() throws IllegalArgumentException, IllegalAccessException;**  
@@ -182,16 +186,13 @@ Applies on unloading:
 
 **protected Object reviver(String name, Object value);**  
 Applies on loading:  
-\- name is object field class and name delimited with dot (.), value is Json-supported object  
-\- first call with the target object class name and Json object as value  
+\- name is object field class and name delimited with dot (.), value is Json-supported object;  
+\- first call with the target object class name and the Json object as value;  
 \- returns a value that is compatible with the object field or IGNORED  
 
 **protected &lt;T> T getTarget( );**  
 Get target object. Accessible from replacer/reviver
 
-<!--**protected void onError(String name, Exception e);**  
-Default action: print exception message to System.err  
--->
 **String toString( );**  
 Overridden. Generate JSON text as a single line
 
