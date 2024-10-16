@@ -1,14 +1,14 @@
 ### Java 7+/Android JSON parser/generator, MIT (c) 2020-2024 miktim@mail.ru
 <link rel="stylesheet" href="readme.css">  
 
-Release notes:  
+**Release notes:**  
 \- Java SE 7+/Android RFC 8259 compliant package  
     (see: https://datatracker.ietf.org/doc/rfc8259/?include_text=1 );  
 \- no external dependencies;  
 \-  "JSON" means text in JSON format. JSON text exchanged between systems MUST be encoded using UTF-8 (default charset);  
 \-  "Json" means the Java representation of a JSON object.
   
-#### package org.miktim.json;
+**package org.miktim.json;**
 
 
 ### Class JSON.
@@ -19,8 +19,9 @@ The class contains static methods for parsing/generating text in JSON format.
 \- in addition to listed types, the generator converts Java Lists to JSON arrays and Java Maps to JSON objects. The null key is converted to a "null" member name.
 Other Java objects are converted to string representation.
   
-| Methods: |
-| -------- |
+<p style="background-color: LightGray;">
+&emsp;Methods:
+</p>  
 
 **static Object fromJSON(String jsonText) throws IOException, ParseException**  
 Parse JSON text  
@@ -34,7 +35,7 @@ Generate JSON text as single line
 **static String toJSON(Object obj, int space) throws IOException**  
 Generate the text in JSON format with the specified number of spaces in the indentation  
 
-**static \<T\>T toJSON(T obj, OutputStream out, int space, String charsetName) throws IOException**  
+**static &lt;T\>T toJSON(T obj, OutputStream out, int space, String charsetName) throws IOException**  
 Generate the text in JSON format into a stream with the specified indentation and encoding  
   
 Methods for converting objects supported by JSON to a Java primitive or an array of Java primitives.  
@@ -47,14 +48,14 @@ Methods for converting objects supported by JSON to a Java primitive or an array
 \- casting to null returns null.  
   
 
-**static \<T\> T cast(Object obj, T sample) throws ClassCastException**  
+**static &lt;T\> T cast(Object obj, T sample) throws ClassCastException**  
 Cast Java object by sample  
 
-**static \<T\> T cast(Object obj, Class <T> cls) throws ClassCastException**  
+**static &lt;T\> T cast(Object obj, Class <T> cls) throws ClassCastException**  
 Cast Java object by class  
 
 
-### Class Json extends HashMap <String, Object>.
+### Class Json extends HashMap &lt;String, Object\>.
 
 This class is a Java representation of a JSON object.
 Json member types:  
@@ -71,8 +72,9 @@ Put, set, get notes:
 Double, Object[ ]{Object[ ]{Long,...}, Object[ ]{Long,...}}, Object[ ] {String,...};  
 \- getters return null if the member does not exist.
 
-| Constructors: |
-| -------- |
+<p style="background-color: LightGray;">
+&emsp;Constructors:
+</p>  
 
 **Json(Object... members) throws IndexOutOfBoundsException**  
 Members is a name,value pairs  
@@ -83,8 +85,9 @@ Create Json object from String
 **Json(InputStream inStream) throws IOException, ParseException**  
 Create Json object from UTF-8 encoded stream.
 
-| Methods: |
-| -------- |
+<p style="background-color: LightGray;">
+&emsp;Methods:
+</p>  
 
 **String[ ] listNames()**  
 Returns list of member names 
@@ -117,10 +120,10 @@ Returns null, value or array element
   
 **Object[ ] getArray(String memberName, int... indices)        throws ClassCastException, IndexOutOfBoundsException**  
 
-**\<T\> T castMember(T sample, String memberName, int... indices) throws ClassCastException, IndexOutOfBoundsException**  
+**&lt;T\> T castMember(T sample, String memberName, int... indices) throws ClassCastException, IndexOutOfBoundsException**  
 Casting Json member value or array element by sample  
 
-**\<T\> T castMember(Class <T> cls, String memberName, int... indices) throws ClassCastException, IndexOutOfBoundsException**  
+**&lt;T\> T castMember(Class <T> cls, String memberName, int... indices) throws ClassCastException, IndexOutOfBoundsException**  
 Casting Json member value or array element by Class.  see notes for a JSON.cast methods  
 
 **Json normalize() throws IOException, ParseException**  
@@ -148,25 +151,27 @@ Java object extender. Unload/load fields of a Java object to/from a Json object.
 \- arrays of custom objects and collections MUST be managed using replacer/reviewer;  
 \- it is recommended to create a default constructor  
   
-| Constants: |
-| ---------- |
-
+<p style="background-color: LightGray;">
+&emsp;Constants:
+</p>  
+  
 **protected static final transient Object IGNORED**  
 Returned from the replacer/reviver methods to skip the field  
-  
-| Methods: |
-| -------- |
+
+<p style="background-color: LightGray;">
+&emsp;Methods:
+</p>  
 
 **Json toJson() throws IllegalArgumentException, IllegalAccessException;**  
 Returns a Json object from this object  
 
-**\<T\>T fromJson(Json jsonObj) throws IllegalArgumentException, IllegalAccessException;**  
+**&lt;T\> T fromJson(Json jsonObj) throws IllegalArgumentException, IllegalAccessException;**  
 Loads Json to this object. Returns this object.  
 
 **Json toJson(Object targetObj) throws IllegalArgumentException, IllegalAccessException;**  
 Returns a Json object from the target object  
 
-**\<T\> T fromJson(T targetObj, Json json) throws IllegalArgumentException, IllegalAccessException;**  
+**&lt;T\> T fromJson(T targetObj, Json json) throws IllegalArgumentException, IllegalAccessException;**  
  Loads Json to target object. Returns target object.  
  
 **protected Object replacer(String name, Object value);**  
@@ -181,7 +186,7 @@ Applies on loading:
 \- first call with the target object class name and Json object as value  
 \- returns a value that is compatible with the object field or IGNORED  
 
-**protected <T> T getTarget( );**  
+**protected &lt;T> T getTarget( );**  
 Get target object. Accessible from replacer/reviver
 
 <!--**protected void onError(String name, Exception e);**  
@@ -192,11 +197,11 @@ Overridden. Generate JSON text as a single line
 
 **static boolean isClassName(String name);**  
 
-**protected \<T\> T castMember(String memberName, Json jsonObj, T sample);**  
+**protected &lt;T\> T castMember(String memberName, Json jsonObj, T sample);**  
 Returns the sample if Json member does not exists or is null
 
  
-Usage see:  
+**See usage here:**  
   ./test/json/JsonTest.java  
   ./test/json/JsonCastTest.java  
   ./test/json/JsonObjectTest.java  
