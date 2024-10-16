@@ -15,32 +15,37 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.LinkedHashMap;
 
-public abstract class JsonObject {// { 
+public abstract class JsonObject { 
 
-    public final Json toJson() {
-//            throws IllegalArgumentException, IllegalAccessException {
+    public final Json toJson() 
+            throws IllegalArgumentException, IllegalAccessException {
         return unload(this, this);
     }
 
     @SuppressWarnings("unchecked")
-    public final <T> T fromJson(Json json) {
-//            throws IllegalArgumentException, IllegalAccessException {
+    public final <T> T fromJson(Json json) 
+            throws IllegalArgumentException, IllegalAccessException {
         return (T) load(this, this, json);
     }
 
-    public final <T> T fromJson(T target, Json json) {
-//            throws IllegalArgumentException, IllegalAccessException {
+    public final <T> T fromJson(T target, Json json) 
+            throws IllegalArgumentException, IllegalAccessException {
         return (T) load(this, target, json);
     }
 
-    public final Json toJson(Object target) {
-//            throws IllegalArgumentException, IllegalAccessException {
+    public final Json toJson(Object target) 
+            throws IllegalArgumentException, IllegalAccessException {
         return unload(this, target);
     }
 
     @Override
     public String toString() {
-        return toJson().toString();
+        try {
+            return toJson().toString();
+        } catch (IllegalArgumentException | IllegalAccessException ex) {
+            ex.printStackTrace();
+        }
+        return null;
     }
 
     protected static final transient Object IGNORED = new Object();
@@ -60,11 +65,11 @@ public abstract class JsonObject {// {
     protected Object reviver(String name, Object value) {
         return value;
     }
-
+/*
     protected void onError(String name, Exception e) {
         System.err.println(name + " " + e.getMessage());
     }
-
+*/
     @SuppressWarnings("unchecked")
     protected <T> T castMember(String memberName, Json jsonObj, T sample) {
         if (jsonObj.get(memberName) != null) {
@@ -94,8 +99,8 @@ public abstract class JsonObject {// {
                 || c.isArray() && c.getComponentType().isPrimitive();
     }
      */
-    Json unload(JsonObject thisObj, Object targetObj) {// returns Object
-//            throws IllegalArgumentException, IllegalAccessException {
+    Json unload(JsonObject thisObj, Object targetObj) //{// returns Object
+            throws IllegalArgumentException, IllegalAccessException {
         if (targetObj instanceof JsonObject) {
             thisObj = (JsonObject) targetObj;
         }
@@ -112,7 +117,7 @@ public abstract class JsonObject {// {
             String fieldName = field.getName();
 //                if (!thisObj.isIgnored(fieldName)) continue;
             field.setAccessible(true);
-            try {
+//            try {
                 Object value = thisObj.replacer(fieldName(field),
                         field.get(targetObj));
                 if (value == null || !value.equals(IGNORED)) {
@@ -121,10 +126,10 @@ public abstract class JsonObject {// {
                     }
                     ((Json) json).set(fieldName, value);
                 }
-            } catch (Exception ex) {
-                thisObj.onError(fieldName(field), ex);
+//            } catch (Exception ex) {
+//                thisObj.onError(fieldName(field), ex);
 //                System.err.println(e.getMessage());
-            }
+//            }
         }
 
         this.target = oldTarget; // restore target object
@@ -143,8 +148,8 @@ public abstract class JsonObject {// {
         return (T) array;
     }
      */
-    <T> T load(JsonObject thisObj, T targetObj, Object json) {
-//            throws IllegalArgumentException, IllegalAccessException {
+    <T> T load(JsonObject thisObj, T targetObj, Object json) //{
+            throws IllegalArgumentException, IllegalAccessException {
         if (targetObj instanceof JsonObject) {
             thisObj = (JsonObject) targetObj;
         }
@@ -158,7 +163,7 @@ public abstract class JsonObject {// {
 //                if (thisObj.isIgnored(fieldName) continue;
                 if (((Json) json).exists(fieldName)) {
                     field.setAccessible(true);
-                    try {
+//                    try {
                         Object newValue = thisObj.reviver(fieldName(field),
                                 ((Json) json).get(fieldName));
                         Object value = field.get(targetObj);
@@ -170,10 +175,10 @@ public abstract class JsonObject {// {
                                 field.set(targetObj, JSON.cast(newValue, value));
                             }
                         }
-                    } catch (Exception ex) {
-                        thisObj.onError(fieldName(field), ex);
+//                    } catch (Exception ex) {
+//                        thisObj.onError(fieldName(field), ex);
 //                        System.err.println(ex.getMessage());
-                    }
+//                    }
                 }
             }
         }
@@ -189,7 +194,7 @@ public abstract class JsonObject {// {
         LinkedHashMap<String, Field> accessibleFields = new LinkedHashMap<>();
         Class thisCls = thisObj.getClass();
         Package thisPkg = thisCls.getPackage();
-        int ignore = Modifier.PRIVATE | Modifier.TRANSIENT | Modifier.STRICT
+        int ignore = Modifier.TRANSIENT | Modifier.STRICT
                 | Modifier.INTERFACE | Modifier.ABSTRACT | Modifier.NATIVE;
         Class cls = targetObj.getClass();
         while (cls != null) {
@@ -199,20 +204,20 @@ public abstract class JsonObject {// {
                 if (field.isSynthetic() || field.isEnumConstant()) {
                     continue;
                 }
-// for different package public fields 
-                if (clsPkg != thisPkg && (field.getModifiers()
-                        & Modifier.PUBLIC) == 0) {
+// for different package public and protected fields 
+                if (clsPkg != thisPkg 
+                        && (field.getModifiers() & (Modifier.PUBLIC | Modifier.PROTECTED)) == 0) {
                     continue;
                 }
                 String name = field.getName();
-// skip overriden fields                
+// skip overridden fields                
                 if (!accessibleFields.containsKey(name)
                         && (field.getModifiers() & ignore) == 0) {
                     accessibleFields.put(name, field);
                 }
             }
 // for other classes exclude private fields            
-//            ignore |= Modifier.PRIVATE;
+            ignore |= Modifier.PRIVATE;
             cls = cls.getSuperclass();
         }
         return accessibleFields.values().toArray(new Field[]{});

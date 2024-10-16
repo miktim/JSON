@@ -12,7 +12,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import org.miktim.json.JSON;
 import org.miktim.json.Json;
 
@@ -30,20 +29,6 @@ public class JsonTest {
 
         log("\n\rJson class test");
         log(JSON.toJSON(null));
-//log(Boolean[].class.getName());
-//log(Byte[].class.getName());
-//log(JSON.isBasicArrayType(new int[0]));
-int[] ai = new int[0];
-log(((Object) ai).getClass().getName());
-log(((Object) ai).getClass().getCanonicalName());
-Number[] aI = new Number[0];
-log(((Object) aI).getClass().getName());
-log(((Object) aI).getClass().getCanonicalName());
-LinkedHashMap<Integer,String> hm = new LinkedHashMap<Integer,String>();
-log(hm.getClass().getName());
-log(hm.getClass().getCanonicalName());
-log(hm.getClass().getSimpleName());
-log(hm.getClass());
 
         log("\n\rTest escape/unescape string:");
         String unescaped = new String(new char[]{0x8, 0x9, 0xA, 0xC, 0xD, 0x22, 0x2F, 0x5C, 0, '-', 0x1F, 0xd834, 0xdd1e});
@@ -89,7 +74,9 @@ log(hm.getClass());
         json = new Json(jsonText);
         log(json);
         log("List members: " + JSON.toJSON(json.listNames()));
-        log("\"null\" member exists?:" + json.exists("null"));
+        log("\"null\" member exists?: " + json.exists("null"));
+        log("array[5] exists?: " + json.getJson("Nested Json").exists("array", 5));
+        log("array[1] exists?: " + json.getJson("Nested Json").exists("array", 1));
         
         log("\n\rTest member getters:");
         log(json.getNumber("One"));

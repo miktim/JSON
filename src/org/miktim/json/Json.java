@@ -16,10 +16,10 @@ package org.miktim.json;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.util.LinkedHashMap;
 import java.lang.reflect.Array;
 import java.text.ParseException;
-// TODO HashMap: The order of the JSON members does not matter
+import java.util.LinkedHashMap;
+// TODO HashMap instead of LinkedHashMap: The order of the JSON members does not matter
 
 public class Json extends LinkedHashMap<String, Object> {
 
@@ -71,8 +71,14 @@ public class Json extends LinkedHashMap<String, Object> {
         return this.keySet().toArray(new String[0]);
     }
 
-    public boolean exists(String memberName) {
-        return this.containsKey(memberName);
+    public boolean exists(String memberName, int... indices) {
+        if(!this.containsKey(memberName)) return false;
+        try {
+            get(memberName, indices);
+        } catch (IndexOutOfBoundsException e) {
+            return false;
+        }
+        return true;
     }
 
     @SuppressWarnings("unchecked")
@@ -83,10 +89,6 @@ public class Json extends LinkedHashMap<String, Object> {
 
     @Override
     public Object put(String key, Object value) {
- //       if (!JSON.isMemberType(value)) {
- //           throw new IllegalArgumentException(
- //                   "Unsupported type: " + value.getClass().getName());
- //       }
         return super.put(key == null ? "null" : key, value);
     }
 

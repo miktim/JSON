@@ -19,6 +19,59 @@ public class JsonObjectTest {
     JsonObjectTest() {
     }
 
+    static class Av extends Bv {
+
+        public String pubAv = "public Av";
+        protected String proAv = "protected Av";
+        String defAv = "default Av";
+        private String privAv = "private Av";
+        public transient boolean enableNames = true;
+        public D objD = new D();
+        public C objC = new C();
+
+        Av() {
+        }
+
+        @Override
+        protected Object replacer(String name, Object value) {
+            if(enableNames) log(name);
+            try {
+                if (name.endsWith(".objD")) {
+                    return toJson(value);
+                }
+            } catch (Exception ex) {
+                ex.printStackTrace();
+                return IGNORED;
+            }
+            return value;
+        }
+        @Override
+        protected Object reviver(String name, Object value) {
+           try {
+                if (name.endsWith(".objD")) {
+                    fromJson(this.objD, (Json)value);
+                    return IGNORED;
+                }
+           } catch (Exception ex) {
+                ex.printStackTrace();
+                return IGNORED;
+            }
+            return value;
+        }
+     }
+
+    static class Bv extends JsonObject {
+
+        public String pubBv = "public Bv";
+        protected String proBv = "protected Bv";
+        String defBv = "default Bv";
+        private String privBv = "private Bv";
+        public transient String transBv = "transient Bv";
+
+        Bv() {
+        }
+    }
+
     static class D {
 
         protected String pro_dS = "protected dS";
@@ -124,21 +177,21 @@ public class JsonObjectTest {
 
         @Override
         protected Object replacer(String name, Object value) {
-//            try {
+            try {
 //                log(name);
-            if (isClassName(name)) {
+                if (isClassName(name)) {
 //                log("Ignored: " + Arrays.toString(getIgnored()));
-            } else if (name.endsWith(".maC") && maC != null) {
+                } else if (name.endsWith(".maC") && maC != null) {
 // unload Map
-                Json aCjson = new Json();
-                for (Map.Entry<Integer, C> entry : maC.entrySet()) {
-                    aCjson.set(entry.getKey(), entry.getValue().toJson());
+                    Json aCjson = new Json();
+                    for (Map.Entry<Integer, C> entry : maC.entrySet()) {
+                        aCjson.set(entry.getKey(), entry.getValue().toJson());
+                    }
+                    return aCjson;
                 }
-                return aCjson;
+            } catch (IllegalArgumentException | IllegalAccessException | IndexOutOfBoundsException ex) {
+                ex.printStackTrace();
             }
-//            } catch (IllegalArgumentException | IndexOutOfBoundsException ex) {
-//                ex.printStackTrace();
-//            }
             return super.replacer(name, value);
         }
 
@@ -157,6 +210,7 @@ public class JsonObjectTest {
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
+                return IGNORED;
             }
             return super.reviver(name, value);
         }
@@ -165,25 +219,28 @@ public class JsonObjectTest {
     A a = new A();
     B b = new B();
     D d = new D(456, "default dS");
+    Av av = new Av();
 
     public static void main(String[] args) throws Exception {
         log("\n\rJsonObject test");
         JsonObjectTest t = new JsonObjectTest();
 
-        log("\n\r A instance toJson/fromJson:");
-        String s = t.a.toJson().toJSON();
-        log(s);
-        t.a.fromJson(new Json(s));
-        log(t.a.toJson());
+        log("\n\r Av instance toJson/fromJson:");
+        Json j = t.av.toJson();
+//        String s = t.av.toJson().toJSON();
+        log(j);
+        t.av.enableNames = false;
+        t.av.fromJson(j);
+        log(t.av.toJson());
 
         log("\n\r B instance toJson/fromJson :");
-        s = t.b.toJson().toJSON();
+        String s = t.b.toJson().toJSON();
         log(s);
         t.b.fromJson(new Json(s));
-        
+
         JsonConverter converter = new JsonConverter();
         log("\n\r D instance with default converter:");
-        Json j = converter.toJson(t.d);
+        j = converter.toJson(t.d);
         log(j);
         log(" load updated Json into new D instance");
         j.set("pro_dS", "updated dS").set("pub_di", 0);

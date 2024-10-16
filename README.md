@@ -1,4 +1,4 @@
-### Java 7+/Android JSON parser/generator, MIT (c) 2020-2024 miktim@mail.ru
+## Java 7+/Android JSON parser/generator, MIT (c) 2020-2024 @miktim
 
 **Release notes:**  
 \- Java SE 7+/Android RFC 8259 compliant package  
@@ -90,8 +90,8 @@ Create Json object from UTF-8 encoded stream.
 **String[ ] listNames()**  
 Returns list of member names 
 
-**boolean exists(String memberName)**  
-Alias of the inherited containsKey()  
+**boolean exists(String memberName, int... indices)**  
+Returns true if there is a member or an element of the member array  
 
 **Object put(String memberName, Object value);**  
 inherited  
