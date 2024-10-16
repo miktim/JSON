@@ -142,8 +142,8 @@ public class Json extends LinkedHashMap<String, Object> {
         return JSON.cast(get(memberName, indices), cls);
     }
 
-    public Json normalize() throws Exception {
-        return (Json) JSON.fromJSON(toString()); // :)
+    public Json normalize() throws IOException, ParseException {
+        return (Json) JSON.fromJSON(this.toString()); // :)
     }
 
 }

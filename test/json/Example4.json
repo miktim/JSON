@@ -1,0 +1,26 @@
+{
+  "personId": 12345,
+  "firstName": "John",
+  "lastName": "Doe",
+  "married": false,
+  "phones": {"work": "789-0123", "home": "123-4567"},
+  "friends": [
+     {
+        "personId": 67890,
+        "firstName": "James",
+        "lastName": "Bond",
+        "married": false,
+        "phones": {"work": "000-0007"},
+        "friends": []
+     },
+     {
+        "personId": 54321,
+        "firstName": "John",
+        "lastName": "Wick",
+        "married": false,
+        "phones": {"home": "123-4567"},
+        "friends": []
+     }
+  ]
+}
+

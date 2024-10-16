@@ -92,8 +92,8 @@ class JSONGenerator {
         generateObject(String.valueOf(value), level);
     }
 
-    private static final int[] UNESCAPED_CHARS = {0x8, 0x9, 0xA, 0xC, 0xD, 0x22, 0x5C}; // {0x8, 0x9, 0xA, 0xC, 0xD, 0x22, 0x2F, 0x5C}
-    private static final String[] CHARS_ESCAPED = {"\\b", "\\t", "\\n", "\\f", "\\r", "\\\"", "\\\\"}; // {"\\b", "\\t", "\\n", "\\f", "\\r", "\\\"", "\\/", "\\\\"}
+    private static final int[] UNESCAPED_CHARS = {0x8, 0x9, 0xA, 0xC, 0xD, 0x22, 0x2F, 0x5C};
+    private static final String[] CHARS_ESCAPED = {"\\b", "\\t", "\\n", "\\f", "\\r", "\\\"", "\\/", "\\\\"};
 
     static String escapeString(String s) {
         StringBuilder sb = new StringBuilder(64);

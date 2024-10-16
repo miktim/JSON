@@ -53,7 +53,19 @@ Cast Java object by sample
 **static &lt;T\> T cast(Object obj, Class &lt;T\> cls) throws ClassCastException**  
 Cast Java object by class  
 
-
+```
+int[] ints;
+ints = JSON.castTo(JSON.fromJSON("[1.2, 3.4, 5.6]", int[].class);
+// ints contains int[]{1, 3, 5}
+String s = JSON.toJSON(ints, 2);
+/* s contains
+"[
+  1,
+  3,
+  5
+]"
+*/
+```
 ### Class Json extends HashMap &lt;String, Object\>
 This class is a Java representation of a JSON object.
 Json member types:  
@@ -82,7 +94,16 @@ Create Json object from String
 
 **Json(InputStream inStream) throws IOException, ParseException**  
 Create Json object from UTF-8 encoded stream.
-
+```
+// create Json object from name, value pairs
+Json j = new Json("number", 1, "string", "qwerty", "boolean", true);
+String s = j.toJSON();
+/* s contains 
+"{\"number\": 1, \"string\": \"qwerty\", \"boolean\": true}"
+*/
+// create Json object from String
+j = new Json("{ \"number\": 1, \"string\": \"qwerty\", \"boolean\": true }"); 
+```  
 <p style="background-color: #B0C4DE;">
 &emsp;<b>Methods:</b>
 </p>  
@@ -143,6 +164,14 @@ Stringify member value or array element as single line
 
 **Json toJSON(OutputStream outStream) throws IOException**  
 OutStream is UTF-8 encoded single line JSON text. Returns this     
+```
+// another way to create a Json object
+Json j = (new Json()).set("personId", 1234).set("firstName","John")
+  .set("phones", new String[]{"123-4567","890-1234"});
+String[] phones = new String[];
+// get an array of phones
+phones = j.castMember("phones", phones);
+```
   
   
 ### Abstract Class JsonObject
@@ -199,8 +228,68 @@ Overridden. Generate JSON text as a single line
 **static boolean isClassName(String name);**  
 
 **protected &lt;T\> T castMember(String memberName, Json jsonObj, T sample);**  
-Returns the sample if Json member does not exists or is null
+Returns the sample if Json member does not exists or is null  
 
+```
+public class Person extends JsonObject {
+  int personId = 0;
+  String firstName = "";
+  String lastName = "";
+  boolean married = false;
+  HashMap<String, String> phones = new HashMap<>();
+
+// default constructor
+  public Person() {
+  }
+
+  @Override
+  protected Object replacer(String name, Object value) {
+    if(name.endsWith(".phones")) {
+// unload phones Map
+      Json json = new Json();
+      for (Map.Entry<String, String> entry : phones.entrySet()) {
+        json.set(entry.getKey(), entry.getValue());
+      }
+      return json;
+    }
+    return value;
+  }
+
+  @Override
+  protected Object reviver(String name, Object value) {
+    if (name.endsWith(".phones")) {
+// load phones Map
+      phones.clear(); // fill existing Map
+      Json json = (Json) value;
+      for (String key : json.listNames()) {
+        phones.put(key, json.getString(key));
+      }
+      return IGNORED; // phones already loaded
+    }
+    return value;
+  }
+}
+public static void main(String[] params)
+  throws IllegalArgumentException, IllegalAccessException,
+         IOException, ParseException {
+
+// create and fill Person object
+  Person person = new Person();
+  person.personId = 12345;
+  person.firstName = "John";
+  person.lastName = "Doe";
+  person.phones.put("home", "123-4567");
+  person.phones.put("work", "789-0123");
+// unload person to string
+  String s = person.toJson().toJSON();
+  System.out.println(s);
+/* console output
+{ "personId": 12345, "fistName": "John", "lastName": "Doe", "married": false, "phones": { "home": "123-4567", "work": "789-0123" }
+*/
+// load person from string
+  person = (new Person()).fromJson(new Json(s));
+}  
+```
  
 **See usage here:**  
   ./test/json/JsonTest.java  
