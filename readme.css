@@ -1,0 +1,9 @@
+td, th {
+    padding: 0px 5px;
+/*    border: 1px solid black;*/
+    text-overflow: clip;
+    font-weight: normal;
+}
+th {
+    background-color: LightGray;
+}
