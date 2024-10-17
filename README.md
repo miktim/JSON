@@ -1,16 +1,16 @@
-## Java 7+/Android JSON parser/generator, MIT (c) 2020-2024 @miktim
+### Java 7+/Android JSON parser/generator, MIT (c) 2020-2024 @miktim
 
-**Release notes:**  
+#### Release notes:  
 \- Java SE 7+/Android RFC 8259 compliant package  
-    (see: https://datatracker.ietf.org/doc/rfc8259/?include_text=1 );  
+    (see: [https://datatracker.ietf.org/doc/rfc8259/?include_text=1](https://datatracker.ietf.org/doc/rfc8259/?include_text=1) );  
 \- no external dependencies;  
 \-  "JSON" means text in JSON format. JSON text exchanged between systems MUST be encoded using UTF-8 (default charset);  
 \-  "Json" means the Java representation of a JSON object.
   
-**package org.miktim.json;**
+#### package org.miktim.json;
 
 
-### Class JSON.
+#### Class JSON.
 The class contains static methods for parsing/generating text in JSON format.  
 \- JSON parser converts JSON text to Java objects:  
   Json object, String, Number, Boolean, null, Object[ ] array of listed types;  
@@ -52,21 +52,28 @@ Cast Java object by sample
 
 **static &lt;T\> T cast(Object obj, Class &lt;T\> cls) throws ClassCastException**  
 Cast Java object by class  
+<p style="background-color: #B0C4DE;">
+&emsp;<b>Example:</b>
+</p>  
+  
 
-```
+```java
+/*
+ * Parse and cast JSON array
+ */
 int[] ints;
-ints = JSON.castTo(JSON.fromJSON("[1.2, 3.4, 5.6]", int[].class);
-// ints contains int[]{1, 3, 5}
-String s = JSON.toJSON(ints, 2);
-/* s contains
-"[
+// float numbers truncated to integers
+ints = JSON.cast(JSON.fromJSON("[1.2, 3.4, 5.6]"), int[].class);
+System.out.println(JSON.toJSON(ints, 2));
+/* console output:
+[
   1,
   3,
   5
-]"
+]
 */
 ```
-### Class Json extends HashMap &lt;String, Object\>
+#### Class Json extends HashMap &lt;String, Object\>
 This class is a Java representation of a JSON object.
 Json member types:  
 Json object, String, Number, Boolean, null, Object[ ] array of listed types.
@@ -76,10 +83,10 @@ Put, set, get notes:
 \- RFC 8259 does not recommend using Java BigDecimal and BigInteger as Json member values;  
 \- AVOID RECURSION!;  
 \- put, set methods cast Java primitives to the corresponding objects.  
-      Java objects and arrays are stored "as is" (as reference). 
-      For example: float -> Float, int[ ][ ] -> int[ ][ ], String[ ] -> String[ ]  
+      Java objects and arrays are stored "as is" (as reference). For example:  
+      float -> Float, int[ ][ ] -> int[ ][ ], String[ ] -> String[ ]  
 \- after JSON text parsing or normalization, they are stored as:  
-Double, Object[ ]{Object[ ]{Long,...}, Object[ ]{Long,...}}, Object[ ] {String,...};  
+Number, Object[ ]{Object[ ]{Number,...}, Object[ ]{Number,...}}, Object[ ] {String,...};  
 \- getters return null if the member does not exist.
 
 <p style="background-color: #B0C4DE;">
@@ -93,13 +100,19 @@ Members is a name,value pairs
 Create Json object from String  
 
 **Json(InputStream inStream) throws IOException, ParseException**  
-Create Json object from UTF-8 encoded stream.
-```
-// create Json object from name, value pairs
+Create Json object from UTF-8 encoded stream.  
+<p style="background-color: #B0C4DE;">
+&emsp;<b>Example:</b>
+</p>  
+  
+```java
+/*
+ * Create Json object from name/value pairs
+ */
 Json j = new Json("number", 1, "string", "qwerty", "boolean", true);
-String s = j.toJSON();
-/* s contains 
-"{\"number\": 1, \"string\": \"qwerty\", \"boolean\": true}"
+System.out.println(j.toJSON());
+/* console output: 
+{"number": 1, "string": "qwerty", "boolean": true}
 */
 // create Json object from String
 j = new Json("{ \"number\": 1, \"string\": \"qwerty\", \"boolean\": true }"); 
@@ -164,17 +177,25 @@ Stringify member value or array element as single line
 
 **Json toJSON(OutputStream outStream) throws IOException**  
 OutStream is UTF-8 encoded single line JSON text. Returns this     
-```
-// another way to create a Json object
+<p style="background-color: #B0C4DE;">
+&emsp;<b>Example:</b>
+</p>  
+  
+```java
+/*
+ * Another way to create a Json object and cast member
+ */
 Json j = (new Json()).set("personId", 1234).set("firstName","John")
   .set("phones", new String[]{"123-4567","890-1234"});
-String[] phones = new String[];
-// get an array of phones
-phones = j.castMember("phones", phones);
+String[] phones;
+phones = j.castMember(String[].class, "phones" );
+System.out.println(JSON.toJSON(phones));
+/* console output:
+["123-4567", "890-1234"]
+*/
 ```
   
-  
-### Abstract Class JsonObject
+#### Abstract Class JsonObject
 Java object extender. Unload/load fields of a Java object to/from a Json object.  
 \- visibility of object fields as from the object constructor;  
 \- Java transient fields are ignored;  
@@ -227,11 +248,17 @@ Overridden. Generate JSON text as a single line
 
 **static boolean isClassName(String name);**  
 
-**protected &lt;T\> T castMember(String memberName, Json jsonObj, T sample);**  
+**protected &lt;T\> T castMember( T sample, String memberName, Json jsonObj );**  
 Returns the sample if Json member does not exists or is null  
-
-```
-public class Person extends JsonObject {
+<p style="background-color: #B0C4DE;">
+&emsp;<b>Example:</b>
+</p>  
+  
+```java
+/*
+ * Create JsonObject and serialize Java Map
+ */
+public static class Person extends JsonObject {
   int personId = 0;
   String firstName = "";
   String lastName = "";
@@ -269,7 +296,8 @@ public class Person extends JsonObject {
     return value;
   }
 }
-public static void main(String[] params)
+
+public static void main(String[] args)
   throws IllegalArgumentException, IllegalAccessException,
          IOException, ParseException {
 
@@ -283,12 +311,12 @@ public static void main(String[] params)
 // unload person to string
   String s = person.toJson().toJSON();
   System.out.println(s);
-/* console output
-{ "personId": 12345, "fistName": "John", "lastName": "Doe", "married": false, "phones": { "home": "123-4567", "work": "789-0123" }
+/* console output:
+{"personId": 12345, "firstName": "John", "lastName": "Doe", "married": false, "phones": {"work": "789-0123", "home": "123-4567"}}
 */
 // load person from string
   person = (new Person()).fromJson(new Json(s));
-}  
+}
 ```
  
 **See usage here:**  
