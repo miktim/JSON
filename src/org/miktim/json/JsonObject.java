@@ -73,7 +73,7 @@ public abstract class JsonObject {
      */
     
     @SuppressWarnings("unchecked")
-    protected <T> T castMember(String memberName, Json jsonObj, T sample) {
+    protected <T> T castMember(T sample, String memberName, Json jsonObj) {
         if (jsonObj.get(memberName) != null) {
             return JSON.cast(jsonObj.get(memberName), sample);
         }

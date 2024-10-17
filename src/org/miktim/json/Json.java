@@ -145,5 +145,10 @@ public class Json extends LinkedHashMap<String, Object> {
     public Json normalize() throws IOException, ParseException {
         return (Json) JSON.fromJSON(this.toString()); // :)
     }
-
+    
+    public static class JsonConverter extends JsonObject {
+     public JsonConverter() {
+        
+    }}
+    public static JsonConverter converter = new JsonConverter();
 }

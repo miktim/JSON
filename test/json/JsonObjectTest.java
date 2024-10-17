@@ -7,7 +7,6 @@ import java.lang.reflect.Modifier;
 import java.util.HashMap;
 import java.util.Map;
 import org.miktim.json.Json;
-import org.miktim.json.JsonConverter;
 import org.miktim.json.JsonObject;
 
 public class JsonObjectTest {
@@ -76,7 +75,7 @@ public class JsonObjectTest {
 
         protected String pro_dS = "protected dS";
         public int pub_di = 123;
-        String dS = "";
+        String def_S = "";
         public C pub_dC = new C();
         private String pri_dS;
 
@@ -85,7 +84,7 @@ public class JsonObjectTest {
 
         D(int i, String s) {
             pub_di = i;
-            dS = s;
+            def_S = s;
         }
     }
 
@@ -116,7 +115,7 @@ public class JsonObjectTest {
 
         @Override
         protected Object replacer(String name, Object value) {
-            log(name);
+//            log(name);
             try {
                 if (isClassName(name)) { // first call
 // ignored field was declared in A
@@ -138,7 +137,7 @@ public class JsonObjectTest {
             try {
                 if (isClassName(name)) {
 // load a.priv_ad by setter
-                    set_ad(castMember("ad", (Json) value, get_ad()));
+                    set_ad(castMember(get_ad(),"ad", (Json) value));
                 } else if (name.endsWith(".bD")) {
                     return fromJson(bD, (Json) value);
                 }
@@ -232,27 +231,28 @@ public class JsonObjectTest {
         t.av.enableNames = false;
         t.av.fromJson(j);
         log(t.av.toJson());
-
+        log(" Av instance with Json.converter");
+        log(Json.converter.toJson(t.av));
+        
         log("\n\r B instance toJson/fromJson :");
         String s = t.b.toJson().toJSON();
         log(s);
         t.b.fromJson(new Json(s));
 
-        JsonConverter converter = new JsonConverter();
-        log("\n\r D instance with default converter:");
-        j = converter.toJson(t.d);
+        log("\n\r D instance with Json.converter:");
+        j = Json.converter.toJson(t.d);
         log(j);
         log(" load updated Json into new D instance");
         j.set("pro_dS", "updated dS").set("pub_di", 0);
-        t.d = converter.fromJson(new D(), j);
-        log(converter.toJson(t.d));
+        t.d = Json.converter.fromJson(new D(), j);
+        log(Json.converter.toJson(t.d));
 
-        log("\n\r B instance with default converter:");
-        j = converter.toJson(t.b);
+        log("\n\r B instance with Json.converter:");
+        j = Json.converter.toJson(t.b);
         log(j);
 
-        log("\n\r java.lang.reflect.Modifier instance with default converter:");
-        j = converter.toJson(new Modifier());
+        log("\n\r java.lang.reflect.Modifier instance with Json.converter:");
+        j = Json.converter.toJson(new Modifier());
         log(j);
 
     }
