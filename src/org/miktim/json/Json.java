@@ -19,7 +19,6 @@ import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.text.ParseException;
 import java.util.LinkedHashMap;
-// TODO HashMap instead of LinkedHashMap: The order of the JSON members does not matter
 
 public class Json extends LinkedHashMap<String, Object> {
 
@@ -61,9 +60,8 @@ public class Json extends LinkedHashMap<String, Object> {
     public String toString() {
         try {
             return JSON.toJSON(this);
-        } catch (IOException ie) {
-            ie.printStackTrace();
-            return null;
+        } catch (IOException ex) {
+            throw new RuntimeException(ex.getMessage(), ex);
         }
     }
 
@@ -72,10 +70,12 @@ public class Json extends LinkedHashMap<String, Object> {
     }
 
     public boolean exists(String memberName, int... indices) {
-        if(!this.containsKey(memberName)) return false;
+        if (!this.containsKey(memberName)) {
+            return false;
+        }
         try {
             get(memberName, indices);
-        } catch (IndexOutOfBoundsException e) {
+        } catch (Exception e) {
             return false;
         }
         return true;
@@ -86,24 +86,35 @@ public class Json extends LinkedHashMap<String, Object> {
     <T> T superPut(String key, T value) {
         return (T) super.put(key, value);
     }
-
+            
     @Override
     public Object put(String key, Object value) {
+        
+        if (value != null) {
+            Class cls = value.getClass();
+            if (!cls.isPrimitive()) {
+                try {
+                    value = JSON.fromJSON(JSON.toJSON(value));
+                } catch (IOException | ParseException ex) {
+                }
+            }
+        }
+        
         return super.put(key == null ? "null" : key, value);
     }
 
-    public Json set(Object memberName, Object value) {
+    public Json set(Object memberName, Object value) { //Object value) {
         put(String.valueOf(memberName), value);
         return this;
     }
 
-//  get value or array element
-    public Object get(String memberName, int... indices) {
-        Object obj = get(memberName);
+    @SuppressWarnings({"unchecked"})
+    public <T>T get(Object memberName, int... indices) {
+        T obj = (T)get(String.valueOf(memberName));
         for (int i = 0; i < indices.length; i++) {
-            obj = Array.get(obj, indices[i]);
+          obj = (T)Array.get(obj, indices[i]);
         }
-        return obj;
+        return (T)obj;
     }
 
     public Json getJson(String memberName, int... indices) {
@@ -128,27 +139,32 @@ public class Json extends LinkedHashMap<String, Object> {
         if (cls == Object[].class) {
             return (Object[]) obj;
         } else if (cls.isArray()) {
-            return (Object[]) JSON.cast(obj, Object[].class);
+//            return (Object[]) JSON.cast(Object[].class, obj);
         }
         return (Object[]) obj; // throws ClassCastException
     }
 
+
 // casting by sample or class the value of a member or element of an array
+    @SuppressWarnings("unchecked")
     public <T> T castMember(T sample, String memberName, int... indices) {
-        return JSON.cast(get(memberName, indices), sample);
+        return JSON.cast(sample, (T) get(memberName, indices));
     }
 
+    @SuppressWarnings("unchecked")
     public <T> T castMember(Class<T> cls, String memberName, int... indices) {
-        return JSON.cast(get(memberName, indices), cls);
+        return JSON.cast(cls, (T) get(memberName, indices));
     }
-
+/*
     public Json normalize() throws IOException, ParseException {
         return (Json) JSON.fromJSON(this.toString()); // :)
     }
-    
-    public static class JsonConverter extends JsonObject {
-     public JsonConverter() {
-        
-    }}
-    public static JsonConverter converter = new JsonConverter();
+*/
+    public static class Converter extends JsonObject {
+
+        public Converter() {
+
+        }
+    }
+    public static Converter converter = new Converter();
 }

@@ -1,26 +1,35 @@
 {
-  "personId": 12345,
-  "firstName": "John",
-  "lastName": "Doe",
-  "married": false,
-  "phones": {"work": "789-0123", "home": "123-4567"},
-  "friends": [
-     {
+    "12345":
+            {
+                "personId": 12345,
+                "firstName": "John",
+                "lastName": "Doe",
+                "married": false,
+                "phones": {
+                    "work": "789-0123",
+                    "home": "123-4567"
+                },
+                "friends": [67890, 54321]
+            },
+    "67890": {
         "personId": 67890,
         "firstName": "James",
         "lastName": "Bond",
         "married": false,
-        "phones": {"work": "000-0007"},
-        "friends": []
-     },
-     {
+        "phones": {
+            "work": "000-0007"
+        },
+        "friends": [12345]
+    },
+    "54321": {
         "personId": 54321,
         "firstName": "John",
         "lastName": "Wick",
         "married": false,
-        "phones": {"home": "123-4567"},
-        "friends": []
-     }
-  ]
+        "phones": {
+            "home": "123-4567"
+        },
+        "friends": [12345]
+    }
 }
 

@@ -6,11 +6,9 @@
  * - in accordance with RFC 8259: https://datatracker.ietf.org/doc/rfc8259/?include_text=1
  * - parser converts JSON text to Java objects:
  *   Json object, String, Number, Boolean, null, Object[] array of listed types;
- * - JSON object members (name/value pairs) are stored in creation/appearance order;
  * - when the names within an object are not unique, parser stores the last value only;
- * - in addition, the generator converts Java Collections to JSON arrays
- *   and Java Maps to Json objects. The null key is converted to a "null" member name.
- *   Other Java objects are converted to string representation.
+ * - other Java objects are converted by default.
+ *
  * Reasons for using the Object[]:
  * - JSON allows mixed-type arrays;
  * - JSON empty array has unknown Java type.
@@ -23,10 +21,13 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Array;
+import java.lang.reflect.Constructor;
 import java.text.ParseException;
+import java.util.HashMap;
 
-public abstract class JSON {
-/*
+public class JSON {
+
+    /*
     static {
         try {
 
@@ -34,20 +35,25 @@ public abstract class JSON {
 
         }
     }
+     */
+    private static HashMap<Class, JsonObject> serializers = new HashMap<>();
 
-    private static LinkedHashMap<String, JsonObject> objects
-            = new LinkedHashMap<>();
-
-    public static void registerJsonObject(Object obj) {
-        if (obj instanceof JsonObject) {
-            registerJsonObject((JsonObject) obj, obj.getClass().getName());
-        }
+    public static JsonObject registerClass(Class cls, JsonObject serializer) {
+        return serializers.put(cls, serializer);
     }
 
-    public static void registerJsonObject(JsonObject obj, String className) {
-        objects.put(className, obj);
+    public static JsonObject getRegistered(Class cls) {
+        return serializers.get(cls);
     }
-*/
+
+    public static Class[] listRegistered() {
+        return serializers.keySet().toArray(new Class[0]);
+    }
+
+    public static JsonObject unregisterClass(Class cls) {
+        return serializers.remove(cls);
+    }
+
     public static <T> T toJSON(T obj, OutputStream out, int space, String charsetName)
             throws IOException {
         JSONGenerator generator = new JSONGenerator(out, space, charsetName);
@@ -82,85 +88,47 @@ public abstract class JSON {
                 = new ByteArrayInputStream(jsonText.getBytes("UTF-8"));
         return fromJSON(in, "UTF-8");
     }
-/*
-    public static boolean isMemberType(Object obj) {
-        if (obj == null) {
-            return true;
-        }
-        Class<?> c = obj.getClass();
-        return isBasicClass(c)
-                || c.isArray();
-    }
 
-    public static boolean isBasicArrayType(Object obj) {
-        if (obj == null) {
-            return false;
-        }
-        Class<?> c = obj.getClass();
-        for (; c.isArray(); c = c.getComponentType()) {
-            if (!(c.isArray() || isBasicClass(c))) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    public static boolean isBasicType(Object obj) {
-        if (obj == null) {
-            return true;
-        }
-        Class<?> c = obj.getClass();
-        return isBasicClass(c);
-    }
-
-    public static boolean isBasicClass(Class<?> c) {
-        return c.getSuperclass().equals(Number.class)
-                || c.equals(String.class)
-                || c.equals(Boolean.class)
-                || c.equals(Json.class);
-    }
-*/
-//public class JsonAdapter {
     @SuppressWarnings("unchecked")
-    public static <T> T cast(Object jsonVal, T sample) {
+    public static <T> T cast(T sample, Object jsonVal) {
         if (sample == null) {
             return null;
         }
-        return (T) cast(jsonVal, sample.getClass());
+        return (T) cast(sample.getClass(), jsonVal);
     }
 
     @SuppressWarnings("unchecked")
-    public static <T> T cast(Object jsonVal, Class<T> cls) {
-        if (cls == null) {
+    public static <T> T cast(Class<T> dstCls, Object obj) {
+        if (dstCls == null) {
             return null;
         }
-        Adapter adapter = getAdapter(getElementClass(cls));
-        return (T) cast(jsonVal, cls, adapter);
+
+        CastAdapter adapter = getAdapter(getElementClass(dstCls));
+//        if(obj == null) return (T) adapter.castValue(obj);
+        return (T) cast(dstCls, obj, adapter);
     }
 
-    public interface Adapter {
-
-        <T> T fromJson(Object jsonVal);
-
-        <T> T toJson(Object val);
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <T> T cast(Object jsonObj, Class<T> cls, Adapter adapter) {
-        if (cls.isArray()) {
-            int objLen = jsonObj == null ? 0 : Array.getLength(jsonObj);
-            Class cmpCls = cls.getComponentType();
-            T arr = (T) Array.newInstance(cmpCls, objLen);
-            for (int i = 0; i < objLen; i++) {
-                Array.set(arr, i, cast(Array.get(jsonObj, i), cmpCls, adapter));
+    @SuppressWarnings({"unchecked"})
+    static <T> T cast(Class<T> dstCls, Object obj, CastAdapter adapter) {
+//        if (srcCls.isArray()) { //*
+//        if (obj.getClass().isArray()){
+        if (dstCls.isArray()) {
+            int arrLen = obj == null ? 0 : Array.getLength(obj);
+//            Class cmpCls = srcCls.getComponentType(); //*
+            Class cmpDstCls = dstCls.getComponentType();
+            T arr = (T) Array.newInstance(cmpDstCls, arrLen);
+//            T arr = (T) Array.newInstance(cmpCls, arrLen); //*
+            for (int i = 0; i < arrLen; i++) {
+                T retVal = (T) cast(cmpDstCls, Array.get(obj, i), adapter);
+                Array.set(arr, i, retVal);
             }
+
             return (T) arr;
         }
-
-        return adapter.fromJson(jsonObj);
+        return (T) adapter.castValue(obj);
     }
 
-    private static Class getElementClass(Class cls) {
+    public static Class getElementClass(Class cls) {
         while (cls.isArray()) {
             cls = cls.getComponentType();
         }
@@ -172,8 +140,28 @@ public abstract class JSON {
         return cls;
     }
 
+    public static boolean isNativeType(Object obj) {
+        if (obj == null) {
+            return true;
+        }
+        Class<?> cls = JSON.getElementClass(obj.getClass());
+        return cls.equals(Number.class)
+                || cls.equals(String.class)
+                || cls.equals(Boolean.class)
+                || cls.equals(Character.class)
+                || cls.equals(Json.class)
+                || cls.getSuperclass().equals(Number.class);
+    }
+
+    interface CastAdapter {
+
+        <T> T castValue(Object value) throws ClassCastException;
+    }
+// TODO: safeCast from BigDecimal?
+
     @SuppressWarnings("unchecked")
-    private static Adapter getAdapter(Class cls) {
+    static CastAdapter getAdapter(Class cls) {
+        // find an adapter 
         if (cls == Integer.class) {
             return intAdapter;
         } else if (cls == Long.class) {
@@ -182,6 +170,8 @@ public abstract class JSON {
             return doubleAdapter;
         } else if (cls == Float.class) {
             return floatAdapter;
+        } else if (cls == String.class) {
+            return stringAdapter;
         } else if (cls == Byte.class) {
             return byteAdapter;
         } else if (cls == Short.class) {
@@ -190,130 +180,124 @@ public abstract class JSON {
             return charAdapter;
         } else if (cls == Boolean.class) {
             return booleanAdapter;
-        } else if (cls == String.class) {
-            return stringAdapter;
+        } else if (cls == Json.class) {
+            return jsonAdapter;
+        } else if (cls.isAssignableFrom(JsonObject.class)) {
+            return new JsonObjectAdapter(cls);
         }
+
         return defaultAdapter;
     }
     @SuppressWarnings("unchecked")
-    private static final Adapter defaultAdapter = new Adapter() {
+    private static final CastAdapter defaultAdapter = new CastAdapter() {
         @Override
-        public Object fromJson(Object obj) {
-            return obj;
-        }
-
-        @Override
-        public Object toJson(Object obj) {
+        public Object castValue(Object obj) {
             return obj;
         }
     };
+
     @SuppressWarnings("unchecked")
-    private static final Adapter booleanAdapter = new Adapter() {
-        @Override
-        public Object fromJson(Object obj) {
-            return obj == null ? false : obj;
+    static class JsonObjectAdapter implements CastAdapter {
+
+        Class<?> clazz;
+
+        JsonObjectAdapter(Class<?> clazz) {
+            this.clazz = clazz;
         }
 
         @Override
-        public Object toJson(Object obj) {
-            return obj;
+        public Object castValue(Object json) {
+            try {
+                if (json == null) {
+                    return null;
+                }
+                Object obj = createInstance(clazz);
+                return ((JsonObject) obj).fromJson(json);
+            } catch (IllegalArgumentException | IllegalAccessException ex) {
+                throw new ClassCastException(ex.getMessage());
+            }
+        }
+    };
+
+// https://stackoverflow.com/questions/6094575/creating-an-instance-using-the-class-name-and-calling-constructor
+    static Object createInstance(Class<?> clazz) {
+        try {
+//            Class<?> clazz = obj.getClass();
+            Constructor<?> ctor = clazz.getConstructor(String.class);
+            return ctor.newInstance(new Object[0]);
+        } catch (Exception ex) {
+            throw new ClassCastException(ex.getMessage());
+        }
+    }
+    @SuppressWarnings("unchecked")
+    private static final CastAdapter jsonAdapter = new CastAdapter() {
+        @Override
+        public Object castValue(Object obj) {
+            return obj == null ? new Json() : (Json) obj;
         }
     };
     @SuppressWarnings("unchecked")
-    private static final Adapter charAdapter = new Adapter() {
+    private static final CastAdapter booleanAdapter = new CastAdapter() {
         @Override
-        public Object fromJson(Object obj) {
+        public Object castValue(Object obj) {
+            return new Boolean(String.valueOf(obj));
+        }
+    };
+    @SuppressWarnings("unchecked")
+    private static final CastAdapter intAdapter = new CastAdapter() {
+        @Override
+        public Object castValue(Object obj) {
+            return obj == null ? 0 : ((Number) obj).intValue();
+        }
+    };
+    @SuppressWarnings("unchecked")
+    private static final CastAdapter byteAdapter = new CastAdapter() {
+        @Override
+        public Object castValue(Object obj) {
+            return obj == null ? 0 : ((Number) obj).byteValue();
+        }
+    };
+    @SuppressWarnings("unchecked")
+    private static final CastAdapter shortAdapter = new CastAdapter() {
+        @Override
+        public Object castValue(Object obj) {
+            return obj == null ? 0 : ((Number) obj).shortValue();
+        }
+    };
+    @SuppressWarnings("unchecked")
+    private static final CastAdapter longAdapter = new CastAdapter() {
+        @Override
+        public Object castValue(Object obj) {
+            return obj == null ? 0 : ((Number) obj).longValue();
+        }
+    };
+    @SuppressWarnings("unchecked")
+    private static final CastAdapter floatAdapter = new CastAdapter() {
+        @Override
+        public Object castValue(Object obj) {
+            return obj == null ? 0f : ((Number) obj).floatValue();
+        }
+    };
+    @SuppressWarnings("unchecked")
+    private static final CastAdapter doubleAdapter = new CastAdapter() {
+        @Override
+        public Object castValue(Object obj) {
+            return obj == null ? 0 : ((Number) obj).doubleValue();
+        }
+    };
+    @SuppressWarnings("unchecked")
+    private static final CastAdapter charAdapter = new CastAdapter() {
+        @Override
+        public Object castValue(Object obj) {
             return obj == null ? (char) 0
                     : (obj instanceof Character ? obj : (((String) obj) + "\u0000").charAt(0));
         }
-
-        @Override
-        public Object toJson(Object obj) {
-            return obj;
-        }
     };
     @SuppressWarnings("unchecked")
-    private static final Adapter intAdapter = new Adapter() {
+    private static final CastAdapter stringAdapter = new CastAdapter() {
         @Override
-        public Object fromJson(Object obj) {
-            return obj == null ? 0 : ((Number) obj).intValue();
-        }
-
-        @Override
-        public Object toJson(Object obj) {
-            return obj;
-        }
-    };
-    @SuppressWarnings("unchecked")
-    private static final Adapter byteAdapter = new Adapter() {
-        @Override
-        public Object fromJson(Object obj) {
-            return obj == null ? 0 : ((Number) obj).byteValue();
-        }
-
-        @Override
-        public Object toJson(Object obj) {
-            return obj;
-        }
-    };
-    @SuppressWarnings("unchecked")
-    private static final Adapter shortAdapter = new Adapter() {
-        @Override
-        public Object fromJson(Object obj) {
-            return obj == null ? 0 : ((Number) obj).shortValue();
-        }
-
-        @Override
-        public Object toJson(Object obj) {
-            return obj;
-        }
-    };
-    @SuppressWarnings("unchecked")
-    private static final Adapter longAdapter = new Adapter() {
-        @Override
-        public Object fromJson(Object obj) {
-            return obj == null ? 0 : ((Number) obj).longValue();
-        }
-
-        @Override
-        public Object toJson(Object obj) {
-            return obj;
-        }
-    };
-    @SuppressWarnings("unchecked")
-    private static final Adapter floatAdapter = new Adapter() {
-        @Override
-        public Object fromJson(Object obj) {
-            return obj == null ? 0 : ((Number) obj).floatValue();
-        }
-
-        @Override
-        public Object toJson(Object obj) {
-            return obj;
-        }
-    };
-    @SuppressWarnings("unchecked")
-    private static final Adapter doubleAdapter = new Adapter() {
-        @Override
-        public Object fromJson(Object obj) {
-            return obj == null ? 0 : ((Number) obj).doubleValue();
-        }
-
-        @Override
-        public Object toJson(Object obj) {
-            return obj;
-        }
-    };
-    @SuppressWarnings("unchecked")
-    private static final Adapter stringAdapter = new Adapter() {
-        @Override
-        public String fromJson(Object obj) {
+        public String castValue(Object obj) {
             return String.valueOf(obj);
-        }
-
-        @Override
-        public Object toJson(Object obj) {
-            return obj;
         }
     };
 }

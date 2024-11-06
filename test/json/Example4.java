@@ -1,17 +1,17 @@
 /*
- * 
+ * Example4, MIT (c) 2024 miktim@mail.ru
  */
+// package json;
+
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.List;
 import org.miktim.json.JSON;
 import org.miktim.json.Json;
 import org.miktim.json.JsonObject;
-
-// package json;
 
 public class Example4 {
 
@@ -21,78 +21,56 @@ public class Example4 {
         String firstName = "";
         String lastName = "";
         boolean married = false;
-        HashMap<String, String> phones = new HashMap<>();
-
+// Json implements HashMap<String, Object>        
+        Json phones = new Json(); 
+        HashSet<Integer> friends = new HashSet<>(); // personId's
 // default constructor
         public Person() {
         }
-    }
-
-    public static class PersonInfo extends Person {
-
-        Person[] friends = new Person[0];
-
-        public PersonInfo() {
-            super();
-        }
-
+// HashSet is not native class
         @Override
+        @SuppressWarnings("unchecked")
         protected Object replacer(String name, Object value) {
-            if (name.endsWith(".phones")) {
-// unload phones Map
-                Json json = new Json();
-                for (Map.Entry<String, String> entry : phones.entrySet()) {
-                    json.set(entry.getKey(), entry.getValue());
-                }
-                return json;
-            } else if (name.endsWith(".friends")) {
-// unload friends array                
-                ArrayList<Json> list = new ArrayList<>();
-                try {
-                    for (Person p : (Person[]) value) {
-                        list.add(p.toJson());
-                    }
-                } catch (IllegalArgumentException | IllegalAccessException ex) {
-                    System.err.println(ex.getMessage());
-                }
-                return list.toArray(new Json[0]);
+            if (name.endsWith(".friends")) {
+// unload friends Set as array                 
+                return ((HashSet<Integer>)value).toArray();
             }
             return value;
         }
 
         @Override
         protected Object reviver(String name, Object value) {
-            if (name.endsWith(".phones")) {
-// load phones Map
-                phones.clear(); // fill existing Map
-                Json json = (Json) value;
-                for (String key : json.listNames()) {
-                    phones.put(key, json.getString(key));
-                }
-                return IGNORED; // phones already loaded
-            } else if (name.endsWith(".friends")) {
-// load friends array                
-                ArrayList<Person> list = new ArrayList<>();
-                try {
-                    for (Json json : JSON.cast(value, Json[].class)) {
-                        list.add(fromJson(new Person(), json));
-                    }
-                } catch (IllegalArgumentException | IllegalAccessException ex) {
-                    System.err.println(ex.getMessage());
-                }
-                friends = list.toArray(friends);//new Person[0]);
-                return IGNORED;
+            if (name.endsWith(".friends")) {
+// load friends Set, first create collection from array                
+                   List<Integer> list = Arrays.asList(JSON.cast(Integer[].class, value));
+                   return new HashSet<>(list);
             }
             return value;
         }
     }
-
-    public static void main(String[] params) throws
-            IllegalArgumentException, IllegalAccessException,
-            IOException, ParseException, Exception {
-// load person from File
-        FileInputStream fis = new FileInputStream("./Example4.json");
-        PersonInfo personInfo = (new PersonInfo()).fromJson(new Json(fis));
-        System.out.println(JSON.toJSON(personInfo.toJson().normalize(), 2));
+    public static class Persons extends Json {
+        Persons() {
+        }
+        public Person remove(Object personId) {
+            Person person = remove(String.valueOf(personId));
+            if (person != null) {
+                for(Object entry : values()){
+                    ((Person)entry).friends.remove((int)personId);
+                }
+            }
+            return person;
+        }
     }
+
+    public static void main(String[] args) throws
+            IllegalArgumentException, //IllegalAccessException,
+            IOException, ParseException, IllegalAccessException {
+// load persons from File
+        FileInputStream fis = new FileInputStream("./Example4.json");
+        Json persons = new Json(fis);
+        String s = persons.toJSON();
+        System.out.println(s);
+        Person person = (Person)persons.get("12345");
+        System.out.println(JSON.toJSON(person, 2));
+    };
 }

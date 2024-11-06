@@ -5,7 +5,6 @@
 
 import java.lang.reflect.Modifier;
 import java.util.HashMap;
-import java.util.Map;
 import org.miktim.json.Json;
 import org.miktim.json.JsonObject;
 
@@ -18,14 +17,15 @@ public class JsonObjectTest {
     JsonObjectTest() {
     }
 
-    static class Av extends Bv {
+    public static class Av extends Bv {
 
+        public D objD = new D();
         public String pubAv = "public Av";
         protected String proAv = "protected Av";
         String defAv = "default Av";
         private String privAv = "private Av";
         public transient boolean enableNames = true;
-        public D objD = new D();
+// TODO: objC
         public C objC = new C();
 
         Av() {
@@ -33,10 +33,13 @@ public class JsonObjectTest {
 
         @Override
         protected Object replacer(String name, Object value) {
-            if(enableNames) log(name);
+            if (enableNames) {
+                log(name);
+            }
             try {
+// TODO: pri_dS
                 if (name.endsWith(".objD")) {
-                    return toJson(value);
+//                    return toJson(value);
                 }
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -44,51 +47,55 @@ public class JsonObjectTest {
             }
             return value;
         }
+
         @Override
         protected Object reviver(String name, Object value) {
-           try {
+            if (enableNames) {
+                log(name);
+            }
+            try {
                 if (name.endsWith(".objD")) {
-                    fromJson(this.objD, (Json)value);
-                    return IGNORED;
+//                    fromJson(objD, (Json)value);
+//                    return IGNORED;
                 }
-           } catch (Exception ex) {
+            } catch (Exception ex) {
                 ex.printStackTrace();
                 return IGNORED;
             }
             return value;
         }
-     }
+    }
 
-    static class Bv extends JsonObject {
+    public static class Bv extends JsonObject {
 
-        public String pubBv = "public Bv";
-        protected String proBv = "protected Bv";
-        String defBv = "default Bv";
-        private String privBv = "private Bv";
-        public transient String transBv = "transient Bv";
+        public String pubBs = "public Bv";
+        protected String proBs = "protected Bv";
+        String defBs = "default Bv";
+        private String priBs = "private Bv";
+        public transient String transBs = "transient Bv";
 
         Bv() {
         }
     }
 
-    static class D {
+    public static class D {
 
-        protected String pro_dS = "protected dS";
-        public int pub_di = 123;
-        String def_S = "";
-        public C pub_dC = new C();
-        private String pri_dS;
+        protected String proDs = "protected dS";
+        public int pubDi = 123;
+        String defDs = "";
+        public C pubDC = new C();
+        private String priDs = "private dS";
 
         D() {
         }
 
         D(int i, String s) {
-            pub_di = i;
-            def_S = s;
+            pubDi = i;
+            defDs = s;
         }
     }
 
-    static class C extends JsonObject {
+    public static class C extends JsonObject {
 // unload/load run in the context of an instance
 // of an object, so private fields are visible
 
@@ -104,12 +111,13 @@ public class JsonObjectTest {
         }
     }
 
-    class B extends A {
+    public static class B extends A {
 
         double bd = 123.123;
         D bD = new D();
 
         B() {
+            super();
 //            setIgnored(new String[0]); // reset ignored
         }
 
@@ -122,9 +130,9 @@ public class JsonObjectTest {
 //                log("Ignored: " + Arrays.toString(getIgnored()));
 // private a.pri_ad field is invisible here. Unload by getter
 // on first call we MUST return Json object
-                    return (new Json()).set("ad", get_ad());
+                    return (new Json()).set("set_aD", get_aD());
                 } else if (name.endsWith(".bD")) {
-                    return toJson(value);
+//                    return toJson(value);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -137,9 +145,10 @@ public class JsonObjectTest {
             try {
                 if (isClassName(name)) {
 // load a.priv_ad by setter
-                    set_ad(castMember(get_ad(),"ad", (Json) value));
+                    set_aD(castMember(get_aD(), "set_aD", (Json) value));
+                    return IGNORED;
                 } else if (name.endsWith(".bD")) {
-                    return fromJson(bD, (Json) value);
+//                    return fromJson(bD, (Json) value);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -148,12 +157,12 @@ public class JsonObjectTest {
         }
     }
 
-    class A extends JsonObject {
+    public static class A extends JsonObject {
 
-        public String pub_aS = "public aS";
-        final String fin_aS = "final aS";
-        private String pri_aS = "private aS";
-        protected String pro_aS = "protected aS";
+//        public String pub_aS = "public aS";
+//        final String fin_aS = "final aS";
+//        private String pri_aS = "private aS";
+//        protected String pro_aS = "protected aS";
         public transient String tra_aS = "transient aS";
         private double pri_ad = 3.14159;
         int[][] ai = new int[][]{{1, 2}, {3, 4}};
@@ -166,32 +175,32 @@ public class JsonObjectTest {
 //            setIgnored(new String[]{"pub_aS"});
         }
 
-        public double get_ad() {
+        public double get_aD() {
             return pri_ad;
         }
 
-        public void set_ad(double ad) {
+        public void set_aD(double ad) {
             this.pri_ad = ad;
         }
 
         @Override
+        @SuppressWarnings("unchecked")
         protected Object replacer(String name, Object value) {
-            try {
-//                log(name);
-                if (isClassName(name)) {
-//                log("Ignored: " + Arrays.toString(getIgnored()));
-                } else if (name.endsWith(".maC") && maC != null) {
+            if (name.endsWith(".maC") && value != null) {
 // unload Map
-                    Json aCjson = new Json();
-                    for (Map.Entry<Integer, C> entry : maC.entrySet()) {
-                        aCjson.set(entry.getKey(), entry.getValue().toJson());
+                Json j = new Json();
+                try {
+                    for (HashMap.Entry<Integer, C> entry : ((HashMap<Integer, C>) value).entrySet()) {
+                        j.set(entry.getKey(), toJson(entry.getValue()));
                     }
-                    return aCjson;
+                } catch (IllegalArgumentException | ReflectiveOperationException | IndexOutOfBoundsException ex) {
+                    ex.printStackTrace();
+//                    return IGNORED;
                 }
-            } catch (IllegalArgumentException | IllegalAccessException | IndexOutOfBoundsException ex) {
-                ex.printStackTrace();
+//                log(j);
+                return j;
             }
-            return super.replacer(name, value);
+            return value;
         }
 
         @Override
@@ -200,9 +209,9 @@ public class JsonObjectTest {
                 if (name.endsWith(".maC") && value != null) {
 // load Map
                     maC.clear();
-                    Json aCjson = (Json) value;
-                    for (String key : aCjson.listNames()) {
-                        C c = fromJson(new C(), aCjson.getJson(key));
+                    Json j = (Json) value;
+                    for (String key : j.listNames()) {
+                        C c = fromJson(new C(), j.getJson(key));
                         maC.put(new Integer(key), c);
                     }
                     return IGNORED; // aC already loaded
@@ -211,7 +220,7 @@ public class JsonObjectTest {
                 ex.printStackTrace();
                 return IGNORED;
             }
-            return super.reviver(name, value);
+            return value;
         }
 
     }
@@ -220,36 +229,41 @@ public class JsonObjectTest {
     D d = new D(456, "default dS");
     Av av = new Av();
 
-    public static void main(String[] args) throws Exception {
+
+public static void main(String[] args) throws Exception {
         log("\n\rJsonObject test");
         JsonObjectTest t = new JsonObjectTest();
-
-        log("\n\r Av instance toJson/fromJson:");
-        Json j = t.av.toJson();
-//        String s = t.av.toJson().toJSON();
+        Json j;
+        
+        log("\n\r Av instance toJson:");
+        j = t.av.toJson();
         log(j);
-        t.av.enableNames = false;
+        j.getJson("objD").set("proDs", "updatedDs");
+//        t.av.enableNames = false;
+        log("\n\r Av instance fromJson:");
         t.av.fromJson(j);
+        t.av.enableNames = false;
         log(t.av.toJson());
         log(" Av instance with Json.converter");
         log(Json.converter.toJson(t.av));
-        
+
         log("\n\r B instance toJson/fromJson :");
-        String s = t.b.toJson().toJSON();
+// TODO JsonObject returns Object
+        String s = ((Json)t.b.toJson()).toJSON();
         log(s);
         t.b.fromJson(new Json(s));
 
+        log(" B instance with Json.converter:");
+        j = Json.converter.toJson(t.b);
+        log(j);
+        
         log("\n\r D instance with Json.converter:");
         j = Json.converter.toJson(t.d);
         log(j);
         log(" load updated Json into new D instance");
-        j.set("pro_dS", "updated dS").set("pub_di", 0);
+        j.set("proDs", "updated dS").set("pubDi", 0);
         t.d = Json.converter.fromJson(new D(), j);
         log(Json.converter.toJson(t.d));
-
-        log("\n\r B instance with Json.converter:");
-        j = Json.converter.toJson(t.b);
-        log(j);
 
         log("\n\r java.lang.reflect.Modifier instance with Json.converter:");
         j = Json.converter.toJson(new Modifier());

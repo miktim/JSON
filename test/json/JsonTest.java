@@ -8,19 +8,17 @@ import java.io.FileInputStream;
 import java.math.BigDecimal;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
-import java.util.HashMap;
 import org.miktim.json.JSON;
 import org.miktim.json.Json;
 
 public class JsonTest {
 
-    static void log(Object s) {
-        System.out.println(String.valueOf(s));
+    static void log(Object... s) {
+        for(int i=0; i<s.length; i++)
+            System.out.print(String.valueOf(s[i]) + " ");
+        System.out.println();
     }
-
     public static void main(String[] args) throws Exception {
         String path = (new File(".")).getAbsolutePath();
         if (args.length > 0) {
@@ -65,7 +63,10 @@ public class JsonTest {
 //        log(JSON.fromJSON("b123")); // unexpected char
 //        log(JSON.fromJSON("falsen")); // unknown literal
 
-        log("\n\rTest JSON object constructors (key pairs, JSON text):");
+ //       float[][] f = new float[][]{{1.1f, 2.2f}, {3.3f, 4.4f}};
+ //       JSON.castTo(<T> f);
+
+log("\n\rTest JSON object constructors (key pairs, JSON text):");
         Json json = new Json("One", 1, "Two", 2, 3, "Three", null, null,
                 "Nested Json", new Json("array",
                         new float[][]{{1.1f, 2.2f}, {3.3f, 4.4f}}));
@@ -84,6 +85,7 @@ public class JsonTest {
 //        log(json.getString("Two"));
         log(json.toJSON("Two"));
         log(json.getString("3"));
+        log(json.getJson("Nested Json").getArray("array", 1).getClass());
         log(Arrays.toString(json.getJson("Nested Json").getArray("array", 1)));
         log(json.getJson("Nested Json").getNumber("array", 1, 1));
 
@@ -102,22 +104,23 @@ public class JsonTest {
 //                .set("char", 'c')
                 .set("BigDecimal", new BigDecimal("3.141592653589793238462643383279")
                 );
-        log("\n\rList members: " + JSON.toJSON(json.listNames()));
-        log("\n\rJSON object BEFORE normalization:");
+        log("\n\rJSON object:");
         log(json);
-        Json jsonn = json.normalize();
-        log("\n\rJSON object AFTER normalization:");
-        log(jsonn);
-        log("\n\rClasses of members before/after normalization:");
+        log("\n\rList members: " + JSON.toJSON(json.listNames()));
+//        Json jsonn = json.normalize();
+//        log("\n\rJSON object AFTER normalization:");
+//        log(jsonn);
+//        log("\n\rClasses of members before/after normalization:");
+        log("\n\rClasses of members:");
         for (String memberName : json.listNames()) {
             if (json.get(memberName) != null) {
-                log("\"" + memberName + "\"    instance of: "
+                log("\"" + memberName + "\"\tinstance of: "
                         + json.get(memberName).getClass().getSimpleName()
-                        + " / "
-                        + jsonn.get(memberName).getClass().getSimpleName()
+//                        + " / "
+//                        + jsonn.get(memberName).getClass().getSimpleName()
                 );
             } else {
-                log("\"" + memberName + "\" is null");
+                log("\"" + memberName + "\"\tis null");
             }
         }
         
@@ -128,15 +131,15 @@ public class JsonTest {
         int[][] intArray = new int[][]{{0, 1, 2}, {3, 4, 5, 6}};
         json = new Json("array", intArray);
         log(json);
-// member "array" is instance of int[][]        
         log(json.get("array").getClass().getSimpleName());
         log(json.get("array", 1).getClass().getSimpleName());
         log(json.getArray("array", 1).getClass().getSimpleName());
+//         
         log(Arrays.toString(json.getArray("array", 1)));
         log(json.get("array", 1, 3).getClass().getSimpleName());
         int i = json.getNumber("array", 1, 3).intValue();
         log(i);
-
+/*
         log("Normalized object:");
         log(json = json.normalize());
 
@@ -149,7 +152,9 @@ public class JsonTest {
         i = json.getNumber("array", 1, 3).intValue();
         log(i);
         log(JSON.toJSON(json.castMember(int[][].class,"array")));
-
+*/
+// TODO use Json.converter against toString
+/*
         log("\n\rTest generator with other Java objects:");
         log("  1. HashMap with int[3], Date, String and File entries:");
         HashMap<String,Object> hashMap = new HashMap<String,Object>();
@@ -168,8 +173,9 @@ public class JsonTest {
         s = JSON.toJSON(arrayList);
         log(s);
         Object obj = JSON.fromJSON(s);
-        log("is Array?: " + (obj instanceof Object[]));//obj.getClass().isArray());
-
+        log("is Array?: " + (obj.getClass().isArray()));
+*/
+        Object obj;
         log("\n\rTest examples:");
 // examples from RFC 8259 https://datatracker.ietf.org/doc/rfc8259/?include_text=1
         log(JSON.fromJSON("\"\\uD834\\uDD1E\"")); // G-clef
@@ -230,7 +236,8 @@ public class JsonTest {
         }
         log(json);
         log(json.get("AllowPartialShipment"));
-        Json[] jsons = json.castMember(Json[].class, "LineItems");
+//        Json[] jsons = (Json[])json.getArray("LineItems");
+        Json[] jsons = json.castMember(Json[].class,"LineItems");
         json = jsons[1];
         log(json.get("Quantity"));
         json = (Json) json.get("Part");
@@ -262,7 +269,7 @@ public class JsonTest {
         log("Normalized object generation: " + (System.currentTimeMillis() - start));
 
         start = System.currentTimeMillis();
-        JSON.cast(an, double[].class);
+        JSON.cast(double[].class, an);
         log("Normalized object casting to double[]: " + (System.currentTimeMillis() - start));
 
         log("\n\rAverage time(ms) of example 3 parsing/generation:");
@@ -279,7 +286,7 @@ public class JsonTest {
 
         start = System.currentTimeMillis();
         for (i = 0; i < 100; i++) {
-            s = JSON.toJSON(obj);
+            String s = JSON.toJSON(obj);
         }
         log("Generation " + ((float)(System.currentTimeMillis() - start))/100);
 

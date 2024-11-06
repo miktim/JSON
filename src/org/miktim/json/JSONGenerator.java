@@ -3,10 +3,8 @@
  *
  * Generator converts to JSON Java objects:
  * - Json object, String, Number, Boolean, null, Object[] array of listed types;
- * - Java primitives and arrays of primitives;
- * - Java Collections to JSON arrays and Java Maps to Json objects.
- *   The null key is converted to a "null" member name;
- * - Other Java objects are converted to string representation.
+ * - Java numeric and boolean primitives and their arrays;
+ * - other Java objects, in general, generated as empty JSON object.
  */
 package org.miktim.json;
 
@@ -16,7 +14,6 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import static java.util.Arrays.binarySearch;
-import java.util.Collection;
 import java.util.Map;
 
 class JSONGenerator {
@@ -48,7 +45,7 @@ class JSONGenerator {
         }
     }
 
-// Java Lists, Sets converts to JSON arrays [V[0],...,V[n]], Maps - to object {"K":V,...}
+// 
     @SuppressWarnings("unchecked")
     void generateObject(Object value, int level) throws IOException {
         level++;
@@ -70,10 +67,10 @@ class JSONGenerator {
             write("", level - 1);
             write("]");
             return;
-        } else if (value instanceof Map) { //Json) {
+        } else if (value instanceof Json) { // || value instanceof Nativefier) {
             write("{");
             String separator = "";
-            for (Map.Entry<Object, Object> entry : ((Map<Object, Object>) value).entrySet()) {
+            for (Map.Entry<String, Object> entry : ((Map<String, Object>) value).entrySet()) {
                 write(separator, level);
                 // null key (member name) is converted to "null" 
                 generateObject(String.valueOf(entry.getKey()), level);
@@ -84,12 +81,13 @@ class JSONGenerator {
             write("", level - 1);
             write("}");
             return;
-        } else if (value instanceof Collection) {
-            generateObject(((Collection) value).toArray(), level);
-            return;
         }
-//        throw new RuntimeException("Unsupported type: " + value.getClass().getName());
-        generateObject(String.valueOf(value), level);
+        try {
+            Json.converter.toJson(value);
+        } catch (Exception ex) {
+            throw new ClassCastException(ex.getMessage());
+//            generateObject(ex, level);
+        }
     }
 
     private static final int[] UNESCAPED_CHARS = {0x8, 0x9, 0xA, 0xC, 0xD, 0x22, 0x2F, 0x5C};
