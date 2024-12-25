@@ -56,6 +56,9 @@ class JSONGenerator {
         } else if (value instanceof String) {
             write("\"" + escapeString((String) value) + "\"");
             return;
+        } else if (value instanceof Character) {
+            generateObject(String.valueOf(value), level - 1);
+            return;
         } else if (value.getClass().isArray()) {
             write("[");
             String separator = "";
@@ -83,10 +86,9 @@ class JSONGenerator {
             return;
         }
         try {
-            Json.converter.toJson(value);
+            generateObject(Json.converter.toJson(value), level);
         } catch (Exception ex) {
             throw new ClassCastException(ex.getMessage());
-//            generateObject(ex, level);
         }
     }
 

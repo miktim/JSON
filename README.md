@@ -1,15 +1,21 @@
-### Java 7+/Android JSON Serializer/Deserializer, MIT (c) 2020-2024 @miktim  
+### Java 7+/Android JSON parser/generator, MIT (c) 2020-2024 @miktim  
   
 #### Release notes:  
   
 Java SE 7+/Android RFC 8259 compliant package
 (see: [https://datatracker.ietf.org/doc/rfc8259/?include_text=1](https://datatracker.ietf.org/doc/rfc8259/?include_text=1) ).  
-No external dependencies.  
+\- no external dependencies;  
+\- arrays of mixed type are allowed;  
+\- “JSON” means text in JSON format. JSON text exchanged between systems MUST be encoded using UTF-8 (default charset);  
+\- “Json” means the Java representation of a JSON object.  
 
-<a name="native"></a>**Native** serializable objects are: [Json object](#Json) ( Java representation of a JSON object ), String, Number, Boolean, null, Object[ ] - an array of the listed types. Java numeric and boolean primitives and their arrays also supported.  
-Instances of existing Java classes are typically serialized into an empty JSON object.  
-To serialize existent Java object, use the [Nativizer](#Nativizer) interface and [register instance](#ClasRegistry) for class. Newly created classes can extends [Nativefier](#Nativefier) class. The abstract Nativefier class applies a JavaScript-like approach, using a replacer/reviver to convert the fields of an object instance to the native type.  
-The class [JSON](#JSON) is responsible for serializing objects to JSON text and vice versa.
+
+The class [JSON](#JSON) contains static methods for parsing/generating text in JSON format. Parser converts JSON to <a name="native"></a> **package-native** objects: **[Json object](#Json)** ( the Java representation of a JSON object )**, String, Number, Boolean, null, Object[ ]** - an array of the listed types. The JSON generator accept any Java object, all Java primitives and their arrays.   
+
+Instances of Java classes can be converted to Json object (usually empty) using [Json.converter](#Converter).  
+
+The [JsonObject](#JsonObject) abstract class and [JsonConvertible](#JsonConvertible) interface use the JavaScript-like replacer/reviver tool to convert object instance fields to or from [Json object](#Json) members.  
+
   
 #### package org.miktim.json  
   
@@ -17,15 +23,14 @@ The class [JSON](#JSON) is responsible for serializing objects to JSON text and 
 <a name="JSON"></a> 
 #### class JSON
 
-This class contains static serialization and conversion methods.  
-JSON text exchanged between systems that are not part of a closed ecosystem MUST be encoded using UTF-8 (default charset).  
+This class contains static parsing/generating methods.  
 
 <p style="background-color: #B0C4DE;">
 &emsp;<b>Methods:</b>
 </p>  
 
 **static Object fromJSON ( String jsonText ) throws IOException, ParseException**  
-Parse JSON text to a native object  
+Parse JSON text to a native objects  
 
 **static Object fromJSON ( InputStream in, String charsetName ) throws IOException, ParseException**  
 Parse JSON text from an input stream with the specified encoding
@@ -34,7 +39,7 @@ Parse JSON text from an input stream with the specified encoding
 Serializes a Java object as a single-line text in JSON format  
 
 **static String toJSON ( Object obj, int space ) throws IOException**  
-Serializes a Java object as JSON text with the specified number of spaces in the indentation  
+Generate a Java object as JSON text with the specified number of spaces in the indentation  
 
 **static &lt;T\>T toJSON ( T obj, OutputStream out, int space, String charsetName ) throws IOException**  
 Serializes a Java object as JSON text into a stream with the specified indentation and encoding. Returns obj.  
@@ -44,7 +49,7 @@ Methods for converting or copying Java objects.  Notes:
 \- sample must be initialized;  
 \- arrays must have the same dimension;  
 \- casting numbers may involve rounding or truncation;  
-\- casting a null object returns empty array or initial value;  
+\- casting a null object to primitive returns empty array or initial value;  
 \- casting to null returns null.  
   
 
@@ -65,7 +70,7 @@ Casting a Java object to a Class
 
 // cast by class. Numbers truncated to integers
 int ints = JSON.cast(int[].class,
-  JSON.fromJSON("[1.2, 3.4, 5.6]"));
+  JSON.fromJSON("[1.2, 3.4, 5]"));
 // generate JSON with two spaces in the indentation
 System.out.println(JSON.toJSON(ints, 2));
 /* console output:
@@ -83,20 +88,18 @@ System.out.println(Arrays.deepToString(dbls));
 [[1.0, 2.0, 3.0], [7.0, 8.0, 9.0]]
 */
 ```
-#### JSON.serializer
   
 <a name="Json"></a>
-#### public class Json extends HashMap &lt;String, Object\>
+#### class Json extends HashMap &lt;String, Object\>
 This class is a Java representation of a JSON object.
-Json member native types:  
-Json object, String, Number, Boolean, null, Object[ ] array of listed types.
+Json member types: **Json object, String, Number, Boolean, null, Object[ ]** array of listed types.
    
-Put, set, get notes:  
+Put, set notes:  
 \- Json object setters accept any Java object, all Java primitives and primitive arrays;  
 \- RFC 8259 does not recommend using Java BigDecimal and BigInteger as Json member values;  
 \- AVOID RECURSION!;  
-\- put, set methods cast Java primitives to the corresponding objects:  
-**float** as **Number**, **boolean** as **Boolean**  
+\- put, set methods cast Java primitives to the corresponding objects: 
+**Number**, **Boolean** or **String** for chars  
 \- Java arrays are stored as:  
 **int[ ][ ]** as **Object[ ] { Object[ ] { Number, ... }, Object[ ] { Number, ... } }**, **String[ ]** as **Object[ ] { String, ... }**  
 
@@ -115,6 +118,7 @@ Create Json object from String
 
 **Json ( InputStream inStream ) throws IOException, ParseException**  
 Create Json object from UTF-8 encoded stream.  
+
 <p style="background-color: #B0C4DE;">
 &emsp;<b>Example:</b>
 </p>  
@@ -143,13 +147,13 @@ Returns a list of the names of the members of this Json object
 Returns true if there is a member or an element of the member array  
 
 **Object put ( String memberName, Object value );**  
-inherited  
+Put Json member.  
 
 **Json set ( String memberName, Object value );**  
 Create or replace member. Returns this.   
 
-**Object get ( String memberName )**  
-inherited  
+**Object get( String memberName );**  
+Get Json member.
 
 **Object remove ( String memberName );**  
 inherited  
@@ -160,16 +164,16 @@ Returns null, the value of an member, or an array element
 **Json getJson ( String memberName, int... indices ) throws ClassCastException, IndexOutOfBoundsException**  
 Returns a nested Json object 
   
-**String getString ( String memberName, int... indices )     throws ClassCastException, IndexOutOfBoundsException**
+**String getString ( String memberName, int... indices ) throws ClassCastException, IndexOutOfBoundsException**
 Casts member or array element to String  
 
-**Number getNumber ( String memberName, int... indices )         throws ClassCastException, IndexOutOfBoundsException**  
+**Number getNumber ( String memberName, int... indices ) throws ClassCastException, IndexOutOfBoundsException**  
 Casts member or array element to Number
   
-**Boolean getBoolean ( String memberName, int... indices )        throws ClassCastException, IndexOutOfBoundsException**  
+**Boolean getBoolean ( String memberName, int... indices ) throws ClassCastException, IndexOutOfBoundsException**  
 Casts member or array element to Boolean  
 
-**Object[ ] getArray ( String memberName, int... indices )        throws ClassCastException, IndexOutOfBoundsException**  
+**Object[ ] getArray ( String memberName, int... indices ) throws ClassCastException, IndexOutOfBoundsException**  
 Casts member to array of Objects  
 
 **&lt;T\> T castMember ( T sample, String memberName, int... indices ) throws ClassCastException, IndexOutOfBoundsException**  
@@ -204,6 +208,7 @@ Output UTF-8 encoded single line JSON text to outStream. Returns this.
 Json j = (new Json())
   .set("personId", 1234)
   .set("firstName","John")
+  ,set("lastName","Doe")
 // "phones" is nested Json object
   .set("phones", 
     new Json("home", "123-4567","work","890-1234"));
@@ -211,7 +216,8 @@ System.out.println(JSON.toJSON(j, 2));
 /* console output
 {
   "personId": 1234, 
-  "firstName": "John", 
+  "firstName": "John",
+  "lastName": "Doe", 
   "phones": {
     "home": "123-4567", 
     "work": "890-1234"
@@ -229,112 +235,199 @@ System.out.printf("%d %s %s\n\r", personId, firstName, homePhone);
 1234 John 123-4567
 */
 ```
-<a name="Native"></a>
-#### interface Nativizer  
-  
+<a name="Converter"></a> 
+#### Json.converter  
+Used to convert existing instances of Java objects to/from a Json object.  
+Only the visible (context depended!) fields are converted. The converter ignores the final and transient fields.
+
 <p style="background-color: #B0C4DE;">
 &emsp;<b>Methods:</b>
 </p>  
 
-**&lt;T\> T fromNative(Object nativeObj)**  
-Returns target object.  
+**Json toJson ( Object targetObj )**  
+Returns a Json object from the target object  
 
-**&lt;T\> T toNative()**  
-Returns [native](#native) object.   
-  
-#### JSON Class Registry methods  
-  
-**Nativizer JSON.registerClass(Class cls, Nativizer serializer)**  
-**Nativizer JSON.getRegistered(Class cls)**  
-**Class[] JSON.listRegistered()**
-**Nativizer JSON.unregisterClass(Class cls)**  
-  
+**&lt;T\> T fromJson ( T targetObj, Json jsonObj ) throws IOException, ParseException**  
+Loads Json to target object. Returns target object.  
+
 <p style="background-color: #B0C4DE;">
 &emsp;<b>Example:</b>
 </p>  
-
+  
 ```java
 /*
- * Create and register serializer for Java File class
- * An instance of a File will be represented by its path
+ * Fields visibility
  */
-static class FileClass implements Nativizer {
-  FileClass();
-  @Override
-  <T> T toNative(Object target) {
-    return (T) (new Json()).set("filePath", ((File)target).getPath());
+  public static class Foo {
+    public String pub = "public"; // visible
+    String def = "default"; // invisible in the converter
+    protected String pro = "protected"; // visible in the same package
+    private String pri = "private"; // invisible in the converter
+    public transient String pubt = "public transient"; // ignored
+    public final String pubf = "public final"; // ignored
+
+    public Foo() {}; // default constructor
   }
-  @Override
-  <T> T fromNative(Object native) {
-  	return (T) new File(((Json)native).getString("filePath"));
+  
+  public static void main(String[] args) throws Exception {
+    Foo foo = new Foo();  
+    System.out.println(Json.converter.toJson(foo));
+/* console output:
+{"pub": "public", "pro": "protected"}
+*/
   }
+```  
+
+<a name="JsonConvertible"></a>
+#### interface JsonConvertible  
+The JsonConvertible interface provdes JavaScript-like methods for conversion fields of a Java object to/from a package [native](#native) objects. Notes:  
+\- visibility of object fields as from the object constructor (including the privates);  
+\- Java transient and final fields are ignored;  
+\- it is strongly recommended to initialize the accessible fields and create a public default constructor;  
+\- non-native, non Json convertible fields MUST be managed using replacer/reviver.  
+
+<p style="background-color: #B0C4DE;">
+&emsp;<b>Constants:</b>
+</p>  
+
+**static final Object IGNORED**  
+Returned from the replacer/reviver methods to skip the field.  
+
+<p style="background-color: #B0C4DE;">
+&emsp;<b>Methods:</b>
+</p>  
+
+**Object replacer ( String name, Object value );**  
+Applies on unloading to Json object:  
+\- name is object field class and name delimited with colon ( : ), value is object field value;  
+\- first call with the target object class name and the target object as the value;  
+\- returns Json-supported object or IGNORED.  
+
+**Object reviver ( String name, Object value );**  
+Applies on loading from Json object:  
+\- name is object field class and name delimited with colon ( : ), value is Json-supported object;  
+\- first call with the target object class name and the Json object as value;  
+\- returns a value that is compatible with the target object field or IGNORED  
+
+<p style="background-color: #B0C4DE;">
+&emsp;<b>Example:</b>
+</p>  
+  
+```java
+/*
+ * Creating a JsonConvertible object from a HashMap
+ */
+public class NamesOfNumbers extends HashMap<Double, String>
+    implements JsonConvertible {
+
+  public int space = 2; // spaces in indentation
+ 
+  public NamesOfNumbers() {
+    super();
+  }
+
+// unload fields to Json object
+  @Override
+  public Object replacer(String name, Object value) {
+    if (name.indexOf(':') < 0) { // first call without field name
+// convert HashMap to Json object
+      Json j = new Json();
+      for (Double key : this.keySet().toArray(new Double[0])) {
+        j.put(key.toString(), this.get(key));
+      }
+      return new Json("HashMap", j); // return newly created Json object
+    }
+    return value; // unloading other fields "by default"
+  }
+
+// load fields from Json object
+  @Override
+  public Object reviver(String name, Object value) {
+    if (name.indexOf(':') < 0) { // first call without field name
+// fill HashMap from the Json object 
+      Json j = ((Json) value).getJson("HashMap");
+      this.clear(); // erase HashMap
+      for (String key : j.listNames()) {
+        this.put(new Double(key), j.getString(key));
+      }
+      return IGNORED; // nothing to do
+    }
+    return value; // loading other fields "by default"
+  }
+
+// serialize this to String with spaces in the indentation 
+  public String toJSON() throws IOException {
+    return JSON.toJSON(Json.converter.toJson(this), this.space);
+  }
+// deserialize this from String
+  public void fromJSON(String s) throws IOException, ParseException {
+    Json.converter.fromJson(this, new Json(s));
+  }
+    
+  public static void main(String[] args)
+      throws IOException, ParseException {
+    NamesOfNumbers names = new NamesOfNumbers();
+    names.put(0.0, "zero");
+    names.put(1.0, "one");
+    names.put(1.5, "one and five tenths");
+    String s = names.toJSON();
+    System.out.println(s);
+    names.clear();
+    names.fromJSON(s);
+    System.out.println(names.get(1.5));
+  }
+/* console output:
+{
+  "HashMap": {
+    "0.0": "zero", 
+    "1.0": "one", 
+    "1.5": "one and five tenths"
+  }, 
+  "space": 2
+}
+one and five tenths
+*/
 }
 
-public static void main(String args) {
-  File file = new File("./example.json");
-  System.out.println(JSON.toJSON(file)); // before registering a Java class
-  JSON.registerClass(File.class, new FileClass());
-  System.out.println(JSON.toJSON(file)); // after
-/* console output:
-{ }
-{ "filePath": ".\/example.json" }
-*/	
-}
 ```  
+
   
-<a name="Nativefier"></a>
-#### abstract class Nativefier implements Nativizer
-Java object extender. Unload/load fields of a Java object to/from a [native](#native) objects. Notes:  
-\- visibility of object fields as from the object constructor;  
+<a name="JsonObject"></a>
+#### abstract class JsonObject implements JsonConvertible
+Java object extender. Unload/load fields of a Java object instance to/from a [native](#native) objects. Notes:  
+\- visibility of object fields as from the object constructor (including the privates);  
 \- Java transient and final fields are ignored;  
-\- it is highly recommended to initialize accessible fields and create a default constructor;  
-\- non-native fields MUST be managed using replacer/reviver.  
+\- it is highly recommended to initialize accessible fields and create a public default constructor;  
+\- non-native, non Json convertible fields MUST be managed using replacer/reviver.  
   
 <p style="background-color: #B0C4DE;">
 &emsp;<b>Constants:</b>
 </p>  
   
-**protected static final transient Object IGNORED**  
+**static final Object IGNORED**  
 Returned from the replacer/reviver methods to skip the field  
 
 <p style="background-color: #B0C4DE;">
 &emsp;<b>Methods:</b>
 </p>  
 
-**Json toNative ( ) throws IllegalArgumentException, IllegalAccessException;**  
+**public Object replacer ( String name, Object value );**  
+**public Object reviver ( String name, Object value );**  
+See [JsonConvertible](#JsonConvertible) interface.
+
+**Json toJson ( );**  
 Returns a Json object from this object  
 
-**&lt;T\> T fromNative ( Object nativeObj ) throws IllegalArgumentException, IllegalAccessException;**  
+**&lt;T\> T fromJson ( Json jsonObj );**  
 Loads Json to this object. Returns this object.  
-
-**Json toNative ( Object targetObj ) throws IllegalArgumentException, IllegalAccessException;**  
-Returns a Json object from the target object  
-
-**&lt;T\> T fromNative ( T targetObj, Object nativeObj ) throws IllegalArgumentException, IllegalAccessException;**  
- Loads Json to target object. Returns target object.  
- 
-**protected Object replacer ( String name, Object value );**  
-Applies on unloading:  
-\- name is object field class and name delimitet with dot (.), value is object field value;  
-\- first call with the target object class name and the target object as the value;  
-\- returns [native](#native) object or IGNORED  
-
-**protected Object reviver ( String name, Object value );**  
-Applies on loading:  
-\- name is object field class and name delimited with dot (.), value is Json-supported object;  
-\- first call with the target object class name and the Json object as value;  
-\- returns a value that is compatible with the object field or IGNORED  
-
-**static boolean isClassName ( String name );**  
-Returns true if name is class name.  
-
-<!--
-**protected &lt;T> T getTarget ( );**  
-Get target object. Accessible from replacer/reviver
--->  
 
 **String toString ( );**  
 Overridden. Generate JSON text as a single line  
+  
+<!--  
+**static boolean isClassName ( String name );**  
+Returns true if name is class name.  
+-->
   
 <!--
 **protected &lt;T\> T castMember( T sample, String memberName, Json jsonObj );**  
@@ -347,50 +440,46 @@ Returns the sample if Json member does not exists or is null
   
 ```java
 /*
- * Create Nativefier instance
+ * Declare JsonObject 
  */
-public static class Person extends Nativefier {
-  int personId = 0;
-  String firstName = "";
-  String lastName = "";
-  boolean married = false;
+  public static class Person extends JsonObject {
+    int personId = 0;
+    String firstName = "";
+    String lastName = "";
+    boolean married = false;
 // use Json class (HashMap<String, Object>) for phones
-  Json phones = new Json();
+    Json phones = new Json();
 
 // default constructor
-  public Person() {
+    public Person() {
+    }
   }
-}
 
-public static void main(String[] args)
-  throws IllegalArgumentException, IllegalAccessException,
-         IOException, ParseException {
+  public static void main(String[] args)
+    throws IOException, ParseException {
 
-// create and fill Person object
-  Person person = new Person();
-  person.personId = 12345;
-  person.firstName = "John";
-  person.lastName = "Doe";
-  person.phones.put("home", "123-4567");
-  person.phones.put("work", "789-0123");
-// unload person to string
-  String s = person.toNative().toJSON();
-  System.out.println(s);
+// create and fill Person instance
+    Person person = new Person();
+    person.personId = 12345;
+    person.firstName = "John";
+    person.lastName = "Doe";
+    person.phones.put("home", "123-4567");
+    person.phones.put("work", "789-0123");
+// unload person to JSON string
+    String s = person.toJson().toJSON();
+    System.out.println(s);
+// load person from JSON string
+    person = new Person();
+    person.fromJson(new Json(s));
+// get a home phone number
+    System.out.println(person.phones.getString("home"));
 /* console output:
 {"personId": 12345, "firstName": "John", "lastName": "Doe", "married": false, "phones": {"work": "789-0123", "home": "123-4567"}}
-*/
-// load person from string
-  person = new Person();
-  person.fromNative(new Json(s));
-  System.out.println(person.phones.getString("home"));
-));
-/* console output:
 123-4567
 */
-}
+  }
 ```  
   
-**See usage here:**  
-  ./test/json/JsonTest.java  
-  ./test/json/JsonCastTest.java  
-  ./test/json/NativefierTest.java  
+**See also:**  
+[https://www.baeldung.com/java-json](https://www.baeldung.com/java-json)  
+[https://www.json.org/json-en.html](https://www.json.org/json-en.html)  

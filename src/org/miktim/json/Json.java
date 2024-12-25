@@ -160,11 +160,35 @@ public class Json extends LinkedHashMap<String, Object> {
         return (Json) JSON.fromJSON(this.toString()); // :)
     }
 */
-    public static class Converter extends JsonObject {
+    public static class Converter extends JsonConverter {
 
         public Converter() {
 
         }
+
+    @SuppressWarnings("unchecked")
+    public Json toJson(Object targetObj) {
+//            throws IllegalArgumentException, IllegalAccessException {
+        return unload(this, targetObj);
     }
+
+    @SuppressWarnings("unchecked")
+    public <T> T fromJson(Object targetObj, Object jsonObj) {
+//            throws IllegalArgumentException, IllegalAccessException {
+        return (T) load(this, targetObj, jsonObj);
+    }
+/*
+        @Override
+        public Object replacer(String name, Object value) {
+             return value;
+        }
+
+        @Override
+        public Object reviver(String name, Object value) {
+            return value;
+        }
+*/
+    }    
+
     public static Converter converter = new Converter();
 }

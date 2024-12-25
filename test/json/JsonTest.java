@@ -14,9 +14,10 @@ import org.miktim.json.Json;
 
 public class JsonTest {
 
-    static void log(Object... s) {
-        for(int i=0; i<s.length; i++)
-            System.out.print(String.valueOf(s[i]) + " ");
+    static void log(Object... obj) {
+        for (Object item : obj) {
+            System.out.print(String.valueOf(item) + " ");
+        }
         System.out.println();
     }
     public static void main(String[] args) throws Exception {

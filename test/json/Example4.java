@@ -30,17 +30,17 @@ public class Example4 {
 // HashSet is not native class
         @Override
         @SuppressWarnings("unchecked")
-        protected Object replacer(String name, Object value) {
-            if (name.endsWith(".friends")) {
+        public Object replacer(String name, Object value) {
+            if (name.endsWith(":friends")) {
 // unload friends Set as array                 
-                return ((HashSet<Integer>)value).toArray();
+                return ((HashSet<Integer>)value).toArray(new Integer[0]);
             }
             return value;
         }
 
         @Override
-        protected Object reviver(String name, Object value) {
-            if (name.endsWith(".friends")) {
+        public Object reviver(String name, Object value) {
+            if (name.endsWith(":friends")) {
 // load friends Set, first create collection from array                
                    List<Integer> list = Arrays.asList(JSON.cast(Integer[].class, value));
                    return new HashSet<>(list);
@@ -49,7 +49,7 @@ public class Example4 {
         }
     }
     public static class Persons extends Json {
-        Persons() {
+        public Persons() {
         }
         public Person remove(Object personId) {
             Person person = remove(String.valueOf(personId));
@@ -70,7 +70,8 @@ public class Example4 {
         Json persons = new Json(fis);
         String s = persons.toJSON();
         System.out.println(s);
-        Person person = (Person)persons.get("12345");
+// TODO: !cast not use Json.converter for convertible Objs     
+        Person person = persons.castMember(Person.class, "12345");
         System.out.println(JSON.toJSON(person, 2));
     };
 }

@@ -23,36 +23,8 @@ import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
 import java.text.ParseException;
-import java.util.HashMap;
 
 public class JSON {
-
-    /*
-    static {
-        try {
-
-        } catch (Exception e) {
-
-        }
-    }
-     */
-    private static HashMap<Class, JsonObject> serializers = new HashMap<>();
-
-    public static JsonObject registerClass(Class cls, JsonObject serializer) {
-        return serializers.put(cls, serializer);
-    }
-
-    public static JsonObject getRegistered(Class cls) {
-        return serializers.get(cls);
-    }
-
-    public static Class[] listRegistered() {
-        return serializers.keySet().toArray(new Class[0]);
-    }
-
-    public static JsonObject unregisterClass(Class cls) {
-        return serializers.remove(cls);
-    }
 
     public static <T> T toJSON(T obj, OutputStream out, int space, String charsetName)
             throws IOException {
@@ -110,14 +82,10 @@ public class JSON {
 
     @SuppressWarnings({"unchecked"})
     static <T> T cast(Class<T> dstCls, Object obj, CastAdapter adapter) {
-//        if (srcCls.isArray()) { //*
-//        if (obj.getClass().isArray()){
         if (dstCls.isArray()) {
             int arrLen = obj == null ? 0 : Array.getLength(obj);
-//            Class cmpCls = srcCls.getComponentType(); //*
             Class cmpDstCls = dstCls.getComponentType();
             T arr = (T) Array.newInstance(cmpDstCls, arrLen);
-//            T arr = (T) Array.newInstance(cmpCls, arrLen); //*
             for (int i = 0; i < arrLen; i++) {
                 T retVal = (T) cast(cmpDstCls, Array.get(obj, i), adapter);
                 Array.set(arr, i, retVal);
@@ -144,7 +112,11 @@ public class JSON {
         if (obj == null) {
             return true;
         }
-        Class<?> cls = JSON.getElementClass(obj.getClass());
+        return isNativeClass(obj.getClass());
+    }
+    
+    public static boolean isNativeClass(Class clazz) {
+        Class<?> cls = JSON.getElementClass(clazz);
         return cls.equals(Number.class)
                 || cls.equals(String.class)
                 || cls.equals(Boolean.class)
@@ -157,7 +129,7 @@ public class JSON {
 
         <T> T castValue(Object value) throws ClassCastException;
     }
-// TODO: safeCast from BigDecimal?
+// TODO: ?safeCast from BigDecimal
 
     @SuppressWarnings("unchecked")
     static CastAdapter getAdapter(Class cls) {
@@ -182,12 +154,14 @@ public class JSON {
             return booleanAdapter;
         } else if (cls == Json.class) {
             return jsonAdapter;
-        } else if (cls.isAssignableFrom(JsonObject.class)) {
-            return new JsonObjectAdapter(cls);
+//        } else if (JsonConvertible.class.isAssignableFrom(cls)) {
+//            return new ObjectAdapter(cls);
         }
-
-        return defaultAdapter;
+// TODO: ?Map, List adapters
+        return new ObjectAdapter(cls);
+//        return defaultAdapter;
     }
+/*
     @SuppressWarnings("unchecked")
     private static final CastAdapter defaultAdapter = new CastAdapter() {
         @Override
@@ -195,25 +169,26 @@ public class JSON {
             return obj;
         }
     };
-
+*/
     @SuppressWarnings("unchecked")
-    static class JsonObjectAdapter implements CastAdapter {
+    static class ObjectAdapter implements CastAdapter {
 
         Class<?> clazz;
 
-        JsonObjectAdapter(Class<?> clazz) {
+        ObjectAdapter(Class<?> clazz) {
             this.clazz = clazz;
         }
 
         @Override
-        public Object castValue(Object json) {
+        public Object castValue(Object obj) {
             try {
-                if (json == null) {
-                    return null;
+                if (obj == null || obj.getClass() == clazz) {
+                    return obj;
                 }
-                Object obj = createInstance(clazz);
-                return ((JsonObject) obj).fromJson(json);
-            } catch (IllegalArgumentException | IllegalAccessException ex) {
+//                if(obj.getClass() == clazz) return obj;
+                Object newObj = createInstance(clazz);
+                return Json.converter.fromJson(newObj, (Json)obj);
+            } catch (IllegalArgumentException ex) {
                 throw new ClassCastException(ex.getMessage());
             }
         }
@@ -223,8 +198,8 @@ public class JSON {
     static Object createInstance(Class<?> clazz) {
         try {
 //            Class<?> clazz = obj.getClass();
-            Constructor<?> ctor = clazz.getConstructor(String.class);
-            return ctor.newInstance(new Object[0]);
+            Constructor<?> ctor = clazz.getConstructor();
+            return ctor.newInstance();//new Object[0]);
         } catch (Exception ex) {
             throw new ClassCastException(ex.getMessage());
         }
@@ -268,7 +243,7 @@ public class JSON {
     private static final CastAdapter longAdapter = new CastAdapter() {
         @Override
         public Object castValue(Object obj) {
-            return obj == null ? 0 : ((Number) obj).longValue();
+            return obj == null ? 0L : ((Number) obj).longValue();
         }
     };
     @SuppressWarnings("unchecked")
