@@ -86,7 +86,7 @@ class JSONGenerator {
             return;
         }
         try {
-            generateObject(Json.converter.toJson(value), level);
+            generateObject(Json.converter.toJson(value), level - 1);
         } catch (Exception ex) {
             throw new ClassCastException(ex.getMessage());
         }

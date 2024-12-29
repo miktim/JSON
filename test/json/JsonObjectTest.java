@@ -217,6 +217,7 @@ public class JsonObjectTest {
         a.fromJson(j);
         log(a);
         if (!j.toString().equals(a.toString())) {
+            log(j);
             log("Failed! ");
             return;
         }

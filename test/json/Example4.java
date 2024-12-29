@@ -6,9 +6,9 @@
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
-import java.util.List;
 import org.miktim.json.JSON;
 import org.miktim.json.Json;
 import org.miktim.json.JsonObject;
@@ -42,8 +42,9 @@ public class Example4 {
         public Object reviver(String name, Object value) {
             if (name.endsWith(":friends")) {
 // load friends Set, first create collection from array                
-                   List<Integer> list = Arrays.asList(JSON.cast(Integer[].class, value));
-                   return new HashSet<>(list);
+                   @SuppressWarnings("unchecked")
+                   ArrayList<Integer> list= new ArrayList(Arrays.asList(JSON.cast(Integer[].class, value)));
+                   return new HashSet<Integer>(list);
             }
             return value;
         }

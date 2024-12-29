@@ -88,7 +88,10 @@ abstract class JsonConverter implements JsonConvertible {
                         }
 // TODO: !? field value == null
                         Class fieldCls = field.getType();
-                        if (!(JSON.isNativeClass(fieldCls) || value.getClass().isArray())) {
+                        if (!(JSON.isNativeClass(fieldCls) 
+                                || newValue.getClass().equals(fieldCls)
+                                || fieldCls.isArray())) {
+//                        if (!(JSON.isNativeClass(fieldCls) || value.getClass().isArray())) {
 //                        if (!(JSON.isNativeType(value) || value.getClass().isArray())) {
                             newValue = Json.converter.fromJson(value, newValue);
                         }

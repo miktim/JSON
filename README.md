@@ -10,11 +10,11 @@ Java SE 7+/Android RFC 8259 compliant package
 \- “Json” means the Java representation of a JSON object.  
 
 
-The class [JSON](#JSON) contains static methods for parsing/generating text in JSON format. Parser converts JSON to <a name="native"></a> **package-native** objects: **[Json object](#Json)** ( the Java representation of a JSON object )**, String, Number, Boolean, null, Object[ ]** - an array of the listed types. The JSON generator accept any Java object, all Java primitives and their arrays.   
+The class [JSON](#JSON) contains static methods for parsing/generating text in JSON format. Parser converts JSON to <a id="native"></a> **package native** objects: **[Json](#Json_object)** ( the Java representation of a JSON object )**, String, Number, Boolean, null, Object[ ]** - an array of the listed types. The JSON generator accept any Java object, all Java primitives and their arrays.   
 
 Instances of Java classes can be converted to Json object (usually empty) using [Json.converter](#Converter).  
 
-The [JsonObject](#JsonObject) abstract class and [JsonConvertible](#JsonConvertible) interface use the JavaScript-like replacer/reviver tool to convert object instance fields to or from [Json object](#Json) members.  
+The [JsonObject](#JsonObject) abstract class and [JsonConvertible](#JsonConvertible) interface use the JavaScript-like replacer/reviver tool to convert object instance fields to or from package native objects.  
 
   
 #### package org.miktim.json  
@@ -89,7 +89,7 @@ System.out.println(Arrays.deepToString(dbls));
 */
 ```
   
-<a name="Json"></a>
+<a id="Json_object"></a>
 #### class Json extends HashMap &lt;String, Object\>
 This class is a Java representation of a JSON object.
 Json member types: **Json object, String, Number, Boolean, null, Object[ ]** array of listed types.
@@ -235,7 +235,7 @@ System.out.printf("%d %s %s\n\r", personId, firstName, homePhone);
 1234 John 123-4567
 */
 ```
-<a name="Converter"></a> 
+<a id="Converter"></a> 
 #### Json.converter  
 Used to convert existing instances of Java objects to/from a Json object.  
 Only the visible (context depended!) fields are converted. The converter ignores the final and transient fields.
@@ -278,12 +278,12 @@ Loads Json to target object. Returns target object.
   }
 ```  
 
-<a name="JsonConvertible"></a>
+<a id="JsonConvertible"></a>
 #### interface JsonConvertible  
-The JsonConvertible interface provdes JavaScript-like methods for conversion fields of a Java object to/from a package [native](#native) objects. Notes:  
+The JsonConvertible interface provdes JavaScript-like methods for conversion fields of a Java object to/from a [package native](#native) objects. Notes:  
 \- visibility of object fields as from the object constructor (including the privates);  
 \- Java transient and final fields are ignored;  
-\- it is strongly recommended to initialize the accessible fields and create a public default constructor;  
+\- it is recommended to initialize the accessible fields and create a public default constructor;  
 \- non-native, non Json convertible fields MUST be managed using replacer/reviver.  
 
 <p style="background-color: #B0C4DE;">
@@ -315,7 +315,7 @@ Applies on loading from Json object:
   
 ```java
 /*
- * Creating a JsonConvertible object from a HashMap
+ * Creating a Json convertible HashMap
  */
 public class NamesOfNumbers extends HashMap<Double, String>
     implements JsonConvertible {
@@ -392,12 +392,12 @@ one and five tenths
 ```  
 
   
-<a name="JsonObject"></a>
+<a id="JsonObject"></a>
 #### abstract class JsonObject implements JsonConvertible
-Java object extender. Unload/load fields of a Java object instance to/from a [native](#native) objects. Notes:  
+Java object extender. Unload/load fields of a Java object instance to/from a [package native](#native) objects. Notes:  
 \- visibility of object fields as from the object constructor (including the privates);  
 \- Java transient and final fields are ignored;  
-\- it is highly recommended to initialize accessible fields and create a public default constructor;  
+\- it is recommended to initialize accessible fields and create a public default constructor;  
 \- non-native, non Json convertible fields MUST be managed using replacer/reviver.  
   
 <p style="background-color: #B0C4DE;">
