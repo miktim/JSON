@@ -46,10 +46,10 @@ Serializes a Java object as JSON text into a stream with the specified indentati
   
 
 Methods for converting or copying Java objects.  Notes:  
-\- sample must be initialized;  
+\- the sample object must be initialized;  
 \- arrays must have the same dimension;  
 \- casting numbers may involve rounding or truncation;  
-\- casting a null object to primitive returns empty array or initial value;  
+\- casting null to primitive returns empty array or initial value;  
 \- casting to null returns null.  
   
 
@@ -244,10 +244,10 @@ Only the visible (context depended!) fields are converted. The converter ignores
 &emsp;<b>Methods:</b>
 </p>  
 
-**Json toJson ( Object targetObj )**  
+**Json toJson ( Object targetObj ) throws ClassCastException**  
 Returns a Json object from the target object  
 
-**&lt;T\> T fromJson ( T targetObj, Json jsonObj ) throws IOException, ParseException**  
+**&lt;T\> T fromJson ( T targetObj, Json jsonObj ) throws ClassCastException**  
 Loads Json to target object. Returns target object.  
 
 <p style="background-color: #B0C4DE;">
