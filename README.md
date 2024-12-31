@@ -237,7 +237,7 @@ System.out.printf("%d %s %s\n\r", personId, firstName, homePhone);
 */
 ```
 <a id="Converter"></a> 
-### Json.converter  
+### Static Json.converter  
 Used to convert existing instances of Java objects to/from a Json object.  
 Only the visible (context depended!) fields are converted. The converter ignores the final and transient fields.
 
