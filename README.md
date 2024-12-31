@@ -1,30 +1,32 @@
-## Java 7+/Android JSON parser/generator, MIT (c) 2020-2024 @miktim  
-  
+## Java 7+/Android JSON parser/generator, MIT (c) 2020-2025 @miktim
+
 ### Release notes:  
-  
+
 Java SE 7+/Android RFC 8259 compliant package
 (see: [https://datatracker.ietf.org/doc/rfc8259/?include_text=1](https://datatracker.ietf.org/doc/rfc8259/?include_text=1) ).  
 \- no external dependencies;  
-\- arrays of mixed type are allowed;  
+\- JSON literals and arrays of mixed type are allowed;  
 \- “JSON” means text in JSON format. JSON text exchanged between systems MUST be encoded using UTF-8 (default charset);  
 \- “Json” means the Java representation of a JSON object.  
 
 The jar ./dist/json-... file was generated with debugging info using JDK 8 for target JRE 7.  
+  
+### package org.miktim.json  
 
-The class [JSON](#JSON) contains static methods for parsing/generating text in JSON format. Parser converts JSON to <a id="native"></a> **package native** objects: **[Json](#Json_object)** ( the Java representation of a JSON object )**, String, Number, Boolean, null, Object[ ]** - an array of the listed types. The JSON generator accept any Java object, all Java primitives and their arrays.   
+<p style="background-color: #B0C4DE;">
+&emsp;<b>Overview:</b>
+</p>  
+
+The class [JSON](#JSON) contains static methods for parsing/generating text in JSON format. Parser converts JSON to <a id="native"></a> **package native** objects: **[Json](#JsonClass)** ( the Java representation of a JSON object )**, String, Number, Boolean, null, Object[ ]** - an array of the listed types. The JSON generator accept any Java object, all Java primitives and their arrays.   
 
 Instances of Java classes can be converted to Json object (usually empty) using [Json.converter](#Converter).  
 
 The [JsonObject](#JsonObject) abstract class and [JsonConvertible](#JsonConvertible) interface use the JavaScript-like replacer/reviver tool to convert object instance fields to or from package native objects.  
 
-  
-### package org.miktim.json  
-  
-  
 <a id="JSON"></a> 
 ### Class JSON
 
-This class contains static parsing/generating methods.  
+This class contains static parsing/generating methods. When the names within an JSON object are not unique, the parser stores last value only.  
 
 <p style="background-color: #B0C4DE;">
 &emsp;<b>Methods:</b>
@@ -42,10 +44,15 @@ Serializes a Java object as a single-line text in JSON format
 **static String toJSON ( Object obj, int space ) throws IOException**  
 Generate a Java object as JSON text with the specified number of spaces in the line indentation.  
 
+
+**static &lt;T\>T toJSON ( T obj, OutputStream out, int space ) throws IOException**  
+Serializes a Java object as JSON text into a UTF-8 stream with the specified indentation. Returns obj.  
+
+
 **static &lt;T\>T toJSON ( T obj, OutputStream out, int space, String charsetName ) throws IOException**  
 Serializes a Java object as JSON text into a stream with the specified indentation and encoding. Returns obj.  
   
-
+<a id="cast"></a>
 Methods for converting or copying Java objects.  Notes:  
 \- the sample object must be initialized;  
 \- arrays must have the same dimension;  
@@ -58,20 +65,24 @@ Methods for converting or copying Java objects.  Notes:
 Casting a Java Object to the sample Class  
 
 **static &lt;T\> T cast ( Class &lt;T\> cls, Object obj ) throws ClassCastException**  
-Casting a Java object to a Class  
+Casting a Java object to the cls Class  
 <p style="background-color: #B0C4DE;">
 &emsp;<b>Example:</b>
 </p>  
-  
 
 ```java
 /*
- * Parse and cast arrays
+ * Parse and cast
  */
-
-// cast by class. Numbers truncated to integers
-int ints = JSON.cast(int[].class,
-  JSON.fromJSON("[1.2, 3.4, 5]"));
+// JSON string literal 
+Object obj = JSON.fromJSON("\"This is also JSON!\"");
+System.out.println(obj instanceof String);
+/* console output:
+true
+*/
+obj = JSON.fromJSON("[1.2, 3.4, 5]"); // obj instance of Object[]
+// cast array by class. Numbers truncated to integers
+int[] ints = JSON.cast(int[].class, obj);
 // generate JSON with two spaces in the indentation
 System.out.println(JSON.toJSON(ints, 2));
 /* console output:
@@ -81,22 +92,22 @@ System.out.println(JSON.toJSON(ints, 2));
   5
 ]
 */
-// cast by sample
+// cast array by sample
 double[][] dbls = new double[0][0];
-dbls = JSON.cast(dbls, new int[][]{{1, 2, 3},{7, 8, 9}});
+dbls = JSON.cast(dbls, new int[][]{{1, 2, 3},{7, 8}});
 System.out.println(Arrays.deepToString(dbls));
 /* console output:
-[[1.0, 2.0, 3.0], [7.0, 8.0, 9.0]]
+[[1.0, 2.0, 3.0], [7.0, 8.0]]
 */
 ```
   
-<a id="Json_object"></a>
+<a id="JsonClass"></a>
 ### Class Json extends HashMap &lt;String, Object\>
 This class is a Java representation of a JSON object.
-Json member types: **Json, String, Number, Boolean, null, Object[ ]** array of listed types.
+Json member types: **Json, String, Number, Boolean, null, Object[ ]** - an array of the listed types.  
    
 Put, set notes:  
-\- Json object setters accept any Java object, all Java primitives and primitive arrays;  
+\- Json object setters accept any Java object, all Java primitives and their arrays;  
 \- RFC 8259 does not recommend using Java BigDecimal and BigInteger as JSON values;  
 \- AVOID RECURSION ! ;  
 \- the put, set methods cast Java primitives into corresponding objects: 
@@ -178,14 +189,11 @@ Casts member or array element to Boolean
 Casts member to array of Objects  
 
 **&lt;T\> T castMember ( T sample, String memberName, int... indices ) throws ClassCastException, IndexOutOfBoundsException**  
-Converts the value of a Json member or an array element to the sample class. See notes for a JSON.cast methods    
+Converts the value of a Json member or an array element to the sample class. See notes for a [JSON.cast](#cast) methods.  
 
 **&lt;T\> T castMember ( Class &lt;T\> cls, String memberName, int... indices ) throws ClassCastException, IndexOutOfBoundsException**  
-Converts the value of a Json member or an array element to the specified class. See notes for a JSON.cast methods  
-<!--
-**Json normalize() throws IOException, ParseException**  
-Returns normalized Json object  
--->
+Converts the value of a Json member or an array element to the specified class. See notes for a [JSON.cast](#cast) methods.  
+
 **String toString ( )**  
 Overridden. Returns JSON text as single line  
 
@@ -209,7 +217,7 @@ Output UTF-8 encoded single line JSON text to outStream. Returns this.
 Json j = (new Json())
   .set("personId", 1234)
   .set("firstName","John")
-  ,set("lastName","Doe")
+  .set("lastName","Doe")
 // "phones" is nested Json object
   .set("phones", 
     new Json("home", "123-4567","work","890-1234"));
@@ -236,10 +244,10 @@ System.out.printf("%d %s %s\n\r", personId, firstName, homePhone);
 1234 John 123-4567
 */
 ```
-<a id="Converter"></a> 
-### Json.converter  
+<a id="Converter"></a>
+### Static Json.converter  
 Used to convert existing instances of Java objects to/from a Json object.  
-Only the visible (context depended!) fields are converted. The converter ignores the final and transient fields.
+Only the visible fields are converted. The converter ignores the final and transient fields.
 
 <p style="background-color: #B0C4DE;">
 &emsp;<b>Methods:</b>
@@ -262,7 +270,7 @@ Loads Json to target object. Returns target object.
   public static class Foo {
     public String pub = "public"; // visible
     String def = "default"; // invisible in the converter
-    protected String pro = "protected"; // visible in the same package
+    protected String pro = "protected"; // invisible in the converter
     private String pri = "private"; // invisible in the converter
     public transient String pubt = "public transient"; // ignored
     public final String pubf = "public final"; // ignored
@@ -274,7 +282,7 @@ Loads Json to target object. Returns target object.
     Foo foo = new Foo();  
     System.out.println(Json.converter.toJson(foo));
 /* console output:
-{"pub": "public", "pro": "protected"}
+{"pub": "public"}
 */
   }
 ```  
@@ -284,8 +292,8 @@ Loads Json to target object. Returns target object.
 The JsonConvertible interface provides JavaScript-like methods for converting Java object fields into or from [package native](#native) objects. Notes:  
 \- visibility of object fields as from the object constructor (including the privates);  
 \- Java transient and final fields are ignored;  
-\- it is recommended to initialize the accessible fields and create a public default constructor;  
-\- non-native, non Json convertible fields MUST be managed using replacer/reviver.  
+\- it is recommended to initialize the convertible fields;  
+\- requires a public default constructor.  
 
 <p style="background-color: #B0C4DE;">
 &emsp;<b>Constants:</b>
@@ -301,14 +309,14 @@ Returned from the replacer/reviver methods to skip the field.
 **Object replacer ( String name, Object value );**  
 Applies on unloading to Json object:  
 \- name is object field class and name delimited with colon ( : ), value is object field value;  
-\- first call with the target object class name and the target object as the value;  
+\- the first call with the name of the target object's class and the target object as the value;  
 \- returns Json-supported object or IGNORED.  
 
 **Object reviver ( String name, Object value );**  
 Applies on loading from Json object:  
 \- name is object field class and name delimited with colon ( : ), value is Json-supported object;  
-\- first call with the target object class name and the Json object as value;  
-\- returns a value that is compatible with the target object field or IGNORED  
+\- the first call with the name of the target object's class and the Json object as the value;  
+\- returns a convertible value or IGNORED.  
 
 <p style="background-color: #B0C4DE;">
 &emsp;<b>Example:</b>
@@ -351,7 +359,7 @@ public class NamesOfNumbers extends HashMap<Double, String>
       for (String key : j.listNames()) {
         this.put(new Double(key), j.getString(key));
       }
-      return IGNORED; // nothing to do
+// return this object (value) for default loading
     }
     return value; // loading other fields "by default"
   }
@@ -398,8 +406,8 @@ one and five tenths
 Java object extender. Unload/load fields of a Java object instance to/from a [package native](#native) objects. Notes:  
 \- visibility of object fields as from the object constructor (including the privates);  
 \- Java transient and final fields are ignored;  
-\- it is recommended to initialize accessible fields and create a public default constructor;  
-\- non-native, non Json convertible fields MUST be managed using replacer/reviver.  
+\- it is recommended to initialize the convertible fields;  
+\- requires a public default constructor.  
   
 <p style="background-color: #B0C4DE;">
 &emsp;<b>Constants:</b>
@@ -425,16 +433,6 @@ Loads Json to this object. Returns this object.
 **String toString ( );**  
 Overridden. Generate JSON text as a single line  
   
-<!--  
-**static boolean isClassName ( String name );**  
-Returns true if name is class name.  
--->
-  
-<!--
-**protected &lt;T\> T castMember( T sample, String memberName, Json jsonObj );**  
-Returns the sample if Json member does not exists or is null  
--->  
-
 <p style="background-color: #B0C4DE;">
 &emsp;<b>Example:</b>
 </p>  

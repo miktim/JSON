@@ -8,7 +8,10 @@ import java.io.FileInputStream;
 import java.math.BigDecimal;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
 import org.miktim.json.JSON;
 import org.miktim.json.Json;
 
@@ -37,7 +40,7 @@ public class JsonTest {
 
         log("\n\rTest parse/generate literals:");
         String fmt = "%s -> %s";
-        String sl = "\"" + escaped + "\"";
+        String sl = "\"ru: Это тоже JSON! en: This is also JSON!\"";
         log(String.format(fmt, sl, JSON.toJSON(JSON.fromJSON(sl))));
         sl = "+3.141592653589793238462643383279";
         log(String.format(fmt, sl, JSON.toJSON(JSON.fromJSON(sl))));
@@ -108,10 +111,7 @@ log("\n\rTest JSON object constructors (key pairs, JSON text):");
         log("\n\rJSON object:");
         log(json);
         log("\n\rList members: " + JSON.toJSON(json.listNames()));
-//        Json jsonn = json.normalize();
-//        log("\n\rJSON object AFTER normalization:");
-//        log(jsonn);
-//        log("\n\rClasses of members before/after normalization:");
+
         log("\n\rClasses of members:");
         for (String memberName : json.listNames()) {
             if (json.get(memberName) != null) {
@@ -140,22 +140,7 @@ log("\n\rTest JSON object constructors (key pairs, JSON text):");
         log(json.get("array", 1, 3).getClass().getSimpleName());
         int i = json.getNumber("array", 1, 3).intValue();
         log(i);
-/*
-        log("Normalized object:");
-        log(json = json.normalize());
 
-// member "array" is instance of Object[Object[], Object[]]        
-        log(json.get("array").getClass().getSimpleName());
-        log(json.get("array", 1).getClass().getSimpleName());
-        log(json.getArray("array", 1).getClass().getSimpleName());
-        log(Arrays.toString(json.getArray("array", 1)));
-        log(json.get("array", 1, 3).getClass().getSimpleName());
-        i = json.getNumber("array", 1, 3).intValue();
-        log(i);
-        log(JSON.toJSON(json.castMember(int[][].class,"array")));
-*/
-// TODO use Json.converter against toString
-/*
         log("\n\rTest generator with other Java objects:");
         log("  1. HashMap with int[3], Date, String and File entries:");
         HashMap<String,Object> hashMap = new HashMap<String,Object>();
@@ -175,8 +160,8 @@ log("\n\rTest JSON object constructors (key pairs, JSON text):");
         log(s);
         Object obj = JSON.fromJSON(s);
         log("is Array?: " + (obj.getClass().isArray()));
-*/
-        Object obj;
+
+//        Object obj;
         log("\n\rTest examples:");
 // examples from RFC 8259 https://datatracker.ietf.org/doc/rfc8259/?include_text=1
         log(JSON.fromJSON("\"\\uD834\\uDD1E\"")); // G-clef
@@ -287,7 +272,7 @@ log("\n\rTest JSON object constructors (key pairs, JSON text):");
 
         start = System.currentTimeMillis();
         for (i = 0; i < 100; i++) {
-            String s = JSON.toJSON(obj);
+            String ss = JSON.toJSON(obj);
         }
         log("Generation " + ((float)(System.currentTimeMillis() - start))/100);
 

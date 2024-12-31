@@ -33,6 +33,13 @@ public class JSON {
         return obj;
     }
 
+    public static <T> T toJSON(T obj, OutputStream out, int space)
+            throws IOException {
+        JSONGenerator generator = new JSONGenerator(out, space, "UTF-8");
+        generator.generateObject(obj, 0);
+        return obj;
+    }
+
     public static <T> T toJSON(T obj, OutputStream out)
             throws IOException {
         return toJSON(obj, out, 0, "UTF-8");
@@ -129,8 +136,8 @@ public class JSON {
 
         <T> T castValue(Object value) throws ClassCastException;
     }
+    
 // TODO: ?safeCast from BigDecimal
-
     @SuppressWarnings("unchecked")
     static CastAdapter getAdapter(Class cls) {
         // find an adapter 
@@ -157,19 +164,9 @@ public class JSON {
 //        } else if (JsonConvertible.class.isAssignableFrom(cls)) {
 //            return new ObjectAdapter(cls);
         }
-// TODO: ?Map, List adapters
         return new ObjectAdapter(cls);
-//        return defaultAdapter;
     }
-/*
-    @SuppressWarnings("unchecked")
-    private static final CastAdapter defaultAdapter = new CastAdapter() {
-        @Override
-        public Object castValue(Object obj) {
-            return obj;
-        }
-    };
-*/
+
     @SuppressWarnings("unchecked")
     static class ObjectAdapter implements CastAdapter {
 
@@ -272,7 +269,7 @@ public class JSON {
     private static final CastAdapter stringAdapter = new CastAdapter() {
         @Override
         public String castValue(Object obj) {
-            return String.valueOf(obj);
+            return obj == null ? null : String.valueOf(obj);
         }
     };
 }
