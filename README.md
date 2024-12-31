@@ -1,6 +1,6 @@
-### Java 7+/Android JSON parser/generator, MIT (c) 2020-2024 @miktim  
+## Java 7+/Android JSON parser/generator, MIT (c) 2020-2024 @miktim  
   
-#### Release notes:  
+### Release notes:  
   
 Java SE 7+/Android RFC 8259 compliant package
 (see: [https://datatracker.ietf.org/doc/rfc8259/?include_text=1](https://datatracker.ietf.org/doc/rfc8259/?include_text=1) ).  
@@ -9,6 +9,7 @@ Java SE 7+/Android RFC 8259 compliant package
 \- “JSON” means text in JSON format. JSON text exchanged between systems MUST be encoded using UTF-8 (default charset);  
 \- “Json” means the Java representation of a JSON object.  
 
+The jar ./dist/json-... file was generated with debugging info using JDK 8 for target JRE 7.  
 
 The class [JSON](#JSON) contains static methods for parsing/generating text in JSON format. Parser converts JSON to <a id="native"></a> **package native** objects: **[Json](#Json_object)** ( the Java representation of a JSON object )**, String, Number, Boolean, null, Object[ ]** - an array of the listed types. The JSON generator accept any Java object, all Java primitives and their arrays.   
 
@@ -17,11 +18,11 @@ Instances of Java classes can be converted to Json object (usually empty) using 
 The [JsonObject](#JsonObject) abstract class and [JsonConvertible](#JsonConvertible) interface use the JavaScript-like replacer/reviver tool to convert object instance fields to or from package native objects.  
 
   
-#### package org.miktim.json  
+### package org.miktim.json  
   
   
-<a name="JSON"></a> 
-#### class JSON
+<a id="JSON"></a> 
+### Class JSON
 
 This class contains static parsing/generating methods.  
 
@@ -30,7 +31,7 @@ This class contains static parsing/generating methods.
 </p>  
 
 **static Object fromJSON ( String jsonText ) throws IOException, ParseException**  
-Parse JSON text to a native objects  
+Parse JSON text to a native objects.  
 
 **static Object fromJSON ( InputStream in, String charsetName ) throws IOException, ParseException**  
 Parse JSON text from an input stream with the specified encoding
@@ -39,7 +40,7 @@ Parse JSON text from an input stream with the specified encoding
 Serializes a Java object as a single-line text in JSON format  
 
 **static String toJSON ( Object obj, int space ) throws IOException**  
-Generate a Java object as JSON text with the specified number of spaces in the indentation  
+Generate a Java object as JSON text with the specified number of spaces in the line indentation.  
 
 **static &lt;T\>T toJSON ( T obj, OutputStream out, int space, String charsetName ) throws IOException**  
 Serializes a Java object as JSON text into a stream with the specified indentation and encoding. Returns obj.  
@@ -90,16 +91,16 @@ System.out.println(Arrays.deepToString(dbls));
 ```
   
 <a id="Json_object"></a>
-#### class Json extends HashMap &lt;String, Object\>
+### Class Json extends HashMap &lt;String, Object\>
 This class is a Java representation of a JSON object.
-Json member types: **Json object, String, Number, Boolean, null, Object[ ]** array of listed types.
+Json member types: **Json, String, Number, Boolean, null, Object[ ]** array of listed types.
    
 Put, set notes:  
 \- Json object setters accept any Java object, all Java primitives and primitive arrays;  
-\- RFC 8259 does not recommend using Java BigDecimal and BigInteger as Json member values;  
-\- AVOID RECURSION!;  
-\- put, set methods cast Java primitives to the corresponding objects: 
-**Number**, **Boolean** or **String** for chars  
+\- RFC 8259 does not recommend using Java BigDecimal and BigInteger as JSON values;  
+\- AVOID RECURSION ! ;  
+\- the put, set methods cast Java primitives into corresponding objects: 
+**Number**, **Boolean** or **String** for chars;  
 \- Java arrays are stored as:  
 **int[ ][ ]** as **Object[ ] { Object[ ] { Number, ... }, Object[ ] { Number, ... } }**, **String[ ]** as **Object[ ] { String, ... }**  
 
@@ -236,7 +237,7 @@ System.out.printf("%d %s %s\n\r", personId, firstName, homePhone);
 */
 ```
 <a id="Converter"></a> 
-#### Json.converter  
+### Json.converter  
 Used to convert existing instances of Java objects to/from a Json object.  
 Only the visible (context depended!) fields are converted. The converter ignores the final and transient fields.
 
@@ -279,8 +280,8 @@ Loads Json to target object. Returns target object.
 ```  
 
 <a id="JsonConvertible"></a>
-#### interface JsonConvertible  
-The JsonConvertible interface provdes JavaScript-like methods for conversion fields of a Java object to/from a [package native](#native) objects. Notes:  
+### Interface JsonConvertible  
+The JsonConvertible interface provides JavaScript-like methods for converting Java object fields into or from [package native](#native) objects. Notes:  
 \- visibility of object fields as from the object constructor (including the privates);  
 \- Java transient and final fields are ignored;  
 \- it is recommended to initialize the accessible fields and create a public default constructor;  
@@ -393,7 +394,7 @@ one and five tenths
 
   
 <a id="JsonObject"></a>
-#### abstract class JsonObject implements JsonConvertible
+### Abstract class JsonObject implements JsonConvertible
 Java object extender. Unload/load fields of a Java object instance to/from a [package native](#native) objects. Notes:  
 \- visibility of object fields as from the object constructor (including the privates);  
 \- Java transient and final fields are ignored;  
