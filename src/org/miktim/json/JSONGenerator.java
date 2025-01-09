@@ -1,5 +1,5 @@
 /**
- * JSON generator, MIT (c) 2020-2024 miktim@mail.ru
+ * JSON generator, MIT (c) 2020-2025 miktim@mail.ru
  *
  * Generator converts to JSON Java objects:
  * - Json object, String, Number, Boolean, null, Object[] array of listed types;

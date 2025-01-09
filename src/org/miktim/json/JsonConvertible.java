@@ -1,5 +1,5 @@
 /**
- * JsonConvertible interface, MIT (c) 2024 miktim@mail.ru
+ * JsonConvertible interface, MIT (c) 2024-2025 miktim@mail.ru
  * 
  * Provides conversion of the accessible fields of the Java object instance
  * to package native and vice versa.

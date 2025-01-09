@@ -1,5 +1,5 @@
 /**
- * JsonObject abstract class. MIT (c) 2022-2024 miktim@mail.ru
+ * JsonObject abstract class. MIT (c) 2022-2025 miktim@mail.ru
  *
  * Converts Java object instance accessible fields to/from Json object.
  * Java final and transient fields are ignored.

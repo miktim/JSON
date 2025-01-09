@@ -1,5 +1,5 @@
 /**
- * JsonConverter abstract class, MIT (c) 2024 miktim@mail.ru
+ * JsonConverter abstract class, MIT (c) 2024-2025 miktim@mail.ru
  *
  * Converts visible fields of the Java object instance
  * to package native and vice versa.

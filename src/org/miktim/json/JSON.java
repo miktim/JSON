@@ -1,5 +1,5 @@
 /**
- * Java JSON parser/generator, MIT (c) 2020-2024 miktim@mail.ru
+ * Java JSON parser/generator, MIT (c) 2020-2025 miktim@mail.ru
  *
  * Release notes:
  * - Java 7+, Android compatible;
