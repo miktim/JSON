@@ -8,7 +8,7 @@ package org.miktim.json;
 
 public interface JsonConvertible {
 
-    static final Object IGNORED = JsonConverter.IGNORED;
+    static final Object IGNORED = new Object();
 
     Object replacer(String name, Object value);
 

@@ -18,8 +18,6 @@ public class JsonObjectTest {
         System.out.println();
     }
 
-//    JsonObjectTest() {
-//    }
     static class F extends E {
 
         public D objFD = new D();
@@ -106,7 +104,6 @@ public class JsonObjectTest {
 
         B() {
             super();
-//            setIgnored(new String[0]); // reset ignored
         }
 
         @Override
@@ -114,10 +111,6 @@ public class JsonObjectTest {
 //            log(name);
             try {
                 if (name.indexOf(':') < 0) { // first call
-// ignored field was declared in A
-//                log("Ignored: " + Arrays.toString(getIgnored()));
-// private a.pri_ad field is invisible here. Unload by getter
-// on first call we MUST return Json object
                     return (new Json()).set("set_aD", get_Ad());
                 } else if (name.endsWith(":BD")) {
 //                    return toJson(value);
@@ -125,7 +118,7 @@ public class JsonObjectTest {
             } catch (IndexOutOfBoundsException e) {
                 e.printStackTrace();
             }
-            return super.replacer(name, value); // TODO target?
+            return super.replacer(name, value); // TODO wrong approach
         }
 
         @Override
@@ -134,14 +127,14 @@ public class JsonObjectTest {
                 if (name.indexOf(':') < 0) { // first call
 // load a.priv_ad by setter
                     set_Ad(((Json)value).castMember(get_Ad(), "set_aD"));
-                    return IGNORED;
+                    return IGNORED; // terminate loading
                 } else if (name.endsWith(":BD")) {
 //                    return fromJson(bD, (Json) value);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
             }
-            return super.reviver(name, value); // TODO target?
+            return super.reviver(name, value); // TODO wrong approach!
         }
     }
 
@@ -161,7 +154,6 @@ public class JsonObjectTest {
             defAmpC.put(3, new C(1, "one"));
             defAmpC.put(2, new C(2, "two"));
             defAmpC.put(1, new C(3, "three"));
-//            setIgnored(new String[]{"pub_aS"});
         }
 
         public double get_Ad() {
@@ -196,7 +188,7 @@ public class JsonObjectTest {
                     C c = Json.converter.fromJson(new C(), j.getJson(key));
                     defAmpC.put(new Integer(key), c);
                 }
-                return IGNORED; // aC already loaded
+                return IGNORED; // loading terminated
             }
 //
             return value;
@@ -240,7 +232,7 @@ public class JsonObjectTest {
         D d = new D(456, "default dS");
 
         log("\n\r B instance toJson/fromJson :");
-// TODO JsonObject returns Object
+// 
         String s = ((Json) Json.converter.toJson(b)).toJSON();
         log(s);
         Json.converter.fromJson(b, new Json(s));

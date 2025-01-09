@@ -71,7 +71,6 @@ public class Example4 {
         Json persons = new Json(fis);
         String s = persons.toJSON();
         System.out.println(s);
-// TODO: !cast not use Json.converter for convertible Objs     
         Person person = persons.castMember(Person.class, "12345");
         System.out.println(JSON.toJSON(person, 2));
     };

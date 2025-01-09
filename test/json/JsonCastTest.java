@@ -26,7 +26,6 @@ public class JsonCastTest {
     public static void main(String[] args) throws Exception {
         log("JsonCast test\n\r");
 
-// TODO chars, Json arrays        
         Json json = new Json(
                 "i", 1234567,
                 "bl", true,
@@ -37,7 +36,7 @@ public class JsonCastTest {
                 "ad1", new double[]{1.5, 2.1},
                 "e1", new Object[]{},
                 "ao2", new Object[][]{{8, 9.9, 10, 11.6}, {12, 0.0}},
-                "aFoo", new Foo[]{new Foo(1,"one"), new Foo(2,"two"), new Foo(3, "three")}
+                "aFoo", new Foo[]{new Foo(1,"one"), new Foo(2,"two"), new Foo(3, "three"), null}
         );
 
         log(JSON.toJSON(json,-1));
@@ -110,7 +109,6 @@ public class JsonCastTest {
 // NullPointerException: "ac2" member does not exist
 //        ac1 = JSON.cast( ac1, json.getArray("ast1"));
 //        log(Arrays.deepToString(ac1) + " \"ast1\" to " + ac1.getClass().getSimpleName());
-// TODO ClassCastException
         ac1 = JSON.cast(ac1, json.getArray("ast1"));
         log(Arrays.toString(ac1) + " \"ast1\" to " + ac1.getClass().getSimpleName());
 

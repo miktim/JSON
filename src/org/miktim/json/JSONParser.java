@@ -128,8 +128,8 @@ class JSONParser {
                     sb.append(getChar());
                 }
             }
-            object = unescapeString(sb.toString()); // may throw ParseException
             getChar(); // skip trailing double quote
+            object = unescapeString(sb.toString()); // may throw ParseException
         } else if (charIn(LITERALS, lastChar())) {
             String literal = nextChars(LITERALS);
             switch (literal) {

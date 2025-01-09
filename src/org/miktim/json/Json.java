@@ -5,8 +5,8 @@
  * Release notes:
  * - Java 7+, Android compatible;
  * - Json members:
- *   Json object, String, Number (Double or Long), Boolean, null, Object[] array of listed types;
- * - Json setters accept any Java objects, all Java primitives and primitive arrays;
+ *   Json object, String, Number, Boolean, null, Object[] array of listed types;
+ * - Json setters accept any Java objects, all Java primitives and their arrays;
  * - avoid recursion!.
  *
  * Created: 2020-03-07
@@ -94,6 +94,7 @@ public class Json extends LinkedHashMap<String, Object> {
             Class cls = value.getClass();
             if (!cls.isPrimitive()) {
                 try {
+// TODO: something faster than a double conversion
                     value = JSON.fromJSON(JSON.toJSON(value));
                 } catch (IOException | ParseException ex) {
                 }
@@ -173,7 +174,7 @@ public class Json extends LinkedHashMap<String, Object> {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> T fromJson(Object targetObj, Object jsonObj) {
+    public <T> T fromJson(Object targetObj, Json jsonObj) {
 //            throws IllegalArgumentException, IllegalAccessException {
         return (T) load(this, targetObj, jsonObj);
     }
