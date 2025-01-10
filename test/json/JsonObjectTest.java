@@ -1,5 +1,5 @@
 /*
- * JsonObject test, MIT (c) 2022-2024 miktim@mail.ru 
+ * JsonObject test, MIT (c) 2022-2025 miktim@mail.ru 
  */
 //package json; 
 
@@ -127,7 +127,7 @@ public class JsonObjectTest {
                 if (name.indexOf(':') < 0) { // first call
 // load a.priv_ad by setter
                     set_Ad(((Json)value).castMember(get_Ad(), "set_aD"));
-                    return IGNORED; // terminate loading
+                    return IGNORE; // terminate loading
                 } else if (name.endsWith(":BD")) {
 //                    return fromJson(bD, (Json) value);
                 }
@@ -188,7 +188,7 @@ public class JsonObjectTest {
                     C c = Json.converter.fromJson(new C(), j.getJson(key));
                     defAmpC.put(new Integer(key), c);
                 }
-                return IGNORED; // loading terminated
+                return IGNORE; // loading terminated
             }
 //
             return value;

@@ -3,14 +3,13 @@
  *
  * Generator converts to JSON Java objects:
  * - Json object, String, Number, Boolean, null, Object[] array of listed types;
- * - Java numeric and boolean primitives and their arrays;
+ * - Java primitives and their arrays;
  * - other Java objects, in general, generated as empty JSON object.
  */
 package org.miktim.json;
 
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 import static java.util.Arrays.binarySearch;
@@ -29,7 +28,7 @@ class JSONGenerator {
         stream = outStream;
     }
 
-    void write(Object obj) throws UnsupportedEncodingException, IOException {
+    void write(Object obj) throws IOException {
         stream.write(String.valueOf(obj).getBytes(this.charsetName));
     }
 
@@ -85,11 +84,7 @@ class JSONGenerator {
             write("}");
             return;
         }
-        try {
-            generateObject(Json.converter.toJson(value), level - 1);
-        } catch (Exception ex) {
-            throw new ClassCastException(ex.getMessage());
-        }
+        generateObject(Json.converter.toJson(value), level - 1);
     }
 
     private static final int[] UNESCAPED_CHARS = {0x8, 0x9, 0xA, 0xC, 0xD, 0x22, 0x2F, 0x5C};

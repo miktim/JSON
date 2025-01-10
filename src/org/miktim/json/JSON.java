@@ -30,6 +30,7 @@ public class JSON {
             throws IOException {
         JSONGenerator generator = new JSONGenerator(out, space, charsetName);
         generator.generateObject(obj, 0);
+        out.flush();
         return obj;
     }
 

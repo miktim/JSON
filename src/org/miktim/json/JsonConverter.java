@@ -11,9 +11,8 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Modifier;
 import java.util.LinkedHashMap;
 
-abstract class JsonConverter implements JsonConvertible {
+public abstract class JsonConverter implements JsonConvertible {
 
-//    protected static final transient Object IGNORED = new Object();
     @Override
     public Object replacer(String name, Object value) {
         return value;
@@ -47,7 +46,7 @@ abstract class JsonConverter implements JsonConvertible {
                 field.setAccessible(true);
                 newValue = convObj.replacer(fieldName(field),
                         field.get(targetObj));
-                if (newValue.equals(IGNORED)) {
+                if (newValue.equals(IGNORE)) {
                     continue;
                 }
                 if (!(JSON.isNativeType(newValue) || newValue.getClass().isArray())) {
@@ -83,7 +82,7 @@ abstract class JsonConverter implements JsonConvertible {
 // 
                         Object newValue = convObj.reviver(fieldName(field),
                                 ((Json) json).get(fieldName));
-                        if (newValue.equals(IGNORED)) {
+                        if (newValue.equals(IGNORE)) {
                             continue;
                         }
                         Class fieldCls = field.getType();
@@ -126,7 +125,7 @@ abstract class JsonConverter implements JsonConvertible {
                         continue;
                     }
                     if (convPkg != clsPkg) {
-// for different packages accessible inherited protected fields
+// inherited protected fields are visible in different packages.
                         if (!(cls.isAssignableFrom(convCls) 
                                 && (modifiers & Modifier.PROTECTED) == 0)) {
                             continue;
@@ -141,7 +140,7 @@ abstract class JsonConverter implements JsonConvertible {
             }
             cls = cls.getSuperclass();
         }
-        return accessibleFields.values().toArray(new Field[]{});
+        return accessibleFields.values().toArray(new Field[0]);
     }
 
     private String fieldName(Field field) {

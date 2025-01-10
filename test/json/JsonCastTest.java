@@ -10,8 +10,8 @@ import org.miktim.json.Json;
 
 public class JsonCastTest {
     public static class Foo {
-        public int i = 0;
-        public String s = "zero";
+        public int i;// = 0;
+        public String s;// = "zero";
         public Foo() {};
         public Foo(int i, String s) {
             this.i = i;

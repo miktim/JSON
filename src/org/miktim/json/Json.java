@@ -1,5 +1,5 @@
 /**
- * Json class, MIT (c) 2020-2024 miktim@mail.ru
+ * Json class, MIT (c) 2020-2025 miktim@mail.ru
  * Java representation of a JSON object.
  *
  * Release notes:
@@ -86,10 +86,10 @@ public class Json extends LinkedHashMap<String, Object> {
     <T> T superPut(String key, T value) {
         return (T) super.put(key, value);
     }
-            
+
     @Override
     public Object put(String key, Object value) {
-        
+
         if (value != null) {
             Class cls = value.getClass();
             if (!cls.isPrimitive()) {
@@ -100,7 +100,7 @@ public class Json extends LinkedHashMap<String, Object> {
                 }
             }
         }
-        
+
         return super.put(key == null ? "null" : key, value);
     }
 
@@ -110,12 +110,12 @@ public class Json extends LinkedHashMap<String, Object> {
     }
 
     @SuppressWarnings({"unchecked"})
-    public <T>T get(Object memberName, int... indices) {
-        T obj = (T)get(String.valueOf(memberName));
+    public <T> T get(Object memberName, int... indices) {
+        T obj = (T) get(String.valueOf(memberName));
         for (int i = 0; i < indices.length; i++) {
-          obj = (T)Array.get(obj, indices[i]);
+            obj = (T) Array.get(obj, indices[i]);
         }
-        return (T)obj;
+        return (T) obj;
     }
 
     public Json getJson(String memberName, int... indices) {
@@ -135,16 +135,8 @@ public class Json extends LinkedHashMap<String, Object> {
     }
 
     public Object[] getArray(String memberName, int... indices) {
-        Object obj = get(memberName, indices);
-        Class cls = obj.getClass();
-        if (cls == Object[].class) {
-            return (Object[]) obj;
-        } else if (cls.isArray()) {
-//            return (Object[]) JSON.cast(Object[].class, obj);
-        }
-        return (Object[]) obj; // throws ClassCastException
+        return (Object[]) get(memberName, indices); // throws ClassCastException
     }
-
 
 // casting by sample or class the value of a member or element of an array
     @SuppressWarnings("unchecked")
@@ -156,40 +148,23 @@ public class Json extends LinkedHashMap<String, Object> {
     public <T> T castMember(Class<T> cls, String memberName, int... indices) {
         return JSON.cast(cls, (T) get(memberName, indices));
     }
-/*
-    public Json normalize() throws IOException, ParseException {
-        return (Json) JSON.fromJSON(this.toString()); // :)
-    }
-*/
+
     public static class Converter extends JsonConverter {
 
-        public Converter() {
+        Converter() { }
 
-        }
-
-    @SuppressWarnings("unchecked")
-    public Json toJson(Object targetObj) {
+        @SuppressWarnings("unchecked")
+        public Json toJson(Object targetObj) {
 //            throws IllegalArgumentException, IllegalAccessException {
-        return unload(this, targetObj);
-    }
+            return unload(this, targetObj);
+        }
 
-    @SuppressWarnings("unchecked")
-    public <T> T fromJson(Object targetObj, Json jsonObj) {
+        @SuppressWarnings("unchecked")
+        public <T> T fromJson(Object targetObj, Json jsonObj) {
 //            throws IllegalArgumentException, IllegalAccessException {
-        return (T) load(this, targetObj, jsonObj);
+            return (T) load(this, targetObj, jsonObj);
+        }
     }
-/*
-        @Override
-        public Object replacer(String name, Object value) {
-             return value;
-        }
-
-        @Override
-        public Object reviver(String name, Object value) {
-            return value;
-        }
-*/
-    }    
 
     public static Converter converter = new Converter();
 }
