@@ -22,6 +22,7 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.lang.reflect.Array;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.InvocationTargetException;
 import java.text.ParseException;
 
 public class JSON {
@@ -124,13 +125,14 @@ public class JSON {
     }
     
     public static boolean isNativeClass(Class clazz) {
+        if (clazz == null) return true;
         Class<?> cls = JSON.getElementClass(clazz);
-        return cls.equals(Number.class)
+        return Number.class.isAssignableFrom(cls)//cls.equals(Number.class)
                 || cls.equals(String.class)
                 || cls.equals(Boolean.class)
                 || cls.equals(Character.class)
-                || cls.equals(Json.class)
-                || cls.getSuperclass().equals(Number.class);
+                || cls.equals(Json.class);
+//                || cls.getSuperclass().equals(Number.class);
     }
 
     interface CastAdapter {
@@ -195,10 +197,9 @@ public class JSON {
 // https://stackoverflow.com/questions/6094575/creating-an-instance-using-the-class-name-and-calling-constructor
     static Object createInstance(Class<?> clazz) {
         try {
-//            Class<?> clazz = obj.getClass();
             Constructor<?> ctor = clazz.getConstructor();
             return ctor.newInstance();//new Object[0]);
-        } catch (Exception ex) {
+        } catch (IllegalAccessException | IllegalArgumentException | InstantiationException | NoSuchMethodException | SecurityException | InvocationTargetException ex) {
             throw new ClassCastException(ex.getMessage());
         }
     }

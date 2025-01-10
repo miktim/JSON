@@ -46,7 +46,7 @@ public abstract class JsonConverter implements JsonConvertible {
                 field.setAccessible(true);
                 newValue = convObj.replacer(fieldName(field),
                         field.get(targetObj));
-                if (newValue.equals(IGNORE)) {
+                if (newValue == IGNORE) {
                     continue;
                 }
                 if (!(JSON.isNativeType(newValue) || newValue.getClass().isArray())) {
@@ -68,6 +68,7 @@ public abstract class JsonConverter implements JsonConvertible {
                 convObj = (JsonConvertible) targetObj;
             }
             json = convObj.reviver(targetObj.getClass().getName(), json);
+            if (json == null) return null;
             if (json instanceof Json) {
                 Field[] fields = getAccessibleFields(convObj, targetObj);
                 int ignored = Modifier.FINAL | Modifier.TRANSIENT;
@@ -82,11 +83,12 @@ public abstract class JsonConverter implements JsonConvertible {
 // 
                         Object newValue = convObj.reviver(fieldName(field),
                                 ((Json) json).get(fieldName));
-                        if (newValue.equals(IGNORE)) {
+                        if (newValue == IGNORE) {
                             continue;
                         }
                         Class fieldCls = field.getType();
-                        if (!(JSON.isNativeClass(fieldCls)
+                        if (!(JSON.isNativeClass(fieldCls) 
+                                || newValue == null || value == null
                                 || newValue.getClass().equals(fieldCls)
                                 || fieldCls.isArray())) {
                             newValue = Json.converter.fromJson(value, (Json) newValue);
@@ -127,7 +129,7 @@ public abstract class JsonConverter implements JsonConvertible {
                     if (convPkg != clsPkg) {
 // inherited protected fields are visible in different packages.
                         if (!(cls.isAssignableFrom(convCls) 
-                                && (modifiers & Modifier.PROTECTED) == 0)) {
+                                && (modifiers & Modifier.PROTECTED) > 0)) {
                             continue;
                         }
                     }

@@ -3,10 +3,12 @@
  */
 //package json; 
 
-import java.lang.reflect.Modifier;
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.io.BufferedInputStream;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import org.miktim.json.JSON;
 import org.miktim.json.Json;
+import org.miktim.json.JsonConvertible;
 import org.miktim.json.JsonObject;
 
 public class JsonObjectTest {
@@ -18,241 +20,135 @@ public class JsonObjectTest {
         System.out.println();
     }
 
-    static class F extends E {
-
-        public D objFD = new D();
-        public String pubFs = "pub Fs";
-        protected String proFs = "pro Fs";
-        String defFs = "def Fs";
-        private String privFs = "priv Fs";
-// debug fields
-        public transient ArrayList<String> namesReplaced = new ArrayList<>();
-        public transient ArrayList<String> namesRevived = new ArrayList<>();
-        public transient boolean enableNames = true;
-// TODO: objC
-        public C objFC = new C();
-
-        F() {
+    static void isOk(boolean res) {
+        if (res) {
+            log("Ok");
+        } else {
+            log("Failed!");
+            System.exit(1);
         }
+    }
+    
+    public static class BIS extends BufferedInputStream implements JsonConvertible {
 
         @Override
         public Object replacer(String name, Object value) {
-            if (enableNames) {
-                log(name);
-            }
-            namesReplaced.add(name);
             return value;
         }
 
         @Override
         public Object reviver(String name, Object value) {
-            if (enableNames) {
-                log(name);
-            }
-            namesRevived.add(name);
-            return value;
+            throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        }
+
+        BIS(InputStream in) {
+            super(in);
+        }
+     }
+    
+    public static class BarBar extends JsonObject {
+        Bar defBB = new Bar();
+        public BarBar(){
+            
         }
     }
+    
+    public static class Bar extends Foo implements JsonConvertible {
 
-    static class E extends JsonObject {
+        public String pubB; // visible
+        String defB; // visible
+        protected String proB; // visible
+        private String priB; // visible
+        public transient String pubtB; // ignored
+        public final String pubfB = "public final"; // ignored
+        Foo defBF; // bad choice! MUST be initialized!
+        transient boolean fillIn = false;
 
-        public String pubEs = "pub Es";
-        protected String proEs = "pro Es";
-        String defEs = "def Es";
-        private String priEs = "pri Es";
-        public transient String transEs = "trans Es";
-
-        E() {
-        }
-    }
-
-    static class D {
-
-        protected String proDs = "pro Ds";
-        public int pubDi = 123;
-        String defDs = "def Ds";
-        public C[] pubDaC = new C[]{new C(), new C(1, "one"), new C(2, "two")};
-        private String priDs = "priv Ds";
-
-        D() {
-        }
-
-        D(int i, String s) {
-            pubDi = i;
-            defDs = s;
-        }
-    }
-
-    public static class C extends JsonObject {
-
-        int defCi = 0;
-        String defCs = "zero";
-
-        public C() {
-        }
-
-        public C(int i, String s) {
-            defCi = i;
-            defCs = s;
-        }
-    }
-
-    public static class B extends A {
-
-        double defBd = 123.123;
-        D defBD = new D();
-
-        B() {
+        public Bar() {
             super();
         }
 
         @Override
         public Object replacer(String name, Object value) {
-//            log(name);
-            try {
-                if (name.indexOf(':') < 0) { // first call
-                    return (new Json()).set("set_aD", get_Ad());
-                } else if (name.endsWith(":BD")) {
-//                    return toJson(value);
-                }
-            } catch (IndexOutOfBoundsException e) {
-                e.printStackTrace();
-            }
-            return super.replacer(name, value); // TODO wrong approach
+            if(fillIn && !(name.indexOf(':') < 0 || name.endsWith(":defBF")))
+// fill String fields with it's name
+                return name;
+            return value;
         }
 
         @Override
         public Object reviver(String name, Object value) {
-            try {
-                if (name.indexOf(':') < 0) { // first call
-// load a.priv_ad by setter
-                    set_Ad(((Json)value).castMember(get_Ad(), "set_aD"));
-                    return IGNORE; // terminate loading
-                } else if (name.endsWith(":BD")) {
-//                    return fromJson(bD, (Json) value);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            return super.reviver(name, value); // TODO wrong approach!
+            return value;
         }
     }
 
-    public static class A extends JsonObject {
+    public static class Foo {
 
-//        public String pub_aS = "public aS";
-//        final String fin_aS = "final aS";
-//        private String pri_aS = "private aS";
-//        public String pro_aS = "public aS";
-        public transient String transAs = "trans As";
-        private double priAd = 3.14159;
-        int[][] defAai = new int[][]{{1, 2}, {3, 4}};
-        HashMap<Integer, C> defAmpC = new HashMap<>();
-        public C[] pubAaC = new C[]{new C(), new C(1, "one"), new C(2, "two")};
+        public String pub; // visible
+        String def = "default"; // invisible in the converter
+        protected String pro = "protected"; // invisible in the converter
+        private String pri = "private"; // invisible in the converter
+        public transient String pubt = "public transient"; // ignored
+        public final String pubf = "public final"; // ignored
 
-        A() {
-            defAmpC.put(3, new C(1, "one"));
-            defAmpC.put(2, new C(2, "two"));
-            defAmpC.put(1, new C(3, "three"));
+        public Foo() {
         }
-
-        public double get_Ad() {
-            return priAd;
-        }
-
-        public void set_Ad(double ad) {
-            this.priAd = ad;
-        }
-
-        @Override
-        @SuppressWarnings("unchecked")
-        public Object replacer(String name, Object value) {
-            if (name.endsWith(":defAmpC") && value != null) {
-// unload Map
-                Json j = new Json();
-                for (HashMap.Entry<Integer, C> entry : ((HashMap<Integer, C>) value).entrySet()) {
-                    j.set(entry.getKey(), Json.converter.toJson(entry.getValue()));
-                }
-                return new Json("HashMap", j);
-            }
-            return value;
-        }
-
-        @Override
-        public Object reviver(String name, Object value) {
-            if (name.endsWith(":defAmpC") && value != null) {
-// load Map
-                defAmpC.clear();
-                Json j = ((Json) value).getJson("HashMap");
-                for (String key : j.listNames()) {
-                    C c = Json.converter.fromJson(new C(), j.getJson(key));
-                    defAmpC.put(new Integer(key), c);
-                }
-                return IGNORE; // loading terminated
-            }
-//
-            return value;
-        }
-
     }
 
     public static void main(String[] args) throws Exception {
         log("\n\rJsonObject test");
-        Json j;
+ 
+        log("\n\rFoo instance to/from Json:");
+        Foo foo = new Foo();
+        Json jf = Json.converter.toJson(foo);
+        log(jf);
+        Json.converter.fromJson(foo, jf);
+        jf.set("pub", "public");
+        Json.converter.fromJson(foo, jf);
+        log(Json.converter.toJson(foo));
+        isOk(foo.pub.equals("public"));
+        
+        log("\n\rBar instance to/from Json:");
+        Bar bar = new Bar();
+        Json jb = Json.converter.toJson(bar);
+        log(jb);
+        isOk(jb.listNames().length == 8);
+        Json.converter.fromJson(bar, jb);
+        
+// Foo bar.defBF not initialized. But Foo has public default constructor.        
+        bar.fillIn = true; // fill String fields with it's name in replacer
+        jb = Json.converter.toJson(bar);
+        bar.fillIn = false;
+        jb.set("defBF", jf);
+        Json.converter.fromJson(bar, jb);
+        jb = Json.converter.toJson(bar);
+        log(jb);
+// !from Bar constructor accessible 5 Foo fields        
+        isOk(jb.getJson("defBF").listNames().length == 1); 
 
-        log("\n\r A instance to/from Json:");
-        A a = new A();
-        j = a.toJson();
-        j.set("pubAaC", new C[]{new C(3, "three"), new C(4, "four")});
-        j.set("defAai", new int[][]{{5},{6}});
-        j.getJson("defAmpC").set("HashMap", new Json());
-        a.fromJson(j);
-        log(a);
-        if (!j.toString().equals(a.toString())) {
-            log(j);
-            log("Failed! ");
-            return;
-        }
-        F f = new F();
-        log("\n\r F instance toJson:");
-        j = Json.converter.toJson(f);
-        log(j);
-//        t.av.enableNames = false;
-        log("\n\r F instance fromJson:"); // TODO inherited B fields???
-        Json.converter.fromJson(f, j);
-        if (f.namesReplaced.size() != f.namesRevived.size()) {
-            log("Failed! ");
-            return;
-        }
-        f.enableNames = false;
-        log(Json.converter.toJson(f));
-        log(" F instance with Json.converter");
-        log(Json.converter.toJson(f));
-        B b = new B();
-        D d = new D(456, "default dS");
+        log("\n\rBarBar instance to/from Json:");
+        BarBar barBar = new BarBar();
+        Json jbb = barBar.toJson();
+        log(jbb);
+        barBar.defBB = null;
+        barBar.fromJson(jbb);
+        isOk(barBar.toJson().getJson("defBB").listNames().length == 8);
 
-        log("\n\r B instance toJson/fromJson :");
-// 
-        String s = ((Json) Json.converter.toJson(b)).toJSON();
-        log(s);
-        Json.converter.fromJson(b, new Json(s));
-
-        log(" B instance with Json.converter:");
-        j = Json.converter.toJson(b);
-        log(j);
-
-        log("\n\r D instance with Json.converter:");
-        j = Json.converter.toJson(d);
-        log(j);
-        log(" load updated Json into new D instance");
-        j.set("proDs", "updated Ds").set("pubDi", 0);
-        d = Json.converter.fromJson(new D(), j);
-        log(Json.converter.toJson(d));
-
-        log("\n\r java.lang.reflect.Modifier instance with Json.converter:");
-        j = Json.converter.toJson(new Modifier());
-        log(j);
-
+        log("\n\rTest protected fields with BufferedInputStream:");
+        FileInputStream fis = new FileInputStream("./Example3.json");
+        BIS bIS = new BIS(fis);
+        Json jbis = Json.converter.toJson(bIS);
+        String[] jbisNames = jbis.listNames();
+        log(JSON.toJSON(jbisNames));
+        isOk(jbisNames.length == 6);
+        BufferedInputStream bis = new BufferedInputStream(fis);
+        jbis = Json.converter.toJson(bis);
+        log(jbis);
+        isOk(jbis.listNames().length == 0);
+        fis.close();
+        
+//        Json.converter.toJson(null); // NullPointerException
+//        bar = Json.converter.fromJson(bar,null); // bar = null
+//        Json.converter.fromJson(null, jb); // NullPointerException
     }
-
 }
