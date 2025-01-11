@@ -185,7 +185,7 @@ Returns null, the value of the Json member, or an array element
 **Json getJson ( String memberName, int... indices ) throws ClassCastException, IndexOutOfBoundsException**  
 Returns a nested Json object. 
   
-**String getString ( String memberName, int... indices ) throws ClassCastException, IndexOutOfBoundsException**
+**String getString ( String memberName, int... indices ) throws ClassCastException, IndexOutOfBoundsException**  
 Casts member or array element to String  
 
 **Number getNumber ( String memberName, int... indices ) throws ClassCastException, IndexOutOfBoundsException**  
@@ -316,16 +316,16 @@ Returned from the replacer/reviver methods to disable conversion by default.
 </p>  
 
 **Object replacer ( String name, Object value );**  
-Applies on unloading to Json object:  
+Called for each field when uploading to a Json object:  
 \- name is object field class and name delimited with colon ( : ), value is object field value;  
 \- the first call with the class name of this object and this object as the value;  
-\- returns Json-supported object or IGNORE.  
+\- returns the parameter value for default conversion, Json-supported object or IGNORE.  
 
 **Object reviver ( String name, Object value );**  
-Applies on loading from Json object:  
+Сalled for each field when loading from a Json object:  
 \- name is object field class and name delimited with colon ( : ), value is Json-supported object;  
 \- the first call with the class name of this object and the Json object as the value;  
-\- returns a convertible value or IGNORE.  
+\- returns the parameter value for default conversion, field-compatible object or IGNORE.  
 
 <p style="background-color: #B0C4DE;">
 &emsp;<b>Example:</b>
@@ -412,7 +412,8 @@ one and five tenths
   
 <a id="JsonObject"></a>
 ### Abstract class JsonObject implements JsonConvertible
-Java object extender. Unload/load a Java object instance to/from a [Json](#JsonClass) object. Notes:  
+  
+The JsonObject abstract class provides JavaScript-like methods for converting Java object into or from [Json](#JsonClass) object. Notes:  
 \- visibility of object fields as from the object constructor (including the privates);  
 \- Java transient and final fields are ignored;  
 \- it is strongly recommended to initialize the convertible fields;  
