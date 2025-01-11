@@ -301,7 +301,7 @@ Loads Json to target object. Returns target object.
 The JsonConvertible interface provides JavaScript-like methods for converting Java object into or from [Json](#JsonClass) object. Notes:  
 \- visibility of object fields as from the object constructor (including the privates);  
 \- Java transient and final fields are ignored;  
-\- it is recommended to initialize the convertible fields;  
+\- it is strongly recommended to initialize the convertible fields;  
 \- requires a public default constructor.  
 
 <p style="background-color: #B0C4DE;">
@@ -309,7 +309,7 @@ The JsonConvertible interface provides JavaScript-like methods for converting Ja
 </p>  
 
 **static final Object IGNORE**  
-Returned from the replacer/reviver methods to disable default conversion.  
+Returned from the replacer/reviver methods to disable conversion by default.  
 
 <p style="background-color: #B0C4DE;">
 &emsp;<b>Methods:</b>
@@ -415,7 +415,7 @@ one and five tenths
 Java object extender. Unload/load a Java object instance to/from a [Json](#JsonClass) object. Notes:  
 \- visibility of object fields as from the object constructor (including the privates);  
 \- Java transient and final fields are ignored;  
-\- it is recommended to initialize the convertible fields;  
+\- it is strongly recommended to initialize the convertible fields;  
 \- requires a public default constructor.  
   
 <p style="background-color: #B0C4DE;">
@@ -423,7 +423,7 @@ Java object extender. Unload/load a Java object instance to/from a [Json](#JsonC
 </p>  
   
 **static final Object IGNORE**  
-Returned from the replacer/reviver methods to disable default conversion.  
+Returned from the replacer/reviver methods to disable conversion by defailt.  
 
 <p style="background-color: #B0C4DE;">
 &emsp;<b>Methods:</b>

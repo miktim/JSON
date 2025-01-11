@@ -64,11 +64,12 @@ public abstract class JsonConverter implements JsonConvertible {
     protected <T> T load(JsonConvertible convObj, T targetObj, Object json) //{
     {
         try {
+            if (json == null || targetObj == null) 
+                throw new NullPointerException();
             if (targetObj instanceof JsonConvertible) {
                 convObj = (JsonConvertible) targetObj;
             }
             json = convObj.reviver(targetObj.getClass().getName(), json);
-            if (json == null) return null;
             if (json instanceof Json) {
                 Field[] fields = getAccessibleFields(convObj, targetObj);
                 int ignored = Modifier.FINAL | Modifier.TRANSIENT;
