@@ -1,4 +1,4 @@
-## Java 7+/Android JSON parser/generator, MIT (c) 2020-2025 @miktim
+## Java SE 7+/Android JSON parser/generator, MIT (c) 2020-2025 @miktim
 
 ### Release notes:  
 
