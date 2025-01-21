@@ -21,7 +21,8 @@ import java.text.ParseException;
 import java.util.LinkedHashMap;
 
 public class Json extends LinkedHashMap<String, Object> {
-
+// TODO: thread safe    
+    
     public Json(InputStream inStream) throws IOException, ParseException {
         super();
         this.putAll((Json) JSON.fromJSON(inStream, "UTF-8"));
@@ -92,15 +93,15 @@ public class Json extends LinkedHashMap<String, Object> {
 
         if (value != null) {
             Class cls = value.getClass();
-            if (!cls.isPrimitive()) {
+            if (!(cls.isPrimitive() || cls == String.class)) {
                 try {
 // TODO: something faster than a double conversion
+// otherwise, it is a deep clone...
                     value = JSON.fromJSON(JSON.toJSON(value));
                 } catch (IOException | ParseException ex) {
                 }
             }
         }
-
         return super.put(key == null ? "null" : key, value);
     }
 

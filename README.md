@@ -350,8 +350,8 @@ public class NamesOfNumbers extends HashMap<Double, String>
     if (name.indexOf(':') < 0) { // first call without field name
 // convert HashMap to Json object
       Json j = new Json();
-      for (Double key : this.keySet().toArray(new Double[0])) {
-        j.put(key.toString(), this.get(key));
+      for (Map.Entry<Double,String> entry : this.entrySet()){
+        j.put(entry.getKey().toString(), entry.getValue());
       }
 // return newly created Json object
       return new Json("HashMap", j);
