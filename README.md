@@ -121,7 +121,8 @@ Put, set notes:
 **Number**, **Boolean** or **String** for chars;  
 \- Java arrays are stored as:  
 **int[ ][ ]** as **Object[ ] { Object[ ] { Number, ... }, Object[ ] { Number, ... } }**, **String[ ]** as **Object[ ] { String, ... }**  
-
+\- **Json getters returns null if the Json member does not exist.**  
+  
 <p style="background-color: #B0C4DE;">
 &emsp;<b>Constructors:</b>
 </p>
@@ -177,7 +178,6 @@ Inherited. Get Json member value or null.
 **Object remove ( String memberName );**  
 Inherited  
   
-**Getters returns null if the Json memeber does not exist.**  
   
 **Object get ( String memberName, int... indices ) throws IndexOutOfBoundsException**  
 Returns null, the value of the Json member, or an array element  
@@ -255,8 +255,9 @@ System.out.printf("%d %s %s\n\r", personId, firstName, homePhone);
 ```
 <a id="Converter"></a>
 ### Static Json.converter  
-Used to convert existing instances of Java objects to/from a Json object.  
-Only the visible fields are converted. The converter ignores the final and transient fields.
+Used to convert instances of Java objects to/from a Json object.  
+For objects that are not JsonConvertible, only the visible fields are converted.  
+The converter ignores the final and transient fields.
 
 <p style="background-color: #B0C4DE;">
 &emsp;<b>Methods:</b>
@@ -288,10 +289,23 @@ Loads Json to target object. Returns target object.
   }
   
   public static void main(String[] args) throws Exception {
-    Foo foo = new Foo();  
-    System.out.println(Json.converter.toJson(foo));
+    Foo foo = new Foo();
+// unload foo to Json      
+    System.out.println(Json.converter.toJson(foo)); 
+// create a Json object
+    Json json = new Json(
+      "pub", "public field",
+      "def", "default field",
+      "pubt", "public transient field");
+// load foo from a Json object.
+// only the public field will be changed.    
+    Json.converter.fromJson(foo, json); 
+    System.out.println(foo.pub);
+    System.out.println(foo.def);
 /* console output:
 {"pub": "public"}
+public field
+default
 */
   }
 ```  
