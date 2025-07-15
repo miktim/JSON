@@ -1,0 +1,2 @@
+TODO:
+- The Json object is not thread-safe. Redefine it using the ConcurrentHashMap or the synchronized map field.
